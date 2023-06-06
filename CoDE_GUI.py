@@ -1,7 +1,7 @@
 import sys
 import time
 import socket
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QTextEdit, QHBoxLayout
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QTextEdit, QHBoxLayout, QLabel, QGridLayout, QLineEdit,QFormLayout
 from PyQt5.QtCore import QThread, pyqtSignal, QDateTime, Qt
 import pyqtgraph as pg
 import numpy as np
@@ -10,9 +10,8 @@ from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import QTabWidget, QVBoxLayout, QWidget
 from PyQt5.QtWidgets import QCheckBox
 from PyQt5 import QtGui, QtCore, QtWidgets
-from PyQt5.QtWidgets import QComboBox, QLabel 
 from serial.tools import list_ports
-from PyQt5.QtWidgets import QLineEdit, QLabel 
+from PyQt5.QtWidgets import QLineEdit, QLabel, QComboBox
 
 class DateAxis(pg.AxisItem):
     def tickStrings(self, values, scale, spacing):
@@ -25,7 +24,7 @@ class SocketThread(QThread):
         QThread.__init__(self)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.bind(('localhost', port))  
+        self.sock.bind(('localhost', port))
         self.sock.listen(1)
         self.running = True
 
@@ -48,7 +47,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setWindowTitle("CoDE Control Software")
-        icon = QtGui.QIcon("/home/code/Development/CoDE.png")  
+        icon = QtGui.QIcon("CoDE.png")  
         self.setWindowIcon(icon)        
         self.tab_widget = QTabWidget()
         self.setCentralWidget(self.tab_widget)
@@ -90,11 +89,11 @@ class MainWindow(QMainWindow):
         self.freq2 = []
 
         self.binary_paths = [
-            '/home/code/Development/core/bin/APD_broker',
-            '/home/code/Development/core/bin/APD_plot_cvt',
-            '/home/code/Development/core/bin/APD_publisher',
-            '/home/code/Development/core/bin/APD_fft',
-            '/home/code/Development/core/bin/APD_reg'
+            'coress/bin/APD_broker',
+            'coress/bin/APD_plot_cvt',
+            'coress/bin/APD_publisher',
+            'core/bin/APD_fft',
+            'core/bin/APD_reg'
         ]
 
         button_layout_1 = QHBoxLayout() 
@@ -195,24 +194,136 @@ class MainWindow(QMainWindow):
         self.layout.addLayout(button_layout_2)
         self.note = QtWidgets.QLabel("Important: To be able to graph the FFT, the 'Plot counts' button must be enabled. Also, if the FFT settings are modified, 'Plot FFT' must be disabled and then enabled for the changes to take effect.")
         self.layout.addWidget(self.note)
+        self.buttons[0].hide()  ###### Se esconden los primeros 2 botones...
+        self.buttons[1].hide()
 
-        
+        # -----------------------------------------
+        # ----------------- Tab 2 -----------------
+        self.layout2 = QGridLayout(self.tab2)
+
+        label_instrument = QLabel("Instrument")
+        label_monitor = QLabel("Monitor")
+        label_setpoint = QLabel("Setpoint")
+        label_instrument.setStyleSheet("text-decoration: underline; font-weight: bold;")
+        label_monitor.setStyleSheet("text-decoration: underline; font-weight: bold;")
+        label_setpoint.setStyleSheet("text-decoration: underline; font-weight: bold;")
+
+        self.layout2.addWidget(label_instrument, 0, 0)
+        self.layout2.addWidget(label_monitor, 0, 1)
+        self.layout2.addWidget(label_setpoint, 0, 2)
+
+        monitor_vacuum_pressure = QLabel("N/A")
+        set_vacuum_pressure = QLineEdit()
+        set_vacuum_pressure.setPlaceholderText("Set pressure")
+        set_vacuum_pressure.setFixedWidth(100)
+        btn_vacuum_pressure = QPushButton("Set")
+        self.layout2.addWidget(QLabel("Vacuum Presure:"), 1, 0)
+        self.layout2.addWidget(monitor_vacuum_pressure, 1, 1)
+        self.layout2.addWidget(set_vacuum_pressure, 1, 2)
+        self.layout2.addWidget(btn_vacuum_pressure, 1, 3)
+
+        monitor_speed_motor = QLabel("N/A")
+        set_speed_motor = QLineEdit()
+        set_speed_motor.setPlaceholderText("Set speed")
+        set_speed_motor.setFixedWidth(100)
+        btn_speed_motor = QPushButton("Set")
+        self.layout2.addWidget(QLabel("Speed Motor:"), 2, 0)
+        self.layout2.addWidget(monitor_speed_motor, 2, 1)
+        self.layout2.addWidget(set_speed_motor, 2, 2)
+        self.layout2.addWidget(btn_speed_motor, 2, 3)
+
+        monitor_valve_state = QLabel("N/A")
+        set_valve_state = QLineEdit()
+        set_valve_state.setPlaceholderText("Set state")
+        set_valve_state.setFixedWidth(100)
+        btn_valve_state = QPushButton("Set")
+        self.layout2.addWidget(QLabel("Valve State:"), 3, 0)
+        self.layout2.addWidget(monitor_valve_state, 3, 1)
+        self.layout2.addWidget(set_valve_state, 3, 2)
+        self.layout2.addWidget(btn_valve_state, 3, 3)
+
+        monitor_bomb_power = QLabel("N/A")
+        btn_boost = QPushButton("Set")
+        self.layout2.addWidget(QLabel("Bomb Power:"), 4, 0)
+        self.layout2.addWidget(monitor_bomb_power, 4, 1)
+        self.layout2.addWidget(btn_boost, 4, 3)
+
+        monitor_temperature = QLabel("N/A")
+        self.layout2.addWidget(QLabel("Temperature:"), 5, 0)
+        self.layout2.addWidget(monitor_temperature, 5, 1)
+
+        self.layout2.setRowStretch(6, 1)
+
+        # ---------------------------------------- 
+        # ----------------- Tab 3 -----------------
+        # ----------------------------------------  
+        # ----------------- Tab 4 -----------------
+        self.layout4 = QGridLayout(self.tab4)
+
+        input_mass = QLineEdit()
+        self.layout4.addWidget(QLabel("Mass:"), 1, 0)
+        self.layout4.addWidget(input_mass, 1, 1)
+
+        input_charge = QLineEdit()
+        self.layout4.addWidget(QLabel("Charge:"), 2, 0)
+        self.layout4.addWidget(input_charge, 2, 1)
+
+        input_q = QLineEdit()
+        self.layout4.addWidget(QLabel("q:"), 3, 0)
+        self.layout4.addWidget(input_q, 3, 1)
+
+        input_voltage = QLineEdit()
+        self.layout4.addWidget(QLabel("Voltage:"), 4, 0)
+        self.layout4.addWidget(input_voltage, 4, 1)
+
+        input_frequency = QLineEdit()
+        self.layout4.addWidget(QLabel("Frequency:"), 5, 0)
+        self.layout4.addWidget(input_frequency, 5, 1)
+
+        btn_trap = QPushButton("On/Off")
+        btn_trap.setCheckable(True)
+        btn_trap.setFixedHeight(200)
+        btn_trap.setFixedWidth(200)
+        self.layout4.addWidget(btn_trap, 1, 3, 6, 1)
+
+        btn_calculate = QPushButton("Calculate")
+        btn_calculate.clicked.connect(lambda: print('AAAAAAAAAAAAAAAA'))
+        self.layout4.addWidget(btn_calculate, 6, 1)
+
+        self.graph_voltage_trap = pg.PlotWidget(axisItems={'bottom': DateAxis(orientation='bottom')})
+        self.layout4.addWidget(self.graph_voltage_trap, 7, 0, 1, 4)
+        self.graph_voltage_trap.setLabel('left', 'Voltage (V)')
+        self.graph_voltage_trap.setLabel('bottom', 'Time (s)')
+        self.graph_voltage_trap.showGrid(x=True, y=True)
+        self.graph_voltage_trap.setYRange(-0.1, 0.1)
+        self.graph_voltage_trap.setXRange(0, 10)
+
+        # ----------------------------------------
+        # ----------------- Tab 5 -----------------
+        # ----------------------------------------
+        # ----------------- Tab 6 -----------------
+        # ----------------------------------------
+        # ----------------- Tab 7 -----------------
+        # ----------------------------------------   
+
+
+    # ------------- Functions ----------------
     def update_serial_ports(self):    
         self.serialPortsCombobox.clear()
         ports = list_ports.comports()
         for port in ports:
             self.serialPortsCombobox.addItem(port.device) 
-    
+
     def toggle_process(self, i, checked):
         sender = self.sender()
         button_names = ["Server", "Counts plot", "Plot counts", "Plot FFT", "Export counts data"] 
         if checked:
             if i == 2: 
-            	sender.setText(button_names[i])
-            	sender.setStyleSheet("background-color: darkblue; color: white;") 
-            	selected_port = self.serialPortsCombobox.currentText()
-            	self.processes[i] = subprocess.Popen([self.binary_paths[i], str(selected_port)]) 
-            	self.threads[i].start()       
+                sender.setText(button_names[i])
+                sender.setStyleSheet("background-color: darkblue; color: white;") 
+                selected_port = self.serialPortsCombobox.currentText()
+                self.processes[i] = subprocess.Popen([self.binary_paths[i], str(selected_port)]) 
+                self.threads[i].start()       
             if i == 3:  
                 self.threads[-1].signal.connect(self.update_graph2)
                 self.threads[-1].start()            
@@ -226,10 +337,10 @@ class MainWindow(QMainWindow):
                 self.processes[i] = subprocess.Popen([self.binary_paths[i], apd_fft_arg, str(fft_window_value), str(sampling_freq_value)])
                 self.threads[i].start()
             else:
-            	sender.setText(button_names[i])
-            	sender.setStyleSheet("background-color: darkblue; color: white;")             	
-            	self.processes[i] = subprocess.Popen([self.binary_paths[i]])
-            	self.threads[i].start()
+                sender.setText(button_names[i])
+                sender.setStyleSheet("background-color: darkblue; color: white;")             	
+                self.processes[i] = subprocess.Popen([self.binary_paths[i]])
+                self.threads[i].start()
             print(f"Process {i + 1} started.")
         else:
             if self.processes[i]:
@@ -240,8 +351,8 @@ class MainWindow(QMainWindow):
                 self.processes[i] = None
                 print(f"Process {i + 1} stopped.")
 
-        self.buttons[0].hide()  ###### Se esconden los primeros 2 botones...
-        self.buttons[1].hide()
+
+
 
     def update_graph1(self, text):
         parts_counts = text.split()
@@ -315,8 +426,8 @@ class MainWindow(QMainWindow):
         else:  # 100kHz
             self.graph2.plotItem.setXRange(np.log10(1), np.log10(55000))
         self.graph2.plotItem.setYRange(-0.1, 1.1)
-        self.graph2.update()        
-    
+        self.graph2.update()  
+
     def closeEvent(self, event):
         for process in self.processes:
             if process is not None:
@@ -364,4 +475,3 @@ if __name__ == "__main__":
         QtWidgets.QMessageBox.critical(None, "Error", error_message)
         with open("error.log", "a") as log_file:
             log_file.write(error_message)
-
