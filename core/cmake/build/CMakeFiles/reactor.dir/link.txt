@@ -1,0 +1,2 @@
+/usr/bin/ar qc libreactor.a CMakeFiles/reactor.dir/reactor/PublisherReactor.cc.o CMakeFiles/reactor.dir/reactor/SubscriberReactor.cc.o
+/usr/bin/ranlib libreactor.a

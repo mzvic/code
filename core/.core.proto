@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package core;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service Broker {
+  rpc Publish (stream Bundle) returns (google.protobuf.Empty);
+  rpc Subscribe (google.protobuf.Empty) returns (stream Bundle);
+}
+
+enum Type {
+  TYPE_UNSPECIFIED = 0;
+  TYPE_VOLTAGE_A = 1;
+  TYPE_CURRENT_A = 2;
+  TYPE_HARMONICS_A = 3;
+  TYPE_GPS_LAT = 4;
+  TYPE_GPS_LON = 5;
+  TYPE_GPS_ALT = 6;
+}
+
+message Bundle {
+  repeated google.protobuf.Timestamp timestamp = 1;
+  //repeated int32 apd = 2;  
+  repeated int64 sec = 2;
+  repeated int32 nan = 3;
+  repeated int32 apd = 4;
+}
+
+message Num {
+  Type type = 1;
+  double value = 2;
+}
+
+message Arr {
+  Type type = 1;
+  repeated double value = 2;
+}
+
+message Str {
+  Type type = 1;
+  string value = 2;
+}

@@ -1,0 +1,8 @@
+/home/code/Development/coress/CMakeFiles/edit_cache.dir
+/home/code/Development/coress/CMakeFiles/rebuild_cache.dir
+/home/code/Development/coress/CMakeFiles/subscriber5.dir
+/home/code/Development/coress/CMakeFiles/publisher5.dir
+/home/code/Development/coress/CMakeFiles/core_grpc_proto.dir
+/home/code/Development/coress/CMakeFiles/reactor.dir
+/home/code/Development/coress/CMakeFiles/client.dir
+/home/code/Development/coress/CMakeFiles/broker.dir
