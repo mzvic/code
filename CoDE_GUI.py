@@ -243,10 +243,10 @@ class MainWindow(QMainWindow):
         self.layout2.addWidget(btn_valve_state, 3, 3)
 
         monitor_bomb_power = QLabel("N/A")
-        btn_boost = QPushButton("Set")
+        # btn_boost = QPushButton("Set")
         self.layout2.addWidget(QLabel("Bomb Power:"), 4, 0)
         self.layout2.addWidget(monitor_bomb_power, 4, 1)
-        self.layout2.addWidget(btn_boost, 4, 3)
+        # self.layout2.addWidget(btn_boost, 4, 3)
 
         monitor_temperature = QLabel("N/A")
         self.layout2.addWidget(QLabel("Temperature:"), 5, 0)
@@ -268,9 +268,9 @@ class MainWindow(QMainWindow):
         self.layout4.addWidget(QLabel("Charge:"), 2, 0)
         self.layout4.addWidget(input_charge, 2, 1)
 
-        input_q = QLineEdit()
-        self.layout4.addWidget(QLabel("q:"), 3, 0)
-        self.layout4.addWidget(input_q, 3, 1)
+        input_geometrical = QLineEdit()
+        self.layout4.addWidget(QLabel("Geometrical Parameter:"), 3, 0)
+        self.layout4.addWidget(input_geometrical, 3, 1)
 
         input_voltage = QLineEdit()
         self.layout4.addWidget(QLabel("Voltage:"), 4, 0)
@@ -287,16 +287,42 @@ class MainWindow(QMainWindow):
         self.layout4.addWidget(btn_trap, 1, 3, 6, 1)
 
         btn_calculate = QPushButton("Calculate")
-        btn_calculate.clicked.connect(lambda: print('AAAAAAAAAAAAAAAA'))
-        self.layout4.addWidget(btn_calculate, 6, 1)
+        self.layout4.addWidget(btn_calculate, 7, 1)
+
+        q_calculated = QLabel("N/A")
+        self.layout4.addWidget(QLabel("q:"), 6, 0)
+        self.layout4.addWidget(q_calculated, 6, 1)
+
 
         self.graph_voltage_trap = pg.PlotWidget(axisItems={'bottom': DateAxis(orientation='bottom')})
-        self.layout4.addWidget(self.graph_voltage_trap, 7, 0, 1, 4)
+        self.layout4.addWidget(self.graph_voltage_trap, 8, 0, 1, 4)
         self.graph_voltage_trap.setLabel('left', 'Voltage (V)')
         self.graph_voltage_trap.setLabel('bottom', 'Time (s)')
         self.graph_voltage_trap.showGrid(x=True, y=True)
         self.graph_voltage_trap.setYRange(-0.1, 0.1)
         self.graph_voltage_trap.setXRange(0, 10)
+
+        def calculate_q():
+            geometrical = input_geometrical.text()
+            frequency = input_frequency.text()
+            mass = input_mass.text()
+            charge = input_charge.text()
+            voltage = input_voltage.text()
+            if geometrical == "" or frequency == "" or mass == "" or charge == "" or voltage == "":
+                q = "Missing data"
+            elif float(geometrical) == 0 or float(frequency) == 0 or float(mass) == 0:
+                q = "Division by zero"
+            else:
+                mass = float(mass)
+                charge = float(charge)
+                geometrical = float(geometrical)
+                voltage = float(voltage)
+                frequency = float(frequency)
+                q = (4 * charge * voltage) / (geometrical**2 * frequency * mass)
+            q_calculated.setText(str(q))
+            
+        btn_calculate.clicked.connect(calculate_q)
+
 
         # ----------------------------------------
         # ----------------- Tab 5 -----------------
