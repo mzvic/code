@@ -23,26 +23,41 @@ void Process(const Bundle &bundle) {
     Timestamp timestamp;
     int accum = 0;
     int apd_size;
-    int64_t sec;
-    int32_t nsec;
+    int64_t sec = 0;
+    int32_t nsec = 0;   
     sec = bundle.timestamp().seconds();
     nsec = bundle.timestamp().nanos();
+    int64_t sec_i = 0;
+    int32_t nsec_i = 0;    
     apd_size = bundle.apd().size();
-    std::cout << "-----------> APD_size: " << apd_size << std::endl;
+    data2send = "";
+    //std::cout << "-----------> APD_size: " << apd_size << std::endl;
 	for (int i = 0; i < bundle.apd().size(); ++i) {
 		accum = accum + bundle.apd().Get(i);	
 		//std::cout << bundle.apd().size() << std::endl;
-		if (i == apd_size - 1) {
+		if (i == apd_size/5 - 1 ||
+		    i == apd_size*2/5 - 1 ||
+		    i == apd_size*3/5 - 1 ||
+		    i == apd_size*4/5 - 1 ||
+		    i == apd_size - 1) {
+			nsec_i = nsec + i * 10000;
+			sec_i = sec;
+			if (nsec_i > 999999999){
+				sec_i = sec + 1;
+				nsec_i = nsec_i%1000000000;
+			}		    
             std::stringstream ss;
-            ss << std::setw(9) << std::setfill('0') << nsec;
+            ss << std::setw(9) << std::setfill('0') << nsec_i;
             std::string nsec_i_str = ss.str();
-            data2send = "";
-            data2send = std::to_string(sec) + "." + nsec_i_str + " " + std::to_string(accum) + "\n";
+            data2send = data2send + std::to_string(sec_i) + "." + nsec_i_str + " " + std::to_string(accum)+ " ";
             //std::cout << data2send << std::endl;
-            send2Socket(data2send);
 			accum = 0;
 		}
 	}
+	data2send = data2send + "\n";
+	send2Socket(data2send);
+	std::cout << data2send << apd_size << std::endl;
+	data2send = "";
 }
 
 int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) {

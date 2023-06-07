@@ -384,11 +384,33 @@ class MainWindow(QMainWindow):
 
     def update_graph1(self, text):
         parts_counts = text.split()
-        timestamp = parts_counts[0]
-        value = parts_counts[1]
-        self.data1.append(float(value))
-        self.times1.append(float(timestamp))
-
+        counts_data_len = len(parts_counts) 
+        timestamp1 = parts_counts[0]
+        value1 = parts_counts[1]
+        timestamp2 = parts_counts[2]
+        value2 = parts_counts[3]
+        timestamp3 = parts_counts[4]
+        value3 = parts_counts[5]
+        timestamp4 = parts_counts[6]
+        value4 = parts_counts[7]
+        timestamp5 = parts_counts[8]
+        value5 = parts_counts[9]                                
+        self.data1.append(float(value1))
+        self.times1.append(float(timestamp1))
+        self.data1.append(float(value2))
+        self.times1.append(float(timestamp2))
+        self.data1.append(float(value3))
+        self.times1.append(float(timestamp3))
+        self.data1.append(float(value4))
+        self.times1.append(float(timestamp4))
+        self.data1.append(float(value5))
+        self.times1.append(float(timestamp5))  
+        for i in range(0, counts_data_len, 2):
+            timestamp = float(parts_counts[i])
+            value = float(parts_counts[i + 1])
+            self.times1.append(timestamp) 
+            self.data1.append(value)
+                      
         current_time = time.time()
         cut_off_time = current_time - 15
         self.times1 = [t for t in self.times1 if t >= cut_off_time]
@@ -404,8 +426,8 @@ class MainWindow(QMainWindow):
         self.freq2.clear()
         self.graph2.clear()
         parts_fft = text.split()
-        data_len = len(parts_fft)        
-        if data_len % 2 != 0:
+        fft_data_len = len(parts_fft)        
+        if fft_data_len % 2 != 0:
             self.data2.clear()
             self.freq2.clear()
             self.graph2.clear()
@@ -414,7 +436,7 @@ class MainWindow(QMainWindow):
         freq_vals = []
         magn_vals = []
 
-        for i in range(0, data_len, 2):
+        for i in range(0, fft_data_len, 2):
             freq = float(parts_fft[i])
             magn = float(parts_fft[i + 1])
             freq_vals.append(freq)
