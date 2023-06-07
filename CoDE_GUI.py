@@ -385,26 +385,7 @@ class MainWindow(QMainWindow):
     def update_graph1(self, text):
         parts_counts = text.split()
         counts_data_len = len(parts_counts) 
-        timestamp1 = parts_counts[0]
-        value1 = parts_counts[1]
-        timestamp2 = parts_counts[2]
-        value2 = parts_counts[3]
-        timestamp3 = parts_counts[4]
-        value3 = parts_counts[5]
-        timestamp4 = parts_counts[6]
-        value4 = parts_counts[7]
-        timestamp5 = parts_counts[8]
-        value5 = parts_counts[9]                                
-        self.data1.append(float(value1))
-        self.times1.append(float(timestamp1))
-        self.data1.append(float(value2))
-        self.times1.append(float(timestamp2))
-        self.data1.append(float(value3))
-        self.times1.append(float(timestamp3))
-        self.data1.append(float(value4))
-        self.times1.append(float(timestamp4))
-        self.data1.append(float(value5))
-        self.times1.append(float(timestamp5))  
+ 
         for i in range(0, counts_data_len, 2):
             timestamp = float(parts_counts[i])
             value = float(parts_counts[i + 1])
