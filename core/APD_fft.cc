@@ -50,9 +50,7 @@ class BrokerClient {
 public:
 
     BrokerClient(std::shared_ptr<Channel> channel) : stub(Broker::NewStub(channel)) {
-        boost::asio::io_service io_service;
-        socket_ = std::make_shared<boost::asio::ip::tcp::socket>(io_service);
-        socket_->connect(boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 12352));
+
     }
 
     void Subscribe(int segments) {
@@ -84,7 +82,7 @@ private:
 
 	void push_data(std::vector<int32_t> data) {
 		std::unique_lock<std::mutex> lock(data_mtx);
-		std::cout << "-----------> Tamaño cola: " << data_queue.size() << std::endl;
+		//std::cout << "-----------> Tamaño cola: " << data_queue.size() << std::endl;
 		data_queue.push(std::move(data));
 		lock.unlock();
 		cv.notify_all();
@@ -131,7 +129,7 @@ void send2Socket(std::vector<double> magnitudes_fft, double f_dt_rx, int BUFFER_
         //socket_->shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 }
 
-void process_data(int segments) {
+void process_data() {
     std::vector<int32_t> data;
     std::vector<double> input_fft(BUFFER_SIZE, 0);
     std::vector<double> input_fft_windowed(BUFFER_SIZE);
@@ -186,15 +184,23 @@ void process_data(int segments) {
                 lock.unlock();
             }
         }
-        
         std::unique_lock<std::mutex> output_lock(output_mtx);
-        input_fft.erase(input_fft.begin());
-        input_fft.emplace_back(data[0]);
+        
+        while (!data.empty()) {
+            input_fft.erase(input_fft.begin());
+            input_fft.emplace_back(data.front());
+            data.erase(data.begin());
+        }
 
+        //input_fft.erase(input_fft.begin());
+        //input_fft.emplace_back(data[0]);
+        //std::cout << "-----------> Tamaño data: " << data.size() << std::endl;
+        std::cout << "-----------> Tamaño data_queue: " << data_queue.size() << std::endl;
 		double mean = 0;
 		for (int i = 0; i < BUFFER_SIZE; i++) {
 			mean += input_fft[i];
 		}
+		
 		mean /= BUFFER_SIZE;
 		for (int i = 0; i < BUFFER_SIZE; i++) {
 			input_fft[i] -= mean;					// Substracting average to input_fft to reduce DC component (uncomment to substract)
@@ -225,7 +231,6 @@ void process_data(int segments) {
             } else {
                 imag_part = 0.0;
             }
-
             magnitudes[i] = std::sqrt(real_part * real_part + imag_part * imag_part);
         }
 
@@ -266,6 +271,9 @@ void send_fft(double f_dt_rx) {
 }
 
 int main(int argc, char* argv[]) {
+    boost::asio::io_service io_service;
+    socket_ = std::make_shared<boost::asio::ip::tcp::socket>(io_service);
+    socket_->connect(boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 12352));
 
     BUFFER_SIZE = std::stoi(argv[1]);
     window_type = std::stoi(argv[2]);
@@ -276,7 +284,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<Channel> channel = grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials());
 
     std::thread subscriber_thread(receive_data, segments, channel);
-    std::thread processor_thread(process_data, segments);
+    std::thread processor_thread(process_data);
     std::thread socket_thread(send_fft, f_dt_rx);
 
     subscriber_thread.join();

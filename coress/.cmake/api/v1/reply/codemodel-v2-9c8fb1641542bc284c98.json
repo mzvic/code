@@ -1,0 +1,167 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.5.1"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "core",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "APD_broker::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-APD_broker-c6a8a18fd21cb92990ab.json",
+					"name" : "APD_broker",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "APD_fft::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-APD_fft-d2ef84bd5ab6b169db67.json",
+					"name" : "APD_fft",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "APD_plot_cvt::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-APD_plot_cvt-a0a4a5739d09533b123c.json",
+					"name" : "APD_plot_cvt",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "APD_publisher::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-APD_publisher-3990d9b77888fa632561.json",
+					"name" : "APD_publisher",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "APD_reg::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-APD_reg-932e54da2f0623194a76.json",
+					"name" : "APD_reg",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "APD_reg_proc::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-APD_reg_proc-4e3b4717c145113bff17.json",
+					"name" : "APD_reg_proc",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "APD_reg_zero::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-APD_reg_zero-2a7da1e173e6033f7572.json",
+					"name" : "APD_reg_zero",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "client::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-client-4a2d2eb7362e829e6be7.json",
+					"name" : "client",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "core_grpc_proto::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-core_grpc_proto-725e5f70d14de6918dc4.json",
+					"name" : "core_grpc_proto",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "fft::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-fft-cb9fd0207c59aa294825.json",
+					"name" : "fft",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "publisher5::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-publisher5-e28dfb51464852129499.json",
+					"name" : "publisher5",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "reactor::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-reactor-0b34d379160041894f8e.json",
+					"name" : "reactor",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "subscriber5::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-subscriber5-ab6cd244ae85748dcfa1.json",
+					"name" : "subscriber5",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/code/Development/coress",
+		"source" : "/home/code/Development/coress"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 2
+	}
+}

@@ -35,6 +35,7 @@ add_library(core_grpc_proto
 target_link_libraries(core_grpc_proto
         ${_REFLECTION}
         ${_GRPC_GRPCPP}
+        ${ZLIB_LIBRARIES}
         ${_PROTOBUF_LIBPROTOBUF})
 
 # include_directories(reactor)
@@ -50,6 +51,7 @@ target_link_libraries(reactor
         core_grpc_proto
         ${_REFLECTION}
         ${_GRPC_GRPCPP}
+        ${ZLIB_LIBRARIES}
         ${_PROTOBUF_LIBPROTOBUF})
 
 add_library(client
@@ -65,14 +67,25 @@ target_link_libraries(client
 
 # Targets
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
+# Find Boost libraries
+find_package(Boost REQUIRED COMPONENTS system iostreams)
+# Find ZLib library
+find_package(ZLIB REQUIRED)
+
+# Targets
 foreach (_target
-        broker publisher5 subscriber5)
+        APD_broker publisher5 subscriber5 APD_fft APD_publisher APD_reg APD_reg_zero APD_reg_proc APD_plot_cvt fft)
     add_executable(${_target} "${_target}.cc")
     target_link_libraries(${_target}
             core_grpc_proto
             reactor
             client
+            fftw3
             ${_REFLECTION}
             ${_GRPC_GRPCPP}
-            ${_PROTOBUF_LIBPROTOBUF})
+            ${_PROTOBUF_LIBPROTOBUF}
+            ${Boost_LIBRARIES} # Link Boost libraries
+            ${ZLIB_LIBRARIES}
+            ${_FFTW3}            
+            )
 endforeach ()

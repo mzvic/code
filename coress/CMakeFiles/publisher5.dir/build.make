@@ -104,6 +104,9 @@ bin/publisher5: libclient.a
 bin/publisher5: /home/code/.local/lib/libgrpc++_reflection.a
 bin/publisher5: /home/code/.local/lib/libgrpc++.a
 bin/publisher5: /home/code/.local/lib/libprotobuf.a
+bin/publisher5: /usr/lib/x86_64-linux-gnu/libboost_system.so.1.74.0
+bin/publisher5: /usr/lib/x86_64-linux-gnu/libboost_iostreams.so.1.74.0
+bin/publisher5: /home/code/.local/lib/libz.a
 bin/publisher5: libcore_grpc_proto.a
 bin/publisher5: /home/code/.local/lib/libgrpc++_reflection.a
 bin/publisher5: /home/code/.local/lib/libgrpc++.a
@@ -190,6 +193,7 @@ bin/publisher5: /home/code/.local/lib/libabsl_base.a
 bin/publisher5: /home/code/.local/lib/libabsl_raw_logging_internal.a
 bin/publisher5: /home/code/.local/lib/libabsl_log_severity.a
 bin/publisher5: /home/code/.local/lib/libabsl_spinlock_wait.a
+bin/publisher5: /home/code/.local/lib/libz.a
 bin/publisher5: CMakeFiles/publisher5.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/code/Development/coress/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable bin/publisher5"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/publisher5.dir/link.txt --verbose=$(VERBOSE)

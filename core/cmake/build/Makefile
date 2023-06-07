@@ -130,69 +130,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named APD_reg
+# Target rules for targets named APD_fft
 
 # Build rule for target.
-APD_reg: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg
-.PHONY : APD_reg
+APD_fft: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_fft
+.PHONY : APD_fft
 
 # fast build rule for target.
-APD_reg/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg.dir/build.make CMakeFiles/APD_reg.dir/build
-.PHONY : APD_reg/fast
-
-#=============================================================================
-# Target rules for targets named APD_plot_cvt
-
-# Build rule for target.
-APD_plot_cvt: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_plot_cvt
-.PHONY : APD_plot_cvt
-
-# fast build rule for target.
-APD_plot_cvt/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_plot_cvt.dir/build.make CMakeFiles/APD_plot_cvt.dir/build
-.PHONY : APD_plot_cvt/fast
-
-#=============================================================================
-# Target rules for targets named core_grpc_proto
-
-# Build rule for target.
-core_grpc_proto: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_grpc_proto
-.PHONY : core_grpc_proto
-
-# fast build rule for target.
-core_grpc_proto/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/core_grpc_proto.dir/build.make CMakeFiles/core_grpc_proto.dir/build
-.PHONY : core_grpc_proto/fast
-
-#=============================================================================
-# Target rules for targets named reactor
-
-# Build rule for target.
-reactor: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 reactor
-.PHONY : reactor
-
-# fast build rule for target.
-reactor/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/reactor.dir/build.make CMakeFiles/reactor.dir/build
-.PHONY : reactor/fast
-
-#=============================================================================
-# Target rules for targets named APD_publisher
-
-# Build rule for target.
-APD_publisher: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_publisher
-.PHONY : APD_publisher
-
-# fast build rule for target.
-APD_publisher/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_publisher.dir/build.make CMakeFiles/APD_publisher.dir/build
-.PHONY : APD_publisher/fast
+APD_fft/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft.dir/build.make CMakeFiles/APD_fft.dir/build
+.PHONY : APD_fft/fast
 
 #=============================================================================
 # Target rules for targets named APD_plot_fft
@@ -208,17 +156,95 @@ APD_plot_fft/fast:
 .PHONY : APD_plot_fft/fast
 
 #=============================================================================
-# Target rules for targets named APD_fft
+# Target rules for targets named APD_publisher
 
 # Build rule for target.
-APD_fft: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_fft
-.PHONY : APD_fft
+APD_publisher: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_publisher
+.PHONY : APD_publisher
 
 # fast build rule for target.
-APD_fft/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft.dir/build.make CMakeFiles/APD_fft.dir/build
-.PHONY : APD_fft/fast
+APD_publisher/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_publisher.dir/build.make CMakeFiles/APD_publisher.dir/build
+.PHONY : APD_publisher/fast
+
+#=============================================================================
+# Target rules for targets named reactor
+
+# Build rule for target.
+reactor: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 reactor
+.PHONY : reactor
+
+# fast build rule for target.
+reactor/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/reactor.dir/build.make CMakeFiles/reactor.dir/build
+.PHONY : reactor/fast
+
+#=============================================================================
+# Target rules for targets named core_grpc_proto
+
+# Build rule for target.
+core_grpc_proto: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_grpc_proto
+.PHONY : core_grpc_proto
+
+# fast build rule for target.
+core_grpc_proto/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/core_grpc_proto.dir/build.make CMakeFiles/core_grpc_proto.dir/build
+.PHONY : core_grpc_proto/fast
+
+#=============================================================================
+# Target rules for targets named APD_reg_proc
+
+# Build rule for target.
+APD_reg_proc: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg_proc
+.PHONY : APD_reg_proc
+
+# fast build rule for target.
+APD_reg_proc/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc.dir/build.make CMakeFiles/APD_reg_proc.dir/build
+.PHONY : APD_reg_proc/fast
+
+#=============================================================================
+# Target rules for targets named APD_plot_cvt
+
+# Build rule for target.
+APD_plot_cvt: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_plot_cvt
+.PHONY : APD_plot_cvt
+
+# fast build rule for target.
+APD_plot_cvt/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_plot_cvt.dir/build.make CMakeFiles/APD_plot_cvt.dir/build
+.PHONY : APD_plot_cvt/fast
+
+#=============================================================================
+# Target rules for targets named APD_reg
+
+# Build rule for target.
+APD_reg: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg
+.PHONY : APD_reg
+
+# fast build rule for target.
+APD_reg/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg.dir/build.make CMakeFiles/APD_reg.dir/build
+.PHONY : APD_reg/fast
+
+#=============================================================================
+# Target rules for targets named APD_reg_zero
+
+# Build rule for target.
+APD_reg_zero: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg_zero
+.PHONY : APD_reg_zero
+
+# fast build rule for target.
+APD_reg_zero/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero.dir/build.make CMakeFiles/APD_reg_zero.dir/build
+.PHONY : APD_reg_zero/fast
 
 APD_fft.o: APD_fft.cc.o
 
@@ -355,6 +381,60 @@ APD_reg.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg.dir/build.make CMakeFiles/APD_reg.dir/APD_reg.cc.s
 .PHONY : APD_reg.cc.s
 
+APD_reg_proc.o: APD_reg_proc.cc.o
+
+.PHONY : APD_reg_proc.o
+
+# target to build an object file
+APD_reg_proc.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc.dir/build.make CMakeFiles/APD_reg_proc.dir/APD_reg_proc.cc.o
+.PHONY : APD_reg_proc.cc.o
+
+APD_reg_proc.i: APD_reg_proc.cc.i
+
+.PHONY : APD_reg_proc.i
+
+# target to preprocess a source file
+APD_reg_proc.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc.dir/build.make CMakeFiles/APD_reg_proc.dir/APD_reg_proc.cc.i
+.PHONY : APD_reg_proc.cc.i
+
+APD_reg_proc.s: APD_reg_proc.cc.s
+
+.PHONY : APD_reg_proc.s
+
+# target to generate assembly for a file
+APD_reg_proc.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc.dir/build.make CMakeFiles/APD_reg_proc.dir/APD_reg_proc.cc.s
+.PHONY : APD_reg_proc.cc.s
+
+APD_reg_zero.o: APD_reg_zero.cc.o
+
+.PHONY : APD_reg_zero.o
+
+# target to build an object file
+APD_reg_zero.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero.dir/build.make CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.o
+.PHONY : APD_reg_zero.cc.o
+
+APD_reg_zero.i: APD_reg_zero.cc.i
+
+.PHONY : APD_reg_zero.i
+
+# target to preprocess a source file
+APD_reg_zero.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero.dir/build.make CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.i
+.PHONY : APD_reg_zero.cc.i
+
+APD_reg_zero.s: APD_reg_zero.cc.s
+
+.PHONY : APD_reg_zero.s
+
+# target to generate assembly for a file
+APD_reg_zero.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero.dir/build.make CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.s
+.PHONY : APD_reg_zero.cc.s
+
 core.grpc.pb.o: core.grpc.pb.cc.o
 
 .PHONY : core.grpc.pb.o
@@ -476,6 +556,8 @@ help:
 	@echo "... APD_plot_fft"
 	@echo "... APD_publisher"
 	@echo "... APD_reg"
+	@echo "... APD_reg_proc"
+	@echo "... APD_reg_zero"
 	@echo "... core_grpc_proto"
 	@echo "... reactor"
 	@echo "... APD_fft.o"
@@ -493,6 +575,12 @@ help:
 	@echo "... APD_reg.o"
 	@echo "... APD_reg.i"
 	@echo "... APD_reg.s"
+	@echo "... APD_reg_proc.o"
+	@echo "... APD_reg_proc.i"
+	@echo "... APD_reg_proc.s"
+	@echo "... APD_reg_zero.o"
+	@echo "... APD_reg_zero.i"
+	@echo "... APD_reg_zero.s"
 	@echo "... core.grpc.pb.o"
 	@echo "... core.grpc.pb.i"
 	@echo "... core.grpc.pb.s"

@@ -10,6 +10,9 @@ set(CMAKE_CXX_COMPILER_ID "GNU")
 
 # Preprocessor definitions for this target.
 set(CMAKE_TARGET_DEFINITIONS_CXX
+  "BOOST_ALL_NO_LIB"
+  "BOOST_IOSTREAMS_DYN_LINK"
+  "BOOST_SYSTEM_DYN_LINK"
   "CARES_STATICLIB"
   )
 

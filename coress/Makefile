@@ -75,17 +75,6 @@ CMAKE_BINARY_DIR = /home/code/Development/coress
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target edit_cache
-edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake cache editor..."
-	/home/code/.local/bin/ccmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : edit_cache
-
-# Special rule for the target edit_cache
-edit_cache/fast: edit_cache
-
-.PHONY : edit_cache/fast
-
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
@@ -96,6 +85,17 @@ rebuild_cache:
 rebuild_cache/fast: rebuild_cache
 
 .PHONY : rebuild_cache/fast
+
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake cache editor..."
+	/home/code/.local/bin/ccmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : edit_cache
+
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
+
+.PHONY : edit_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -130,17 +130,43 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named subscriber5
+# Target rules for targets named fft
 
 # Build rule for target.
-subscriber5: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 subscriber5
-.PHONY : subscriber5
+fft: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 fft
+.PHONY : fft
 
 # fast build rule for target.
-subscriber5/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/subscriber5.dir/build.make CMakeFiles/subscriber5.dir/build
-.PHONY : subscriber5/fast
+fft/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fft.dir/build.make CMakeFiles/fft.dir/build
+.PHONY : fft/fast
+
+#=============================================================================
+# Target rules for targets named APD_plot_cvt
+
+# Build rule for target.
+APD_plot_cvt: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_plot_cvt
+.PHONY : APD_plot_cvt
+
+# fast build rule for target.
+APD_plot_cvt/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_plot_cvt.dir/build.make CMakeFiles/APD_plot_cvt.dir/build
+.PHONY : APD_plot_cvt/fast
+
+#=============================================================================
+# Target rules for targets named APD_reg_proc
+
+# Build rule for target.
+APD_reg_proc: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg_proc
+.PHONY : APD_reg_proc
+
+# fast build rule for target.
+APD_reg_proc/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc.dir/build.make CMakeFiles/APD_reg_proc.dir/build
+.PHONY : APD_reg_proc/fast
 
 #=============================================================================
 # Target rules for targets named publisher5
@@ -156,17 +182,17 @@ publisher5/fast:
 .PHONY : publisher5/fast
 
 #=============================================================================
-# Target rules for targets named core_grpc_proto
+# Target rules for targets named APD_fft
 
 # Build rule for target.
-core_grpc_proto: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_grpc_proto
-.PHONY : core_grpc_proto
+APD_fft: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_fft
+.PHONY : APD_fft
 
 # fast build rule for target.
-core_grpc_proto/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/core_grpc_proto.dir/build.make CMakeFiles/core_grpc_proto.dir/build
-.PHONY : core_grpc_proto/fast
+APD_fft/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft.dir/build.make CMakeFiles/APD_fft.dir/build
+.PHONY : APD_fft/fast
 
 #=============================================================================
 # Target rules for targets named reactor
@@ -182,6 +208,19 @@ reactor/fast:
 .PHONY : reactor/fast
 
 #=============================================================================
+# Target rules for targets named core_grpc_proto
+
+# Build rule for target.
+core_grpc_proto: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_grpc_proto
+.PHONY : core_grpc_proto
+
+# fast build rule for target.
+core_grpc_proto/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/core_grpc_proto.dir/build.make CMakeFiles/core_grpc_proto.dir/build
+.PHONY : core_grpc_proto/fast
+
+#=============================================================================
 # Target rules for targets named client
 
 # Build rule for target.
@@ -195,44 +234,258 @@ client/fast:
 .PHONY : client/fast
 
 #=============================================================================
-# Target rules for targets named broker
+# Target rules for targets named subscriber5
 
 # Build rule for target.
-broker: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 broker
-.PHONY : broker
+subscriber5: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 subscriber5
+.PHONY : subscriber5
 
 # fast build rule for target.
-broker/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/broker.dir/build.make CMakeFiles/broker.dir/build
-.PHONY : broker/fast
+subscriber5/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/subscriber5.dir/build.make CMakeFiles/subscriber5.dir/build
+.PHONY : subscriber5/fast
 
-broker.o: broker.cc.o
+#=============================================================================
+# Target rules for targets named APD_publisher
 
-.PHONY : broker.o
+# Build rule for target.
+APD_publisher: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_publisher
+.PHONY : APD_publisher
+
+# fast build rule for target.
+APD_publisher/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_publisher.dir/build.make CMakeFiles/APD_publisher.dir/build
+.PHONY : APD_publisher/fast
+
+#=============================================================================
+# Target rules for targets named APD_broker
+
+# Build rule for target.
+APD_broker: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_broker
+.PHONY : APD_broker
+
+# fast build rule for target.
+APD_broker/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_broker.dir/build.make CMakeFiles/APD_broker.dir/build
+.PHONY : APD_broker/fast
+
+#=============================================================================
+# Target rules for targets named APD_reg
+
+# Build rule for target.
+APD_reg: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg
+.PHONY : APD_reg
+
+# fast build rule for target.
+APD_reg/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg.dir/build.make CMakeFiles/APD_reg.dir/build
+.PHONY : APD_reg/fast
+
+#=============================================================================
+# Target rules for targets named APD_reg_zero
+
+# Build rule for target.
+APD_reg_zero: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg_zero
+.PHONY : APD_reg_zero
+
+# fast build rule for target.
+APD_reg_zero/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero.dir/build.make CMakeFiles/APD_reg_zero.dir/build
+.PHONY : APD_reg_zero/fast
+
+APD_broker.o: APD_broker.cc.o
+
+.PHONY : APD_broker.o
 
 # target to build an object file
-broker.cc.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/broker.dir/build.make CMakeFiles/broker.dir/broker.cc.o
-.PHONY : broker.cc.o
+APD_broker.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_broker.dir/build.make CMakeFiles/APD_broker.dir/APD_broker.cc.o
+.PHONY : APD_broker.cc.o
 
-broker.i: broker.cc.i
+APD_broker.i: APD_broker.cc.i
 
-.PHONY : broker.i
+.PHONY : APD_broker.i
 
 # target to preprocess a source file
-broker.cc.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/broker.dir/build.make CMakeFiles/broker.dir/broker.cc.i
-.PHONY : broker.cc.i
+APD_broker.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_broker.dir/build.make CMakeFiles/APD_broker.dir/APD_broker.cc.i
+.PHONY : APD_broker.cc.i
 
-broker.s: broker.cc.s
+APD_broker.s: APD_broker.cc.s
 
-.PHONY : broker.s
+.PHONY : APD_broker.s
 
 # target to generate assembly for a file
-broker.cc.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/broker.dir/build.make CMakeFiles/broker.dir/broker.cc.s
-.PHONY : broker.cc.s
+APD_broker.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_broker.dir/build.make CMakeFiles/APD_broker.dir/APD_broker.cc.s
+.PHONY : APD_broker.cc.s
+
+APD_fft.o: APD_fft.cc.o
+
+.PHONY : APD_fft.o
+
+# target to build an object file
+APD_fft.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft.dir/build.make CMakeFiles/APD_fft.dir/APD_fft.cc.o
+.PHONY : APD_fft.cc.o
+
+APD_fft.i: APD_fft.cc.i
+
+.PHONY : APD_fft.i
+
+# target to preprocess a source file
+APD_fft.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft.dir/build.make CMakeFiles/APD_fft.dir/APD_fft.cc.i
+.PHONY : APD_fft.cc.i
+
+APD_fft.s: APD_fft.cc.s
+
+.PHONY : APD_fft.s
+
+# target to generate assembly for a file
+APD_fft.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft.dir/build.make CMakeFiles/APD_fft.dir/APD_fft.cc.s
+.PHONY : APD_fft.cc.s
+
+APD_plot_cvt.o: APD_plot_cvt.cc.o
+
+.PHONY : APD_plot_cvt.o
+
+# target to build an object file
+APD_plot_cvt.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_plot_cvt.dir/build.make CMakeFiles/APD_plot_cvt.dir/APD_plot_cvt.cc.o
+.PHONY : APD_plot_cvt.cc.o
+
+APD_plot_cvt.i: APD_plot_cvt.cc.i
+
+.PHONY : APD_plot_cvt.i
+
+# target to preprocess a source file
+APD_plot_cvt.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_plot_cvt.dir/build.make CMakeFiles/APD_plot_cvt.dir/APD_plot_cvt.cc.i
+.PHONY : APD_plot_cvt.cc.i
+
+APD_plot_cvt.s: APD_plot_cvt.cc.s
+
+.PHONY : APD_plot_cvt.s
+
+# target to generate assembly for a file
+APD_plot_cvt.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_plot_cvt.dir/build.make CMakeFiles/APD_plot_cvt.dir/APD_plot_cvt.cc.s
+.PHONY : APD_plot_cvt.cc.s
+
+APD_publisher.o: APD_publisher.cc.o
+
+.PHONY : APD_publisher.o
+
+# target to build an object file
+APD_publisher.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_publisher.dir/build.make CMakeFiles/APD_publisher.dir/APD_publisher.cc.o
+.PHONY : APD_publisher.cc.o
+
+APD_publisher.i: APD_publisher.cc.i
+
+.PHONY : APD_publisher.i
+
+# target to preprocess a source file
+APD_publisher.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_publisher.dir/build.make CMakeFiles/APD_publisher.dir/APD_publisher.cc.i
+.PHONY : APD_publisher.cc.i
+
+APD_publisher.s: APD_publisher.cc.s
+
+.PHONY : APD_publisher.s
+
+# target to generate assembly for a file
+APD_publisher.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_publisher.dir/build.make CMakeFiles/APD_publisher.dir/APD_publisher.cc.s
+.PHONY : APD_publisher.cc.s
+
+APD_reg.o: APD_reg.cc.o
+
+.PHONY : APD_reg.o
+
+# target to build an object file
+APD_reg.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg.dir/build.make CMakeFiles/APD_reg.dir/APD_reg.cc.o
+.PHONY : APD_reg.cc.o
+
+APD_reg.i: APD_reg.cc.i
+
+.PHONY : APD_reg.i
+
+# target to preprocess a source file
+APD_reg.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg.dir/build.make CMakeFiles/APD_reg.dir/APD_reg.cc.i
+.PHONY : APD_reg.cc.i
+
+APD_reg.s: APD_reg.cc.s
+
+.PHONY : APD_reg.s
+
+# target to generate assembly for a file
+APD_reg.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg.dir/build.make CMakeFiles/APD_reg.dir/APD_reg.cc.s
+.PHONY : APD_reg.cc.s
+
+APD_reg_proc.o: APD_reg_proc.cc.o
+
+.PHONY : APD_reg_proc.o
+
+# target to build an object file
+APD_reg_proc.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc.dir/build.make CMakeFiles/APD_reg_proc.dir/APD_reg_proc.cc.o
+.PHONY : APD_reg_proc.cc.o
+
+APD_reg_proc.i: APD_reg_proc.cc.i
+
+.PHONY : APD_reg_proc.i
+
+# target to preprocess a source file
+APD_reg_proc.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc.dir/build.make CMakeFiles/APD_reg_proc.dir/APD_reg_proc.cc.i
+.PHONY : APD_reg_proc.cc.i
+
+APD_reg_proc.s: APD_reg_proc.cc.s
+
+.PHONY : APD_reg_proc.s
+
+# target to generate assembly for a file
+APD_reg_proc.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc.dir/build.make CMakeFiles/APD_reg_proc.dir/APD_reg_proc.cc.s
+.PHONY : APD_reg_proc.cc.s
+
+APD_reg_zero.o: APD_reg_zero.cc.o
+
+.PHONY : APD_reg_zero.o
+
+# target to build an object file
+APD_reg_zero.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero.dir/build.make CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.o
+.PHONY : APD_reg_zero.cc.o
+
+APD_reg_zero.i: APD_reg_zero.cc.i
+
+.PHONY : APD_reg_zero.i
+
+# target to preprocess a source file
+APD_reg_zero.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero.dir/build.make CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.i
+.PHONY : APD_reg_zero.cc.i
+
+APD_reg_zero.s: APD_reg_zero.cc.s
+
+.PHONY : APD_reg_zero.s
+
+# target to generate assembly for a file
+APD_reg_zero.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero.dir/build.make CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.s
+.PHONY : APD_reg_zero.cc.s
 
 core.grpc.pb.o: core.grpc.pb.cc.o
 
@@ -287,6 +540,33 @@ core.pb.s: core.pb.cc.s
 core.pb.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/core_grpc_proto.dir/build.make CMakeFiles/core_grpc_proto.dir/core.pb.cc.s
 .PHONY : core.pb.cc.s
+
+fft.o: fft.cc.o
+
+.PHONY : fft.o
+
+# target to build an object file
+fft.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fft.dir/build.make CMakeFiles/fft.dir/fft.cc.o
+.PHONY : fft.cc.o
+
+fft.i: fft.cc.i
+
+.PHONY : fft.i
+
+# target to preprocess a source file
+fft.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fft.dir/build.make CMakeFiles/fft.dir/fft.cc.i
+.PHONY : fft.cc.i
+
+fft.s: fft.cc.s
+
+.PHONY : fft.s
+
+# target to generate assembly for a file
+fft.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fft.dir/build.make CMakeFiles/fft.dir/fft.cc.s
+.PHONY : fft.cc.s
 
 publisher5.o: publisher5.cc.o
 
@@ -458,21 +738,49 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... broker"
+	@echo "... APD_broker"
+	@echo "... APD_fft"
+	@echo "... APD_plot_cvt"
+	@echo "... APD_publisher"
+	@echo "... APD_reg"
+	@echo "... APD_reg_proc"
+	@echo "... APD_reg_zero"
 	@echo "... client"
 	@echo "... core_grpc_proto"
+	@echo "... fft"
 	@echo "... publisher5"
 	@echo "... reactor"
 	@echo "... subscriber5"
-	@echo "... broker.o"
-	@echo "... broker.i"
-	@echo "... broker.s"
+	@echo "... APD_broker.o"
+	@echo "... APD_broker.i"
+	@echo "... APD_broker.s"
+	@echo "... APD_fft.o"
+	@echo "... APD_fft.i"
+	@echo "... APD_fft.s"
+	@echo "... APD_plot_cvt.o"
+	@echo "... APD_plot_cvt.i"
+	@echo "... APD_plot_cvt.s"
+	@echo "... APD_publisher.o"
+	@echo "... APD_publisher.i"
+	@echo "... APD_publisher.s"
+	@echo "... APD_reg.o"
+	@echo "... APD_reg.i"
+	@echo "... APD_reg.s"
+	@echo "... APD_reg_proc.o"
+	@echo "... APD_reg_proc.i"
+	@echo "... APD_reg_proc.s"
+	@echo "... APD_reg_zero.o"
+	@echo "... APD_reg_zero.i"
+	@echo "... APD_reg_zero.s"
 	@echo "... core.grpc.pb.o"
 	@echo "... core.grpc.pb.i"
 	@echo "... core.grpc.pb.s"
 	@echo "... core.pb.o"
 	@echo "... core.pb.i"
 	@echo "... core.pb.s"
+	@echo "... fft.o"
+	@echo "... fft.i"
+	@echo "... fft.s"
 	@echo "... publisher5.o"
 	@echo "... publisher5.i"
 	@echo "... publisher5.s"

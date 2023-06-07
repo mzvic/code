@@ -68,7 +68,7 @@ find_package(Boost REQUIRED COMPONENTS system iostreams)
 find_package(ZLIB REQUIRED)
 
 # Add targets
-foreach (_target APD_publisher APD_fft APD_plot_cvt APD_plot_fft APD_reg)
+foreach (_target APD_publisher APD_fft APD_plot_cvt APD_plot_fft APD_reg APD_reg_zero APD_reg_proc)
     add_executable(${_target} ${_target}.cc)
     target_link_libraries(${_target}
         core_grpc_proto

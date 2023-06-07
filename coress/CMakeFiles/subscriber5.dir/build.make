@@ -104,6 +104,9 @@ bin/subscriber5: libclient.a
 bin/subscriber5: /home/code/.local/lib/libgrpc++_reflection.a
 bin/subscriber5: /home/code/.local/lib/libgrpc++.a
 bin/subscriber5: /home/code/.local/lib/libprotobuf.a
+bin/subscriber5: /usr/lib/x86_64-linux-gnu/libboost_system.so.1.74.0
+bin/subscriber5: /usr/lib/x86_64-linux-gnu/libboost_iostreams.so.1.74.0
+bin/subscriber5: /home/code/.local/lib/libz.a
 bin/subscriber5: libcore_grpc_proto.a
 bin/subscriber5: /home/code/.local/lib/libgrpc++_reflection.a
 bin/subscriber5: /home/code/.local/lib/libgrpc++.a
@@ -190,6 +193,7 @@ bin/subscriber5: /home/code/.local/lib/libabsl_base.a
 bin/subscriber5: /home/code/.local/lib/libabsl_raw_logging_internal.a
 bin/subscriber5: /home/code/.local/lib/libabsl_log_severity.a
 bin/subscriber5: /home/code/.local/lib/libabsl_spinlock_wait.a
+bin/subscriber5: /home/code/.local/lib/libz.a
 bin/subscriber5: CMakeFiles/subscriber5.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/code/Development/coress/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable bin/subscriber5"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/subscriber5.dir/link.txt --verbose=$(VERBOSE)

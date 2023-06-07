@@ -47,7 +47,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setWindowTitle("CoDE Control Software")
-        icon = QtGui.QIcon("CoDE.png")  
+        icon = QtGui.QIcon("/home/code/Development/CoDE.png")  
         self.setWindowIcon(icon)        
         self.tab_widget = QTabWidget()
         self.setCentralWidget(self.tab_widget)
@@ -89,18 +89,19 @@ class MainWindow(QMainWindow):
         self.freq2 = []
 
         self.binary_paths = [
-            'coress/bin/APD_broker',
-            'coress/bin/APD_plot_cvt',
-            'coress/bin/APD_publisher',
-            'core/bin/APD_fft',
-            'core/bin/APD_reg'
+            '/home/code/Development/coress/bin/APD_broker',
+            '/home/code/Development/coress/bin/APD_plot_cvt',
+            '/home/code/Development/coress/bin/APD_publisher',
+            '/home/code/Development/coress/bin/fft',
+            '/home/code/Development/coress/bin/APD_reg_zero', # 'APD_reg' for RAW data with timestamp (TS) from the t0, 'APD_reg_zero' for RAW data with TS from zero...
+            '/home/code/Development/coress/bin/APD_reg_proc' # 'APD_reg_proc' for data @ 100Hz with TS from zero...
         ]
 
         button_layout_1 = QHBoxLayout() 
         button_names_1 = ["Server", "Counts plot"] 
 
         button_layout_2 = QHBoxLayout() 
-        button_names_2 = ["Plot counts", "Plot FFT", "Export counts data"]
+        button_names_2 = ["Plot counts", "Plot FFT", "Export counts data [100kHz]", "Export counts data [1kHz]"]
 
         arg_input_layout = QHBoxLayout() # Parámetros de entrada
         serialPortsLabel = QLabel("                    FPGA serial port:")
@@ -121,22 +122,22 @@ class MainWindow(QMainWindow):
         arg_input_layout.addWidget(samplingFreqLabel)
         arg_input_layout.addWidget(self.samplingFreqCombobox)
         self.sampling_freq_values = {
-            0: 1, # '100Hz' 
-            1: 5, # '500Hz' 
-            2: 10, # '1kHz'          
-            3: 20, # '2kHz'          
-            4: 40, # '4kHz'
-            5: 100, # '10kHz' 
-            6: 500, # '50kHz'                                              
-            7: 1000, # '100kHz'                                                          
+            0: 100, # '100Hz' 
+            1: 500, # '500Hz' 
+            2: 1000, # '1kHz'          
+            3: 2000, # '2kHz'          
+            4: 4000, # '4kHz'
+            5: 10000, # '10kHz' 
+            6: 50000, # '50kHz'                                              
+            7: 100000, # '100kHz'                                                          
         }
 
-        apd_fft_arg_label = QLabel("                    FFT samples:")
-        self.apd_fft_arg_input = QLineEdit(self)
-        self.apd_fft_arg_input.setFixedWidth(100) 
-        self.apd_fft_arg_input.setText("2048")       
-        arg_input_layout.addWidget(apd_fft_arg_label)
-        arg_input_layout.addWidget(self.apd_fft_arg_input)
+        #apd_fft_arg_label = QLabel("                    FFT samples:")
+        #self.apd_fft_arg_input = QLineEdit(self)
+        #self.apd_fft_arg_input.setFixedWidth(100) 
+        #self.apd_fft_arg_input.setText("2048")       
+        #arg_input_layout.addWidget(apd_fft_arg_label)
+        #arg_input_layout.addWidget(self.apd_fft_arg_input)
         
         windowTypeLabel = QLabel("                    FFT Window Type:")
         self.windowTypeCombobox = QComboBox(self)
@@ -171,7 +172,7 @@ class MainWindow(QMainWindow):
             self.buttons.append(start_stop_button)
             
 
-        for i in range(2, 5):
+        for i in range(2, 6):
             self.threads.append(SocketThread(12345 + i))
             if (i==3):
                 self.threads[-1].signal.connect(self.update_graph2)
@@ -342,7 +343,7 @@ class MainWindow(QMainWindow):
 
     def toggle_process(self, i, checked):
         sender = self.sender()
-        button_names = ["Server", "Counts plot", "Plot counts", "Plot FFT", "Export counts data"] 
+        button_names = ["Server", "Counts plot", "Plot counts", "Plot FFT", "Export counts data [100kHz]", "Export counts data [1kHz]"] 
         if checked:
             if i == 2: 
                 sender.setText(button_names[i])
@@ -355,12 +356,13 @@ class MainWindow(QMainWindow):
                 self.threads[-1].start()            
                 sender.setText(button_names[i])
                 sender.setStyleSheet("background-color: darkblue; color: white;") 
-                apd_fft_arg = self.apd_fft_arg_input.text()
+                #apd_fft_arg = self.apd_fft_arg_input.text()
                 fft_window_type = self.windowTypeCombobox.currentIndex()
                 fft_window_value = self.window_type_values[fft_window_type]
                 sampling_freq = self.samplingFreqCombobox.currentIndex()
                 sampling_freq_value = self.sampling_freq_values[sampling_freq]
-                self.processes[i] = subprocess.Popen([self.binary_paths[i], apd_fft_arg, str(fft_window_value), str(sampling_freq_value)])
+                #self.processes[i] = subprocess.Popen([self.binary_paths[i], apd_fft_arg, str(fft_window_value), str(sampling_freq_value)])
+                self.processes[i] = subprocess.Popen([self.binary_paths[i], str(fft_window_value), str(sampling_freq_value)])
                 self.threads[i].start()
             else:
                 sender.setText(button_names[i])
@@ -418,11 +420,11 @@ class MainWindow(QMainWindow):
             freq_vals.append(freq)
             magn_vals.append(magn)
             
-        if freq_vals[0] != 0.001:
-            self.data2.clear()
-            self.freq2.clear()
-            self.graph2.clear()
-            return            
+        #if freq_vals[0] != 0.001:
+        #    self.data2.clear()
+        #    self.freq2.clear()
+        #    self.graph2.clear()
+        #    return            
 
         sorted_data = sorted(zip(freq_vals, magn_vals))
         freq_vals, magn_vals = map(list, zip(*sorted_data))
@@ -436,21 +438,21 @@ class MainWindow(QMainWindow):
         self.graph2.plotItem.setLogMode(x=True)
         sampling_freq_index = self.samplingFreqCombobox.currentIndex()
         if sampling_freq_index == 0:  # 100Hz
-            self.graph2.plotItem.setXRange(np.log10(0.1), np.log10(55))
+            self.graph2.plotItem.setXRange(np.log10(1), np.log10(55))
         elif sampling_freq_index == 1:  # 500Hz
             self.graph2.plotItem.setXRange(np.log10(1), np.log10(275))
         elif sampling_freq_index == 2:  # 1kHz
             self.graph2.plotItem.setXRange(np.log10(1), np.log10(550))
         elif sampling_freq_index == 3:  # 2kHz
-            self.graph2.plotItem.setXRange(np.log10(1), np.log10(1100))                        
+            self.graph2.plotItem.setXRange(np.log10(10), np.log10(1100))                        
         elif sampling_freq_index == 4:  # 4kHz
-            self.graph2.plotItem.setXRange(np.log10(1), np.log10(2200))            
+            self.graph2.plotItem.setXRange(np.log10(10), np.log10(2200))            
         elif sampling_freq_index == 5:  # 10kHz
-            self.graph2.plotItem.setXRange(np.log10(1), np.log10(5500))            
+            self.graph2.plotItem.setXRange(np.log10(10), np.log10(5500))            
         elif sampling_freq_index == 6:  # 50kHz
-            self.graph2.plotItem.setXRange(np.log10(1), np.log10(27500))                        
+            self.graph2.plotItem.setXRange(np.log10(100), np.log10(27500))                        
         else:  # 100kHz
-            self.graph2.plotItem.setXRange(np.log10(1), np.log10(55000))
+            self.graph2.plotItem.setXRange(np.log10(100), np.log10(55000))
         self.graph2.plotItem.setYRange(-0.1, 1.1)
         self.graph2.update()  
 
