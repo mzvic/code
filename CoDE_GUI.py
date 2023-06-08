@@ -384,11 +384,14 @@ class MainWindow(QMainWindow):
 
     def update_graph1(self, text):
         parts_counts = text.split()
-        timestamp = parts_counts[0]
-        value = parts_counts[1]
-        self.data1.append(float(value))
-        self.times1.append(float(timestamp))
-
+        counts_data_len = len(parts_counts) 
+ 
+        for i in range(0, counts_data_len, 2):
+            timestamp = float(parts_counts[i])
+            value = float(parts_counts[i + 1])
+            self.times1.append(timestamp) 
+            self.data1.append(value)
+                      
         current_time = time.time()
         cut_off_time = current_time - 15
         self.times1 = [t for t in self.times1 if t >= cut_off_time]
@@ -400,35 +403,41 @@ class MainWindow(QMainWindow):
         self.graph1.setLabel('bottom', 'Time', units='hh:mm:ss')
 
     def update_graph2(self, text):
+        BUFFER_SIZE = 2048
         self.data2.clear()
         self.freq2.clear()
         self.graph2.clear()
         parts_fft = text.split()
-        data_len = len(parts_fft)        
-        if data_len % 2 != 0:
-            self.data2.clear()
-            self.freq2.clear()
-            self.graph2.clear()
-            return
+        parts_fft = parts_fft[:BUFFER_SIZE+1]
+        fft_data_len = len(parts_fft)
 
         freq_vals = []
         magn_vals = []
-
-        for i in range(0, data_len, 2):
-            freq = float(parts_fft[i])
-            magn = float(parts_fft[i + 1])
+        
+        sampling_freq_index = self.samplingFreqCombobox.currentIndex()
+        if sampling_freq_index == 0:  # 100Hz
+            freq_factor = 100/(BUFFER_SIZE*2)
+        elif sampling_freq_index == 1:  # 500Hz
+            freq_factor = 500/(BUFFER_SIZE*2)
+        elif sampling_freq_index == 2:  # 1kHz
+            freq_factor = 1000/(BUFFER_SIZE*2)
+        elif sampling_freq_index == 3:  # 2kHz
+            freq_factor = 2000/(BUFFER_SIZE*2)                    
+        elif sampling_freq_index == 4:  # 4kHz
+            freq_factor = 4000/(BUFFER_SIZE*2)           
+        elif sampling_freq_index == 5:  # 10kHz
+            freq_factor = 10000/(BUFFER_SIZE*2)            
+        elif sampling_freq_index == 6:  # 50kHz
+            freq_factor = 50000/(BUFFER_SIZE*2)                      
+        else:  # 100kHz
+            freq_factor = 100000/(BUFFER_SIZE*2)
+            
+        for i in range(0, BUFFER_SIZE):
+            freq = freq_factor * i
+            magn = float(parts_fft[i])
             freq_vals.append(freq)
             magn_vals.append(magn)
-            
-        #if freq_vals[0] != 0.001:
-        #    self.data2.clear()
-        #    self.freq2.clear()
-        #    self.graph2.clear()
-        #    return            
-
-        sorted_data = sorted(zip(freq_vals, magn_vals))
-        freq_vals, magn_vals = map(list, zip(*sorted_data))
-
+        
         self.freq2.extend(freq_vals)
         self.data2.extend(magn_vals)
         
@@ -454,7 +463,7 @@ class MainWindow(QMainWindow):
         else:  # 100kHz
             self.graph2.plotItem.setXRange(np.log10(100), np.log10(55000))
         self.graph2.plotItem.setYRange(-0.1, 1.1)
-        self.graph2.update()  
+        self.graph2.update() 
 
     def closeEvent(self, event):
         for process in self.processes:
