@@ -12,7 +12,7 @@ using namespace core;
 using namespace std::chrono;
 using namespace google::protobuf;
 
-#define BUFFER_SIZE 2048
+#define BUFFER_SIZE 4096
 #define SAMPLING_FREQUENCY 100000
 
 int sub_sampling_frequency;
@@ -41,12 +41,13 @@ void Send2Socket() {
 	}
 
 	fft_i = fft[i];
-	data += std::to_string(freq_i) + " " + std::to_string(fft_i) + " ";
+	//data += std::to_string(freq_i) + " " + std::to_string(fft_i) + " ";
+	data += std::to_string(fft_i) + " ";
 
   }
   //std::cout << "FFT data: " << data <<  std::endl;
   boost::asio::write(*socket_, boost::asio::buffer(data + "\n"));
-  
+  //this_thread::sleep_for(std::chrono::milliseconds(100));
   //socket_->set_option(option);  
 }
 
@@ -207,7 +208,6 @@ int main(int argc, char *argv[]) {
   boost::asio::io_service io_service;
   socket_ = std::make_shared<boost::asio::ip::tcp::socket>(io_service);
   socket_->connect(boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 12352));
-
 
   SubscriberClient subscriber_client(&ProcessBundle);
 
