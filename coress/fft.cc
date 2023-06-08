@@ -53,7 +53,7 @@ void Send2Socket() {
 
 double GetWindow(int n, int N) {
   switch (window_type) {
-	case 1: {
+	case 4: {
 	  const double a0 = 0.27105140069342;
 	  const double a1 = 0.43329793923448;
 	  const double a2 = 0.21812299954311;
@@ -64,7 +64,7 @@ double GetWindow(int n, int N) {
 	  return a0 - a1 * cos(2.0 * M_PI * n / (N - 1)) + a2 * cos(4.0 * M_PI * n / (N - 1)) - a3 * cos(6.0 * M_PI * n / (N - 1)) + a4 * cos(8.0 * M_PI * n / (N - 1)) - a5 * cos(10.0 * M_PI * n / (N - 1)) + a6 * cos(12.0 * M_PI * n / (N - 1));
 	}
 
-	case 2: {
+	case 3: {
 	  const double a0 = 0.35875;
 	  const double a1 = 0.48829;
 	  const double a2 = 0.14128;
@@ -72,11 +72,14 @@ double GetWindow(int n, int N) {
 	  return a0 - a1 * cos(2.0 * M_PI * n / (N - 1)) + a2 * cos(4.0 * M_PI * n / (N - 1)) - a3 * cos(6.0 * M_PI * n / (N - 1));
 	}
 
-	case 3:
+	case 1:
 	  return 0.54 - 0.46 * cos(2.0 * M_PI * n / (N - 1));
 
-	case 4:
+	case 2:
 	  return 0.5 * (1 - cos(2.0 * M_PI * n / (N - 1)));
+	  
+	case 5:
+	  return 1;	  
 
 	default:
 	  return 1;
