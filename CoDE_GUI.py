@@ -445,6 +445,8 @@ class MainWindow(QMainWindow):
         self.data2.extend(magn_vals)
 
         fundamental_freq = self.calculate_fundamental_frequency(freq_vals, magn_vals)
+        v_line = pg.InfiniteLine(pos=np.log10(fundamental_freq), angle=90, pen=pg.mkPen(color=(255, 0, 255), width=2))
+        self.graph2.addItem(v_line)        
         text_item = pg.TextItem(text=f"Fundamental Frequency: {fundamental_freq} Hz", color=(255, 0, 255))
         font = QFont()
         font.setBold(True)
@@ -484,8 +486,6 @@ class MainWindow(QMainWindow):
         else:  # 100kHz
             self.graph2.plotItem.setXRange(np.log10(100), np.log10(55000)) 
         self.graph2.plotItem.setYRange(-0.1, 1.1)
-        v_line = pg.InfiniteLine(pos=np.log10(fundamental_freq), angle=90, pen=pg.mkPen(color=(255, 0, 255), width=2))
-        self.graph2.addItem(v_line)
         self.graph2.update() 
 
         
