@@ -12,7 +12,7 @@ using namespace core;
 using namespace std::chrono;
 using namespace google::protobuf;
 
-#define BUFFER_SIZE 2048
+#define BUFFER_SIZE 4096
 #define SAMPLING_FREQUENCY 100000
 
 int sub_sampling_frequency;
@@ -41,18 +41,19 @@ void Send2Socket() {
 	}
 
 	fft_i = fft[i];
-	data += std::to_string(freq_i) + " " + std::to_string(fft_i) + " ";
+	//data += std::to_string(freq_i) + " " + std::to_string(fft_i) + " ";
+	data += std::to_string(fft_i) + " ";
 
   }
   //std::cout << "FFT data: " << data <<  std::endl;
   boost::asio::write(*socket_, boost::asio::buffer(data + "\n"));
-  
+  //this_thread::sleep_for(std::chrono::milliseconds(100));
   //socket_->set_option(option);  
 }
 
 double GetWindow(int n, int N) {
   switch (window_type) {
-	case 1: {
+	case 4: {
 	  const double a0 = 0.27105140069342;
 	  const double a1 = 0.43329793923448;
 	  const double a2 = 0.21812299954311;
@@ -63,7 +64,7 @@ double GetWindow(int n, int N) {
 	  return a0 - a1 * cos(2.0 * M_PI * n / (N - 1)) + a2 * cos(4.0 * M_PI * n / (N - 1)) - a3 * cos(6.0 * M_PI * n / (N - 1)) + a4 * cos(8.0 * M_PI * n / (N - 1)) - a5 * cos(10.0 * M_PI * n / (N - 1)) + a6 * cos(12.0 * M_PI * n / (N - 1));
 	}
 
-	case 2: {
+	case 3: {
 	  const double a0 = 0.35875;
 	  const double a1 = 0.48829;
 	  const double a2 = 0.14128;
@@ -71,11 +72,14 @@ double GetWindow(int n, int N) {
 	  return a0 - a1 * cos(2.0 * M_PI * n / (N - 1)) + a2 * cos(4.0 * M_PI * n / (N - 1)) - a3 * cos(6.0 * M_PI * n / (N - 1));
 	}
 
-	case 3:
+	case 1:
 	  return 0.54 - 0.46 * cos(2.0 * M_PI * n / (N - 1));
 
-	case 4:
+	case 2:
 	  return 0.5 * (1 - cos(2.0 * M_PI * n / (N - 1)));
+	  
+	case 5:
+	  return 1;	  
 
 	default:
 	  return 1;
@@ -207,7 +211,6 @@ int main(int argc, char *argv[]) {
   boost::asio::io_service io_service;
   socket_ = std::make_shared<boost::asio::ip::tcp::socket>(io_service);
   socket_->connect(boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 12352));
-
 
   SubscriberClient subscriber_client(&ProcessBundle);
 
