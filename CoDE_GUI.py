@@ -4,8 +4,11 @@ import socket
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QTextEdit, QHBoxLayout, QLabel, QGridLayout, QLineEdit,QFormLayout
 from PyQt5.QtCore import QThread, pyqtSignal, QDateTime, Qt
 import pyqtgraph as pg
+from pyqtgraph import QtGui
 import numpy as np
 import subprocess
+import heapq
+from PyQt5.QtGui import QFont
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import QTabWidget, QVBoxLayout, QWidget
 from PyQt5.QtWidgets import QCheckBox
@@ -440,11 +443,29 @@ class MainWindow(QMainWindow):
         
         self.freq2.extend(freq_vals)
         self.data2.extend(magn_vals)
+
+        fundamental_freq = self.calculate_fundamental_frequency(freq_vals, magn_vals)
+        text_item = pg.TextItem(text=f"Fundamental Frequency: {fundamental_freq}", color=(255, 0, 255))
+        font = QFont()
+        font.setBold(True)
+        text_item.setFont(font)
+  
+        x_range, y_range = self.graph2.plotItem.viewRange()
+        view_rect = self.graph2.plotItem.viewRect()
+        absolute_x = 1
+        absolute_y = 1.15
+        relative_x = (absolute_x - x_range[0]) / (x_range[1] - x_range[0])
+        relative_y = (absolute_y - y_range[0]) / (y_range[1] - y_range[0])
+        relative_x_view = view_rect.left() + relative_x * view_rect.width()
+        relative_y_view = view_rect.top() + relative_y * view_rect.height()
+        text_item.setPos(relative_x_view, relative_y_view)
         
+        self.graph2.addItem(text_item)        
         self.graph2.plot(self.freq2, self.data2, pen=pg.mkPen(color=(0, 255, 0)))
         self.graph2.setLabel('left', '|Power|')
         self.graph2.setLabel('bottom', 'Frequency', 'Hz')
         self.graph2.plotItem.setLogMode(x=True)
+        
         sampling_freq_index = self.samplingFreqCombobox.currentIndex()
         if sampling_freq_index == 0:  # 100Hz
             self.graph2.plotItem.setXRange(np.log10(1), np.log10(55))
@@ -461,9 +482,19 @@ class MainWindow(QMainWindow):
         elif sampling_freq_index == 6:  # 50kHz
             self.graph2.plotItem.setXRange(np.log10(100), np.log10(27500))                        
         else:  # 100kHz
-            self.graph2.plotItem.setXRange(np.log10(100), np.log10(55000))
+            self.graph2.plotItem.setXRange(np.log10(100), np.log10(55000)) 
         self.graph2.plotItem.setYRange(-0.1, 1.1)
+        v_line = pg.InfiniteLine(pos=np.log10(fundamental_freq), angle=90, pen=pg.mkPen(color=(255, 0, 255), width=2))
+        self.graph2.addItem(v_line)
         self.graph2.update() 
+
+        
+    def calculate_fundamental_frequency(self, freq_vals, magn_vals):
+        valid_indices = [i for i in range(len(magn_vals)) if freq_vals[i] > 1 and magn_vals[i] > 0.7]
+        max_magn_indices = heapq.nlargest(100, valid_indices, key=lambda i: magn_vals[i])
+        max_freqs = [freq_vals[i] for i in max_magn_indices]
+        fundamental_freq = min(max_freqs)
+        return fundamental_freq
 
     def closeEvent(self, event):
         for process in self.processes:
