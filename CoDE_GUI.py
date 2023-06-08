@@ -445,7 +445,7 @@ class MainWindow(QMainWindow):
         self.data2.extend(magn_vals)
 
         fundamental_freq = self.calculate_fundamental_frequency(freq_vals, magn_vals)
-        text_item = pg.TextItem(text=f"Fundamental Frequency: {fundamental_freq}", color=(255, 0, 255))
+        text_item = pg.TextItem(text=f"Fundamental Frequency: {fundamental_freq} Hz", color=(255, 0, 255))
         font = QFont()
         font.setBold(True)
         text_item.setFont(font)
