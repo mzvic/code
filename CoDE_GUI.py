@@ -88,6 +88,9 @@ class MainWindow(QMainWindow):
         plotItem2 = self.graph2.getPlotItem()
         plotItem2.showGrid(True, True, 0.7)
 
+        self.cursor_position = None
+        self.y_bar = False
+
         self.data2 = []
         self.freq2 = []
 
@@ -406,7 +409,7 @@ class MainWindow(QMainWindow):
         self.graph1.setLabel('bottom', 'Time', units='hh:mm:ss')
 
     def update_graph2(self, text):
-        BUFFER_SIZE = 2048
+        BUFFER_SIZE = 1024
         self.data2.clear()
         self.freq2.clear()
         self.graph2.clear()
@@ -462,7 +465,18 @@ class MainWindow(QMainWindow):
         relative_y_view = view_rect.top() + relative_y * view_rect.height()
         text_item.setPos(relative_x_view, relative_y_view)
         
-        self.graph2.addItem(text_item)        
+        self.graph2.addItem(text_item)  
+        
+        if self.y_bar:
+            self.print_nearest_frequency()
+            y_bar_freq, y_bar_magn = self.print_nearest_frequency()
+            v_line_y = pg.InfiniteLine(pos=np.log10(y_bar_freq), angle=90, pen=pg.mkPen(color=(255, 255, 0), width=2))
+            self.graph2.addItem(v_line_y)
+            text_item2 = pg.TextItem(text=f"Freq: {y_bar_freq} Hz, Magnitude: {y_bar_magn}", color=(255, 255, 0))
+            text_item2.setFont(font)
+            text_item2.setPos(1, 0)
+            self.graph2.addItem(text_item2) 
+              
         self.graph2.plot(self.freq2, self.data2, pen=pg.mkPen(color=(0, 255, 0)))
         self.graph2.setLabel('left', '|Power|')
         self.graph2.setLabel('bottom', 'Frequency', 'Hz')
@@ -490,11 +504,42 @@ class MainWindow(QMainWindow):
 
         
     def calculate_fundamental_frequency(self, freq_vals, magn_vals):
-        valid_indices = [i for i in range(len(magn_vals)) if freq_vals[i] > 1 and magn_vals[i] > 0.7]
+        valid_indices = [i for i in range(len(magn_vals)) if freq_vals[i] > 3 and magn_vals[i] > 0.8]
         max_magn_indices = heapq.nlargest(100, valid_indices, key=lambda i: magn_vals[i])
         max_freqs = [freq_vals[i] for i in max_magn_indices]
         fundamental_freq = min(max_freqs)
         return fundamental_freq
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_A:
+            if not self.y_bar:
+                self.y_bar = True
+                self.cursor_position = self.graph2.getViewBox().mapFromScene(QtGui.QCursor.pos())
+                self.print_nearest_frequency()
+            else:
+                self.y_bar = False
+                self.clear_nearest_frequency()
+
+    def print_nearest_frequency(self):
+        cursor_pos = self.graph2.plotItem.vb.mapSceneToView(self.graph2.mapFromGlobal(QtGui.QCursor.pos()))
+        x_pos = cursor_pos.x()
+
+        x_range, _ = self.graph2.plotItem.viewRange()
+        view_rect = self.graph2.plotItem.viewRect()
+
+        relative_x = (x_pos - view_rect.left()) / view_rect.width()
+        cursor_graph2 = 10 ** (x_range[0] + relative_x * (x_range[1] - x_range[0]))
+
+        x_data = np.array(self.freq2)
+
+        closest_index = np.argmin(np.abs(x_data - cursor_graph2))
+        closest_frequency = x_data[closest_index]
+        closest_magnitude = self.data2[closest_index]
+        #self.textbox.append(f"Cursor --> Freq: {closest_frequency}, Magn: {closest_magnitude}")
+        return closest_frequency, closest_magnitude
+
+    def clear_nearest_frequency(self):
+        self.cursor_position = None  
 
     def closeEvent(self, event):
         for process in self.processes:
