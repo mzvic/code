@@ -56,7 +56,7 @@ void Process(const Bundle &bundle) {
 	}
 	data2send = data2send + "\n";
 	send2Socket(data2send);
-	std::cout << data2send << apd_size << std::endl;
+	//std::cout << data2send << apd_size << std::endl;
 	data2send = "";
 }
 
