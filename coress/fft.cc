@@ -12,7 +12,7 @@ using namespace core;
 using namespace std::chrono;
 using namespace google::protobuf;
 
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 2048
 #define SAMPLING_FREQUENCY 100000
 
 int sub_sampling_frequency;
