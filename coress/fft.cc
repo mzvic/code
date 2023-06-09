@@ -116,6 +116,7 @@ void ProcessBundle(const Bundle &bundle) {
 	samples.erase(samples.end() + 1 - ((int) sub_samples.size() - (BUFFER_SIZE - (int) samples.size())), samples.end() + 1);
 
   // Put received data in samples head
+  std::reverse(sub_samples.begin(), sub_samples.end());
   samples.insert(samples.begin(), sub_samples.begin(), sub_samples.end());
 
   // Check if we have enough data to proceed
