@@ -98,16 +98,17 @@ class MainWindow(QMainWindow):
             '/home/code/Development/coress/bin/APD_broker',
             '/home/code/Development/coress/bin/APD_plot_cvt',
             '/home/code/Development/coress/bin/APD_publisher',
-            '/home/code/Development/coress/bin/fft',
+            '/home/code/Development/coress/bin/fft3',
             '/home/code/Development/coress/bin/APD_reg_zero', # 'APD_reg' for RAW data with timestamp (TS) from the t0, 'APD_reg_zero' for RAW data with TS from zero...
-            '/home/code/Development/coress/bin/APD_reg_proc' # 'APD_reg_proc' for data @ 100Hz with TS from zero...
+            '/home/code/Development/coress/bin/APD_reg_proc', # 'APD_reg_proc' for data @ 100Hz with TS from zero...
+            '/home/code/Development/coress/bin/APD_reg_fft'
         ]
 
         button_layout_1 = QHBoxLayout() 
         button_names_1 = ["Server", "Counts plot"] 
 
         button_layout_2 = QHBoxLayout() 
-        button_names_2 = ["Plot counts", "Plot FFT", "Export counts data [100kHz]", "Export counts data [1kHz]"]
+        button_names_2 = ["Plot counts", "Plot FFT", "Export counts data [100kHz]", "Export counts data [1kHz]", "Export FFT data"]
 
         arg_input_layout = QHBoxLayout() # Parámetros de entrada
         serialPortsLabel = QLabel("                    FPGA serial port:")
@@ -178,16 +179,13 @@ class MainWindow(QMainWindow):
             self.buttons.append(start_stop_button)
             
 
-        for i in range(2, 6):
+        for i in range(2, 7):
             self.threads.append(SocketThread(12345 + i))
             if (i==3):
                 self.threads[-1].signal.connect(self.update_graph2)
             else:
                 self.threads[-1].signal.connect(self.update_graph1)
-            self.threads[-1].start()
-            start_stop_button = QPushButton(button_names_2[i - 2])
-            
-            
+            self.threads[-1].start()          
             start_stop_button = QPushButton(button_names_2[i - 2])
             start_stop_button.setCheckable(True)
             start_stop_button.toggled.connect(lambda checked, i=i: self.toggle_process(i, checked))
@@ -196,7 +194,7 @@ class MainWindow(QMainWindow):
             
         self.buttons[0].setChecked(True)  # 'Server'
         self.buttons[1].setChecked(True)  # 'Counts plot'
-        self.threads.append(SocketThread(12352))  
+        self.threads.append(SocketThread(12355))  
         self.layout.addLayout(button_layout_1)
         self.layout.addLayout(button_layout_2)
         self.note = QtWidgets.QLabel("Important: To be able to graph the FFT, the 'Plot counts' button must be enabled. Also, if the FFT settings are modified, 'Plot FFT' must be disabled and then enabled for the changes to take effect.")
@@ -349,7 +347,7 @@ class MainWindow(QMainWindow):
 
     def toggle_process(self, i, checked):
         sender = self.sender()
-        button_names = ["Server", "Counts plot", "Plot counts", "Plot FFT", "Export counts data [100kHz]", "Export counts data [1kHz]"] 
+        button_names = ["Server", "Counts plot", "Plot counts", "Plot FFT", "Export counts data [100kHz]", "Export counts data [1kHz]", "Export FFT data"]
         if checked:
             if i == 2: 
                 sender.setText(button_names[i])
@@ -409,52 +407,47 @@ class MainWindow(QMainWindow):
         self.graph1.setLabel('bottom', 'Time', units='hh:mm:ss')
 
     def update_graph2(self, text):
-        BUFFER_SIZE = 1024
         self.data2.clear()
         self.freq2.clear()
         self.graph2.clear()
         parts_fft = text.split()
-        parts_fft = parts_fft[:BUFFER_SIZE+1]
         fft_data_len = len(parts_fft)
+        #if fft_data_len % 2 != 0:
+        #    self.data2.clear()
+        #    self.freq2.clear()
+        #    self.graph2.clear()
+        #    return
 
         freq_vals = []
         magn_vals = []
-        
-        sampling_freq_index = self.samplingFreqCombobox.currentIndex()
-        if sampling_freq_index == 0:  # 100Hz
-            freq_factor = 100/(BUFFER_SIZE*2)
-        elif sampling_freq_index == 1:  # 500Hz
-            freq_factor = 500/(BUFFER_SIZE*2)
-        elif sampling_freq_index == 2:  # 1kHz
-            freq_factor = 1000/(BUFFER_SIZE*2)
-        elif sampling_freq_index == 3:  # 2kHz
-            freq_factor = 2000/(BUFFER_SIZE*2)                    
-        elif sampling_freq_index == 4:  # 4kHz
-            freq_factor = 4000/(BUFFER_SIZE*2)           
-        elif sampling_freq_index == 5:  # 10kHz
-            freq_factor = 10000/(BUFFER_SIZE*2)            
-        elif sampling_freq_index == 6:  # 50kHz
-            freq_factor = 50000/(BUFFER_SIZE*2)                      
-        else:  # 100kHz
-            freq_factor = 100000/(BUFFER_SIZE*2)
-            
-        for i in range(0, BUFFER_SIZE):
-            freq = freq_factor * i
-            magn = float(parts_fft[i])
+
+        for i in range(0, fft_data_len, 2):
+            freq = float(parts_fft[i])
+            magn = float(parts_fft[i + 1])
             freq_vals.append(freq)
             magn_vals.append(magn)
-        
+
+        #sorted_data = sorted(zip(freq_vals, magn_vals))
+        #freq_vals, magn_vals = map(list, zip(*sorted_data))
+
         self.freq2.extend(freq_vals)
         self.data2.extend(magn_vals)
-
+        
+        h_line = pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen(color=(0, 255, 0), width=2))
+        self.graph2.addItem(h_line)        
+        
         fundamental_freq = self.calculate_fundamental_frequency(freq_vals, magn_vals)
-        v_line = pg.InfiniteLine(pos=np.log10(fundamental_freq), angle=90, pen=pg.mkPen(color=(255, 0, 255), width=2))
-        self.graph2.addItem(v_line)        
-        text_item = pg.TextItem(text=f"Fundamental Frequency: {fundamental_freq} Hz", color=(255, 0, 255))
+        v_line = pg.InfiniteLine(
+            pos=np.log10(fundamental_freq), angle=90, pen=pg.mkPen(color=(255, 0, 255), width=2)
+        )
+        self.graph2.addItem(v_line)
+        text_item = pg.TextItem(
+            text=f"Fundamental Frequency: {fundamental_freq} Hz", color=(255, 0, 255)
+        )
         font = QFont()
         font.setBold(True)
         text_item.setFont(font)
-  
+
         x_range, y_range = self.graph2.plotItem.viewRange()
         view_rect = self.graph2.plotItem.viewRect()
         absolute_x = 1
@@ -464,24 +457,30 @@ class MainWindow(QMainWindow):
         relative_x_view = view_rect.left() + relative_x * view_rect.width()
         relative_y_view = view_rect.top() + relative_y * view_rect.height()
         text_item.setPos(relative_x_view, relative_y_view)
-        
-        self.graph2.addItem(text_item)  
-        
+
+        self.graph2.addItem(text_item)
+
         if self.y_bar:
             self.print_nearest_frequency()
             y_bar_freq, y_bar_magn = self.print_nearest_frequency()
-            v_line_y = pg.InfiniteLine(pos=np.log10(y_bar_freq), angle=90, pen=pg.mkPen(color=(255, 255, 0), width=2))
+            v_line_y = pg.InfiniteLine(
+                pos=np.log10(y_bar_freq), angle=90, pen=pg.mkPen(color=(255, 255, 0), width=2)
+            )
             self.graph2.addItem(v_line_y)
-            text_item2 = pg.TextItem(text=f"Freq: {y_bar_freq} Hz, Magnitude: {y_bar_magn}", color=(255, 255, 0))
+            text_item2 = pg.TextItem(
+                text=f"Freq: {y_bar_freq} Hz, Magnitude: {y_bar_magn}", color=(255, 255, 0)
+            )
             text_item2.setFont(font)
             text_item2.setPos(1, 0)
-            self.graph2.addItem(text_item2) 
-              
-        self.graph2.plot(self.freq2, self.data2, pen=pg.mkPen(color=(0, 255, 0)))
-        self.graph2.setLabel('left', '|Power|')
-        self.graph2.setLabel('bottom', 'Frequency', 'Hz')
+            self.graph2.addItem(text_item2)
+
+        bar_graph = pg.BarGraphItem(x=np.log10(freq_vals), height=magn_vals, width=0.005, brush='g')
+        self.graph2.addItem(bar_graph)
+
+        self.graph2.setLabel("left", "|Power|")
+        self.graph2.setLabel("bottom", "Frequency", "Hz")
         self.graph2.plotItem.setLogMode(x=True)
-        
+
         sampling_freq_index = self.samplingFreqCombobox.currentIndex()
         if sampling_freq_index == 0:  # 100Hz
             self.graph2.plotItem.setXRange(np.log10(1), np.log10(55))
@@ -490,21 +489,22 @@ class MainWindow(QMainWindow):
         elif sampling_freq_index == 2:  # 1kHz
             self.graph2.plotItem.setXRange(np.log10(1), np.log10(550))
         elif sampling_freq_index == 3:  # 2kHz
-            self.graph2.plotItem.setXRange(np.log10(10), np.log10(1100))                        
+            self.graph2.plotItem.setXRange(np.log10(10), np.log10(1100))
         elif sampling_freq_index == 4:  # 4kHz
-            self.graph2.plotItem.setXRange(np.log10(10), np.log10(2200))            
+            self.graph2.plotItem.setXRange(np.log10(10), np.log10(2200))
         elif sampling_freq_index == 5:  # 10kHz
-            self.graph2.plotItem.setXRange(np.log10(10), np.log10(5500))            
+            self.graph2.plotItem.setXRange(np.log10(10), np.log10(5500))
         elif sampling_freq_index == 6:  # 50kHz
-            self.graph2.plotItem.setXRange(np.log10(100), np.log10(27500))                        
+            self.graph2.plotItem.setXRange(np.log10(100), np.log10(27500))
         else:  # 100kHz
-            self.graph2.plotItem.setXRange(np.log10(100), np.log10(55000)) 
+            self.graph2.plotItem.setXRange(np.log10(100), np.log10(55000))
         self.graph2.plotItem.setYRange(-0.1, 1.1)
-        self.graph2.update() 
+        self.graph2.update()
+
 
         
     def calculate_fundamental_frequency(self, freq_vals, magn_vals):
-        valid_indices = [i for i in range(len(magn_vals)) if freq_vals[i] > 3 and magn_vals[i] > 0.8]
+        valid_indices = [i for i in range(len(magn_vals)) if freq_vals[i] > 6 and magn_vals[i] > 0.9]
         max_magn_indices = heapq.nlargest(100, valid_indices, key=lambda i: magn_vals[i])
         max_freqs = [freq_vals[i] for i in max_magn_indices]
         fundamental_freq = min(max_freqs)

@@ -130,6 +130,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named APD_reg_fft
+
+# Build rule for target.
+APD_reg_fft: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg_fft
+.PHONY : APD_reg_fft
+
+# fast build rule for target.
+APD_reg_fft/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft.dir/build.make CMakeFiles/APD_reg_fft.dir/build
+.PHONY : APD_reg_fft/fast
+
+#=============================================================================
 # Target rules for targets named fft
 
 # Build rule for target.
@@ -258,6 +271,19 @@ APD_publisher: cmake_check_build_system
 APD_publisher/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_publisher.dir/build.make CMakeFiles/APD_publisher.dir/build
 .PHONY : APD_publisher/fast
+
+#=============================================================================
+# Target rules for targets named fft3
+
+# Build rule for target.
+fft3: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 fft3
+.PHONY : fft3
+
+# fast build rule for target.
+fft3/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fft3.dir/build.make CMakeFiles/fft3.dir/build
+.PHONY : fft3/fast
 
 #=============================================================================
 # Target rules for targets named APD_broker
@@ -433,6 +459,33 @@ APD_reg.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg.dir/build.make CMakeFiles/APD_reg.dir/APD_reg.cc.s
 .PHONY : APD_reg.cc.s
 
+APD_reg_fft.o: APD_reg_fft.cc.o
+
+.PHONY : APD_reg_fft.o
+
+# target to build an object file
+APD_reg_fft.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft.dir/build.make CMakeFiles/APD_reg_fft.dir/APD_reg_fft.cc.o
+.PHONY : APD_reg_fft.cc.o
+
+APD_reg_fft.i: APD_reg_fft.cc.i
+
+.PHONY : APD_reg_fft.i
+
+# target to preprocess a source file
+APD_reg_fft.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft.dir/build.make CMakeFiles/APD_reg_fft.dir/APD_reg_fft.cc.i
+.PHONY : APD_reg_fft.cc.i
+
+APD_reg_fft.s: APD_reg_fft.cc.s
+
+.PHONY : APD_reg_fft.s
+
+# target to generate assembly for a file
+APD_reg_fft.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft.dir/build.make CMakeFiles/APD_reg_fft.dir/APD_reg_fft.cc.s
+.PHONY : APD_reg_fft.cc.s
+
 APD_reg_proc.o: APD_reg_proc.cc.o
 
 .PHONY : APD_reg_proc.o
@@ -567,6 +620,33 @@ fft.s: fft.cc.s
 fft.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fft.dir/build.make CMakeFiles/fft.dir/fft.cc.s
 .PHONY : fft.cc.s
+
+fft3.o: fft3.cc.o
+
+.PHONY : fft3.o
+
+# target to build an object file
+fft3.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fft3.dir/build.make CMakeFiles/fft3.dir/fft3.cc.o
+.PHONY : fft3.cc.o
+
+fft3.i: fft3.cc.i
+
+.PHONY : fft3.i
+
+# target to preprocess a source file
+fft3.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fft3.dir/build.make CMakeFiles/fft3.dir/fft3.cc.i
+.PHONY : fft3.cc.i
+
+fft3.s: fft3.cc.s
+
+.PHONY : fft3.s
+
+# target to generate assembly for a file
+fft3.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fft3.dir/build.make CMakeFiles/fft3.dir/fft3.cc.s
+.PHONY : fft3.cc.s
 
 publisher5.o: publisher5.cc.o
 
@@ -743,11 +823,13 @@ help:
 	@echo "... APD_plot_cvt"
 	@echo "... APD_publisher"
 	@echo "... APD_reg"
+	@echo "... APD_reg_fft"
 	@echo "... APD_reg_proc"
 	@echo "... APD_reg_zero"
 	@echo "... client"
 	@echo "... core_grpc_proto"
 	@echo "... fft"
+	@echo "... fft3"
 	@echo "... publisher5"
 	@echo "... reactor"
 	@echo "... subscriber5"
@@ -766,6 +848,9 @@ help:
 	@echo "... APD_reg.o"
 	@echo "... APD_reg.i"
 	@echo "... APD_reg.s"
+	@echo "... APD_reg_fft.o"
+	@echo "... APD_reg_fft.i"
+	@echo "... APD_reg_fft.s"
 	@echo "... APD_reg_proc.o"
 	@echo "... APD_reg_proc.i"
 	@echo "... APD_reg_proc.s"
@@ -781,6 +866,9 @@ help:
 	@echo "... fft.o"
 	@echo "... fft.i"
 	@echo "... fft.s"
+	@echo "... fft3.o"
+	@echo "... fft3.i"
+	@echo "... fft3.s"
 	@echo "... publisher5.o"
 	@echo "... publisher5.i"
 	@echo "... publisher5.s"
