@@ -74,7 +74,7 @@ find_package(ZLIB REQUIRED)
 
 # Targets
 foreach (_target
-        APD_broker publisher5 subscriber5 APD_fft APD_publisher APD_reg APD_reg_zero APD_reg_proc APD_plot_cvt fft)
+        APD_broker publisher5 subscriber5 APD_fft APD_publisher APD_reg APD_reg_zero APD_reg_proc APD_plot_cvt fft fft3 APD_reg_fft)
     add_executable(${_target} "${_target}.cc")
     target_link_libraries(${_target}
             core_grpc_proto
