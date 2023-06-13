@@ -23,6 +23,8 @@ using namespace google::protobuf;
 //int stop_view_frequency;
 int window_type;
 
+Bundle *publishing_bundle;
+PublisherClient *publisher_client;
 
 // More accumulation before report. Some kind of data accumulation gate
 fftw_plan plan = nullptr;
@@ -39,28 +41,34 @@ condition_variable signal_cv;
 std::shared_ptr<boost::asio::ip::tcp::socket> socket_;
 void Send2Socket() {
   std::string data;
-  for (int i = 0; i < FFT_PEAKS_SIZE; i++){
+
+  for (int i = 0; i < FFT_PEAKS_SIZE; i++)
 	data += " " + to_string(fft_peaks_frequencies[i]) + " " + to_string(fft_peaks_magnitudes[i]) + "\n";
-  }  
+
   boost::asio::write(*socket_, boost::asio::buffer(data + "\n"));
 }
 
 void Send2Broker() {
-  Bundle bundle;
-  PublisherClient publisher_client;
-  for (int i = 0; i < FFT_PEAKS_SIZE; i++){
-    bundle.add_freq(fft_peaks_frequencies[i]);
-    bundle.add_fft(fft_peaks_magnitudes[i]);
-  }  
-  publisher_client.Publish(bundle);  
-  bundle.clear_freq();
-  bundle.clear_fft();  
-}
+//  auto start = high_resolution_clock::now();
 
+  publishing_bundle->clear_fft();
+  publishing_bundle->clear_freq();
+
+  for (int i = 0; i < FFT_PEAKS_SIZE; i++) {
+	publishing_bundle->add_fft(fft_peaks_magnitudes[i]);
+	publishing_bundle->add_freq(fft_peaks_frequencies[i]);
+  }
+
+  publisher_client->Publish(*publishing_bundle);
+
+//  auto stop = high_resolution_clock::now();
+//  auto duration = duration_cast<microseconds>(stop - start);
+//  cout << "FFT Calculation Time: " << duration.count() << " us" << endl;
+}
 
 double GetWindow(int n, int N) {
   switch (window_type) {
-	case 4: {
+	case 1: {
 	  const double a0 = 0.27105140069342;
 	  const double a1 = 0.43329793923448;
 	  const double a2 = 0.21812299954311;
@@ -71,7 +79,7 @@ double GetWindow(int n, int N) {
 	  return a0 - a1 * cos(2.0 * M_PI * n / (N - 1)) + a2 * cos(4.0 * M_PI * n / (N - 1)) - a3 * cos(6.0 * M_PI * n / (N - 1)) + a4 * cos(8.0 * M_PI * n / (N - 1)) - a5 * cos(10.0 * M_PI * n / (N - 1)) + a6 * cos(12.0 * M_PI * n / (N - 1));
 	}
 
-	case 3: {
+	case 2: {
 	  const double a0 = 0.35875;
 	  const double a1 = 0.48829;
 	  const double a2 = 0.14128;
@@ -79,14 +87,11 @@ double GetWindow(int n, int N) {
 	  return a0 - a1 * cos(2.0 * M_PI * n / (N - 1)) + a2 * cos(4.0 * M_PI * n / (N - 1)) - a3 * cos(6.0 * M_PI * n / (N - 1));
 	}
 
-	case 1:
+	case 3:
 	  return 0.54 - 0.46 * cos(2.0 * M_PI * n / (N - 1));
 
-	case 2:
+	case 4:
 	  return 0.5 * (1 - cos(2.0 * M_PI * n / (N - 1)));
-	  
-	case 5:
-	  return 1;	  
 
 	default:
 	  return 1;
@@ -96,13 +101,18 @@ double GetWindow(int n, int N) {
 void ProcessBundle(const Bundle &bundle) {
   double max_fft;
 
-//  auto start = high_resolution_clock::now();
+  // Ignore bundles with no APD data
+  if (bundle.apd_size() == 0)
+	return;
+
+  auto start = high_resolution_clock::now();
 
   const auto &kApd = bundle.apd();
 
+
   // Put received data at the tail
   samples.insert(samples.end(), kApd.begin(), kApd.end());
-std::cout << "------------------------------------------> Samples size: " << samples.size() <<  std::endl;
+
   // Check if we have enough data to proceed
   if (samples.size() < BUFFER_SIZE)
 	return;
@@ -159,11 +169,11 @@ std::cout << "------------------------------------------> Samples size: " << sam
 
   // Ready to send FFT
   Send2Socket();
-  //Send2Broker();
+  Send2Broker();
 
-//  auto stop = high_resolution_clock::now();
-//  auto duration = duration_cast<microseconds>(stop - start);
-//  cout << "FFT Calculation Time: " << duration.count() << " us" << endl;
+  auto stop = high_resolution_clock::now();
+  auto duration = duration_cast<microseconds>(stop - start);
+  cout << "FFT Calculation Time: " << duration.count() << " us" << endl;
 
 //  for (int i = 0; i < FFT_PEAKS_SIZE; i++)
 //	cout << fft_peaks_frequencies[i] << "," << fft_peaks_magnitudes[i] << endl;
@@ -188,9 +198,12 @@ int main() {
 //
 //  window_type = stoi(argv[2]);
 //  stop_view_frequency = stoi(argv[3]);
-   
+
   unique_lock<mutex> slck(signal_mutex);
   SubscriberClient subscriber_client(&ProcessBundle);
+  publisher_client = new PublisherClient();
+  publishing_bundle = new Bundle();
+
 
   // Register handler
   std::signal(SIGINT, HandleSignal);
@@ -206,6 +219,9 @@ int main() {
   // Destroy FFTW plan
   if (plan != nullptr)
 	fftw_destroy_plan(plan);
+
+  free(publisher_client);
+  free(publishing_bundle);
 
   return 0;
 }

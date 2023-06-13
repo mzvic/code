@@ -111,7 +111,7 @@ class MainWindow(QMainWindow):
         button_names_2 = ["Plot counts", "Plot FFT", "Export counts data [100kHz]", "Export counts data [1kHz]", "Export FFT data"]
 
         arg_input_layout = QHBoxLayout() # Parámetros de entrada
-        serialPortsLabel = QLabel("                    FPGA serial port:")
+        serialPortsLabel = QLabel("          FPGA serial port:")
         self.serialPortsCombobox = QComboBox(self)
         self.update_serial_ports()
         index_p = self.serialPortsCombobox.findText('/dev/ttyUSB1', QtCore.Qt.MatchFixedString)
@@ -120,24 +120,24 @@ class MainWindow(QMainWindow):
         arg_input_layout.addWidget(serialPortsLabel)
         arg_input_layout.addWidget(self.serialPortsCombobox)
 
-        samplingFreqLabel = QLabel("                    Sampling frequency:")
-        self.samplingFreqCombobox = QComboBox(self)
-        self.samplingFreqCombobox.addItems(['100Hz', '500Hz', '1kHz', '2kHz', '4kHz', '10kHz', '50kHz', '100kHz'])
-        index_f = self.samplingFreqCombobox.findText('4kHz', QtCore.Qt.MatchFixedString)
-        if index_f >= 0:
-             self.samplingFreqCombobox.setCurrentIndex(index_f)         
-        arg_input_layout.addWidget(samplingFreqLabel)
-        arg_input_layout.addWidget(self.samplingFreqCombobox)
-        self.sampling_freq_values = {
-            0: 100, # '100Hz' 
-            1: 500, # '500Hz' 
-            2: 1000, # '1kHz'          
-            3: 2000, # '2kHz'          
-            4: 4000, # '4kHz'
-            5: 10000, # '10kHz' 
-            6: 50000, # '50kHz'                                              
-            7: 100000, # '100kHz'                                                          
-        }
+        #samplingFreqLabel = QLabel("                    Sampling frequency:")
+        #self.samplingFreqCombobox = QComboBox(self)
+        #self.samplingFreqCombobox.addItems(['100Hz', '500Hz', '1kHz', '2kHz', '4kHz', '10kHz', '50kHz', '100kHz'])
+        #index_f = self.samplingFreqCombobox.findText('4kHz', QtCore.Qt.MatchFixedString)
+        #if index_f >= 0:
+        #     self.samplingFreqCombobox.setCurrentIndex(index_f)         
+        #arg_input_layout.addWidget(samplingFreqLabel)
+        #arg_input_layout.addWidget(self.samplingFreqCombobox)
+        #self.sampling_freq_values = {
+        #    0: 100, # '100Hz' 
+        #    1: 500, # '500Hz' 
+        #    2: 1000, # '1kHz'          
+        #    3: 2000, # '2kHz'          
+        #    4: 4000, # '4kHz'
+        #    5: 10000, # '10kHz' 
+        #    6: 50000, # '50kHz'                                              
+        #    7: 100000, # '100kHz'                                                          
+        #}
 
         #apd_fft_arg_label = QLabel("                    FFT samples:")
         #self.apd_fft_arg_input = QLineEdit(self)
@@ -146,7 +146,28 @@ class MainWindow(QMainWindow):
         #arg_input_layout.addWidget(apd_fft_arg_label)
         #arg_input_layout.addWidget(self.apd_fft_arg_input)
         
-        windowTypeLabel = QLabel("                    FFT Window Type:")
+        apd_counts_secs_label = QLabel("          Time axis length in secs (counts plot):")
+        self.apd_counts_secs_input = QLineEdit(self)
+        self.apd_counts_secs_input.setFixedWidth(40) 
+        self.apd_counts_secs_input.setText("5")       
+        arg_input_layout.addWidget(apd_counts_secs_label)
+        arg_input_layout.addWidget(self.apd_counts_secs_input) 
+
+        f_i_label = QLabel("          FFT initial freq:")
+        self.f_i_input = QLineEdit(self)
+        self.f_i_input.setFixedWidth(60) 
+        self.f_i_input.setText("10")       
+        arg_input_layout.addWidget(f_i_label)
+        arg_input_layout.addWidget(self.f_i_input) 
+
+        f_f_label = QLabel("          FFT final freq:")
+        self.f_f_input = QLineEdit(self)
+        self.f_f_input.setFixedWidth(60) 
+        self.f_f_input.setText("10000")       
+        arg_input_layout.addWidget(f_f_label)
+        arg_input_layout.addWidget(self.f_f_input)                 
+        
+        windowTypeLabel = QLabel("          FFT Window Type:")
         self.windowTypeCombobox = QComboBox(self)
         self.windowTypeCombobox.addItems(['Hamming', 'Hann', 'Blackman-Harris 4', 'Blackman-Harris 7', 'No window'])
         index_w = self.windowTypeCombobox.findText('Blackman-Harris 7', QtCore.Qt.MatchFixedString)
@@ -363,10 +384,10 @@ class MainWindow(QMainWindow):
                 #apd_fft_arg = self.apd_fft_arg_input.text()
                 fft_window_type = self.windowTypeCombobox.currentIndex()
                 fft_window_value = self.window_type_values[fft_window_type]
-                sampling_freq = self.samplingFreqCombobox.currentIndex()
-                sampling_freq_value = self.sampling_freq_values[sampling_freq]
+                #sampling_freq = self.samplingFreqCombobox.currentIndex()
+                #sampling_freq_value = self.sampling_freq_values[sampling_freq]
                 #self.processes[i] = subprocess.Popen([self.binary_paths[i], apd_fft_arg, str(fft_window_value), str(sampling_freq_value)])
-                self.processes[i] = subprocess.Popen([self.binary_paths[i], str(fft_window_value), str(sampling_freq_value)])
+                self.processes[i] = subprocess.Popen([self.binary_paths[i]])
                 self.threads[i].start()
             else:
                 sender.setText(button_names[i])
@@ -395,9 +416,10 @@ class MainWindow(QMainWindow):
             value = float(parts_counts[i + 1])
             self.times1.append(timestamp) 
             self.data1.append(value)
-                      
+        
+        counts_time = int(self.apd_counts_secs_input.text())  
         current_time = time.time()
-        cut_off_time = current_time - 15
+        cut_off_time = current_time - counts_time
         self.times1 = [t for t in self.times1 if t >= cut_off_time]
         self.data1 = self.data1[-len(self.times1):]
 
@@ -480,24 +502,27 @@ class MainWindow(QMainWindow):
         self.graph2.setLabel("left", "|Power|")
         self.graph2.setLabel("bottom", "Frequency", "Hz")
         self.graph2.plotItem.setLogMode(x=True)
-
-        sampling_freq_index = self.samplingFreqCombobox.currentIndex()
-        if sampling_freq_index == 0:  # 100Hz
-            self.graph2.plotItem.setXRange(np.log10(1), np.log10(55))
-        elif sampling_freq_index == 1:  # 500Hz
-            self.graph2.plotItem.setXRange(np.log10(1), np.log10(275))
-        elif sampling_freq_index == 2:  # 1kHz
-            self.graph2.plotItem.setXRange(np.log10(1), np.log10(550))
-        elif sampling_freq_index == 3:  # 2kHz
-            self.graph2.plotItem.setXRange(np.log10(10), np.log10(1100))
-        elif sampling_freq_index == 4:  # 4kHz
-            self.graph2.plotItem.setXRange(np.log10(10), np.log10(2200))
-        elif sampling_freq_index == 5:  # 10kHz
-            self.graph2.plotItem.setXRange(np.log10(10), np.log10(5500))
-        elif sampling_freq_index == 6:  # 50kHz
-            self.graph2.plotItem.setXRange(np.log10(100), np.log10(27500))
-        else:  # 100kHz
-            self.graph2.plotItem.setXRange(np.log10(100), np.log10(55000))
+        f_i = int(self.f_i_input.text())  
+        f_f = int(self.f_f_input.text()) 
+        self.graph2.plotItem.setXRange(np.log10(f_i), np.log10(f_f))
+        
+        #sampling_freq_index = self.samplingFreqCombobox.currentIndex()
+        #if sampling_freq_index == 0:  # 100Hz
+        #    self.graph2.plotItem.setXRange(np.log10(1), np.log10(55))
+        #elif sampling_freq_index == 1:  # 500Hz
+        #    self.graph2.plotItem.setXRange(np.log10(1), np.log10(275))
+        #elif sampling_freq_index == 2:  # 1kHz
+        #    self.graph2.plotItem.setXRange(np.log10(1), np.log10(550))
+        #elif sampling_freq_index == 3:  # 2kHz
+        #    self.graph2.plotItem.setXRange(np.log10(10), np.log10(1100))
+        #elif sampling_freq_index == 4:  # 4kHz
+        #    self.graph2.plotItem.setXRange(np.log10(10), np.log10(2200))
+        #elif sampling_freq_index == 5:  # 10kHz
+        #    self.graph2.plotItem.setXRange(np.log10(10), np.log10(5500))
+        #elif sampling_freq_index == 6:  # 50kHz
+        #    self.graph2.plotItem.setXRange(np.log10(100), np.log10(27500))
+        #else:  # 100kHz
+        #    self.graph2.plotItem.setXRange(np.log10(100), np.log10(55000))
         self.graph2.plotItem.setYRange(-0.1, 1.1)
         self.graph2.update()
 
@@ -548,7 +573,7 @@ class MainWindow(QMainWindow):
         for thread in self.threads:
             if thread is not None:
                 thread.stop()
-        for i in range(5):
+        for i in range(7):
             self.threads[i].stop()
         event.accept()
 
