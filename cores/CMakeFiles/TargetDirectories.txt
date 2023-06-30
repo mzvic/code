@@ -1,0 +1,15 @@
+/home/asus/Descargas/cores/CMakeFiles/rebuild_cache.dir
+/home/asus/Descargas/cores/CMakeFiles/edit_cache.dir
+/home/asus/Descargas/cores/CMakeFiles/APD_reg_fft.dir
+/home/asus/Descargas/cores/CMakeFiles/client.dir
+/home/asus/Descargas/cores/CMakeFiles/APD_reg_fft_avg.dir
+/home/asus/Descargas/cores/CMakeFiles/APD_fft.dir
+/home/asus/Descargas/cores/CMakeFiles/APD_fft3.dir
+/home/asus/Descargas/cores/CMakeFiles/reactor.dir
+/home/asus/Descargas/cores/CMakeFiles/core_grpc_proto.dir
+/home/asus/Descargas/cores/CMakeFiles/APD_publisher.dir
+/home/asus/Descargas/cores/CMakeFiles/APD_broker.dir
+/home/asus/Descargas/cores/CMakeFiles/APD_reg.dir
+/home/asus/Descargas/cores/CMakeFiles/APD_reg_zero.dir
+/home/asus/Descargas/cores/CMakeFiles/APD_reg_proc.dir
+/home/asus/Descargas/cores/CMakeFiles/APD_plot_cvt.dir
