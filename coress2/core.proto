@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package core;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service Broker {
+  rpc Publish (stream Bundle) returns (google.protobuf.Empty);
+  rpc Subscribe (Interests) returns (stream Bundle);
+//  rpc Subscribe (google.protobuf.Empty) returns (stream Bundle);
+}
+
+enum Type {
+  UNSPECIFIED = 0;
+  DATA_APD_FULL = 1;
+  DATA_APD_PARTIAL = 2;
+  DATA_FFT_FULL = 3;
+  DATA_FFT_PARTIAL = 4;
+  CONTROL_LASER = 100;
+  CONTROL_VACUUM_PUMP = 101;
+}
+
+message Bundle {
+  google.protobuf.Timestamp timestamp = 1;
+  Type type = 2;
+  repeated double value = 3;
+//  repeated int32 apd = 2;
+//  repeated double fft = 3;
+//  repeated double freq = 4;
+}
+
+message Interests {
+  repeated Type types = 1;
+}
+
+//message Num {
+//  Type type = 1;
+//  double value = 2;
+//}
+//
+//message Arr {
+//  Type type = 1;
+//  repeated double value = 2;
+//}
+//
+//message Str {
+//  Type type = 1;
+//  string value = 2;
+//}
