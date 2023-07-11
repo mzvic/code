@@ -17,7 +17,7 @@ class PublisherClient {
   explicit PublisherClient();
   ~PublisherClient();
   void Publish(Bundle &);
-  void Publish(Bundle &, const timeval &);
+  void Publish(Bundle &, const Timestamp &);
 
  private:
   class PublisherClientReactor : public ClientWriteReactor<Bundle> {
