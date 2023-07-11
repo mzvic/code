@@ -95,15 +95,20 @@ PublisherClient::~PublisherClient() {
 }
 
 void PublisherClient::Publish(Bundle &bundle) {
+  Timestamp timestamp;
   struct timeval tv{};
   gettimeofday(&tv, nullptr);
 
-  Publish(bundle, tv);
+  timestamp.set_seconds((int64_t) tv.tv_sec);
+  timestamp.set_nanos((int32_t) tv.tv_usec * 1000);
+
+  Publish(bundle, timestamp);
 }
-void PublisherClient::Publish(Bundle &bundle, const timeval &tv) {
+
+void PublisherClient::Publish(Bundle &bundle, const Timestamp &timestamp) {
   unique_lock<mutex> qlck(queue_mutex_);
 
-  Timestamp *timestamp;
+//  Timestamp *timestamp;
 
   if (stopping_) {
 	cout << "PublisherClient: Trying to publish on a stopping_ client, no message has been published" << endl;
@@ -113,13 +118,15 @@ void PublisherClient::Publish(Bundle &bundle, const timeval &tv) {
 
 //  cout << "Publishing new message" << endl;
 
-//  struct timeval tv{};
-//  gettimeofday(&tv, nullptr);
+//  struct timeval timestamp{};
+//  gettimeofday(&timestamp, nullptr);
 
-  timestamp = bundle.mutable_timestamp();
+//  timestamp = bundle.mutable_timestamp();
 
-  timestamp->set_seconds((int64_t) tv.tv_sec);
-  timestamp->set_nanos((int32_t) tv.tv_usec * 1000);
+//  timestamp->set_seconds((int64_t) timestamp.tv_sec);
+//  timestamp->set_nanos((int32_t) timestamp.tv_usec * 1000);
+
+  bundle.mutable_timestamp()->CopyFrom(timestamp);
 
   queue_.push(bundle);
 
@@ -141,6 +148,7 @@ void PublisherClient::Wait() {
 }
 
 void PublisherClient::OnPublisherOnDone() {
+  unique_lock<mutex> qlck(queue_mutex_);
   unique_lock<mutex> rlck(running_mutex_);
 
   cout << "PublisherClient: OnSubscriberOnDone" << endl;

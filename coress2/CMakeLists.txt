@@ -66,7 +66,7 @@ target_link_libraries(client
 # Targets
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 foreach (_target
-        broker2 fft4 publisher6 subscriber6)
+        broker2 fft_full publisher6 subscriber6)
     add_executable(${_target} "${_target}.cc")
     target_link_libraries(${_target}
             core_grpc_proto

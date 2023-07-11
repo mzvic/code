@@ -9,7 +9,16 @@ mutex signal_mutex;
 condition_variable signal_cv;
 
 void ProcessBundle(const Bundle &bundle) {
-  cout << "New bundle received: Type: " << bundle.type() << endl;
+  time_t timestamp_time;
+  struct tm *timestamp_tm;
+  char buffer_tm[64], buffer[92];
+
+  timestamp_time = bundle.timestamp().seconds();
+  timestamp_tm = localtime(&timestamp_time);
+  strftime(buffer_tm, sizeof buffer_tm, "%Y-%m-%d %H:%M:%S", timestamp_tm);
+  snprintf(buffer, sizeof buffer, "%s.%09d", buffer_tm, bundle.timestamp().nanos());
+
+  cout << "New bundle received. Timestamp: " << buffer << " Type: " << bundle.type() << " Value size: " << bundle.value_size() << endl;
 }
 
 void HandleSignal(int) {
