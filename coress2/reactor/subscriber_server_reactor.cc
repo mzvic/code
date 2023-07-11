@@ -9,6 +9,8 @@ SubscriberServerReactor::SubscriberServerReactor(ServerReactorInterface *interfa
 
   interests_.assign(interests->types().begin(), interests->types().end());
 
+  done_ = false;
+
   finished_ = false;
 }
 
@@ -17,27 +19,31 @@ SubscriberServerReactor::SubscriberServerReactor(ServerReactorInterface *interfa
 //}
 
 void SubscriberServerReactor::OnDone() {
-  //	Now();
+  unique_lock<mutex> lck(mutex_);
 
-//  std::cout << "Subscriber Reactor: Done" << std::endl;
+  if (!done_) {
+	done_ = true;
 
-  interface_->OnSubscriberServerReactorFinish(this);
+//	std::cout << "Subscriber Reactor: OnDone" << std::endl;
+
+	interface_->OnSubscriberServerReactorFinish(this);
+  }
 }
 
 void SubscriberServerReactor::OnCancel() {
-  unique_lock<std::mutex> lck(mutex_);
-//  std::cout << "Subscriber Reactor: Cancelling" << std::endl;
-  //
+  unique_lock<mutex> lck(mutex_);
+
+//  std::cout << "Subscriber Reactor: OnCancel" << std::endl;
+
   if (!finished_) {
 	finished_ = true;
 
 	Finish(Status::CANCELLED);
   }
-  //	//	Now();
 }
 
 void SubscriberServerReactor::OnWriteDone(bool ok) {
-  unique_lock<std::mutex> lck(mutex_);
+  unique_lock<mutex> lck(mutex_);
 
   if (ok) {
 	//		std::cout << "Subscriber Reactor: A value has been written" << std::endl;
@@ -48,8 +54,8 @@ void SubscriberServerReactor::OnWriteDone(bool ok) {
 	//		queue_.erase(queue_.begin());
 	queue_.pop();
 
-	// If there is more, send first now
-	if (!queue_.empty())
+	// If we are not finished and there is more, send first now
+	if (!finished_ && !queue_.empty())
 	  StartWrite(&queue_.front());
   } else {
 //	std::cout << "Subscriber Reactor: Writing done" << std::endl;
@@ -63,7 +69,7 @@ void SubscriberServerReactor::OnWriteDone(bool ok) {
 }
 
 void SubscriberServerReactor::EnqueueMessage(const Bundle &bundle) {
-  unique_lock<std::mutex> lck(mutex_);
+  unique_lock<mutex> lck(mutex_);
 
   // If there is no particular interest, or explicit ones, enqueue incoming message
   if (interests_.empty() || (find(interests_.begin(), interests_.end(), bundle.type()) != interests_.end())) {

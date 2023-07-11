@@ -33,6 +33,7 @@ class PublisherServerReactor : public ServerReadReactor<Bundle> {
   Bundle request_;
   ServerReactorInterface *interface_;
   bool finished_;
+  bool done_;
   mutex mutex_;
 
   //		void Now();
@@ -57,6 +58,7 @@ class SubscriberServerReactor : public ServerWriteReactor<Bundle> {
   ServerReactorInterface *interface_;
   vector<int> interests_;
   bool finished_;
+  bool done_;
   mutex mutex_;
 
   //		void Now();
