@@ -10,40 +10,47 @@ PublisherServerReactor::PublisherServerReactor(ServerReactorInterface *interface
   // Block until next read op
   StartRead(&request_);
 
+  done_ = false;
+
   finished_ = false;
 }
 
 void PublisherServerReactor::OnDone() {
-  //	Now();
+  unique_lock<mutex> lck(mutex_);
 
-  //	std::cout << "Publisher Reactor: Done" << std::endl;
+  if (!done_) {
+	done_ = true;
 
-  interface_->OnPublisherServerReactorFinish(this);
+//	std::cout << "Publisher Reactor: OnDone" << std::endl;
+
+	interface_->OnPublisherServerReactorFinish(this);
+  }
 }
 
 void PublisherServerReactor::OnCancel() {
-  unique_lock<std::mutex> lck(mutex_);
-  //	std::cout << "Publisher Reactor: Cancelling" << std::endl;
+  unique_lock<mutex> lck(mutex_);
+
+  //	std::cout << "Publisher Reactor: OnCancel" << std::endl;
 
   if (!finished_) {
 	finished_ = true;
 
 	Finish(Status::CANCELLED);
   }
-  //	Now();
 }
 
 void PublisherServerReactor::OnReadDone(bool ok) {
-  unique_lock<std::mutex> lck(mutex_);
-  
+  unique_lock<mutex> lck(mutex_);
+
   if (ok) {
 	//		std::cout << "Publisher Reactor: Reading a value" << std::endl;
 
 	// Fresh value is inside request_
 	interface_->ProcessMessage(request_);
 
-	// Block until next read op
-	StartRead(&request_);
+	// Block until next read op if we are not finished yet
+	if (!finished_)
+	  StartRead(&request_);
   } else {
 	//		std::cout << "Publisher Reactor: Reading done" << std::endl;
 
@@ -54,11 +61,3 @@ void PublisherServerReactor::OnReadDone(bool ok) {
 	}
   }
 }
-
-//void PublisherServerReactor::Now() {
-//	std::cout << "Publisher Reactor: Terminating" << std::endl;
-//
-//	interface_->OnPublisherServerReactorFinish(this);
-//
-//	delete this;
-//}
