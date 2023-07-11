@@ -12,27 +12,43 @@ using namespace core;
 using namespace std::chrono;
 using namespace google::protobuf;
 
-//#define SAMPLING_FREQUENCY 100000
-#define BUFFER_SIZE 1000000
-#define AVERAGE_COUNT 6        // Number of FFTs to average and send
+#define SAMPLING_FREQUENCY 100000
+#define BUFFER_SIZE 100000
+#define MAX_BIN_COUNT 100
 
 Bundle *publishing_bundle;
 PublisherClient *publisher_client;
 
 fftw_plan plan = nullptr;
-double input[BUFFER_SIZE], output[BUFFER_SIZE], fft_magnitudes[BUFFER_SIZE / 2 + 1], fft_magnitudes_average[BUFFER_SIZE / 2 + 1];
+double input[BUFFER_SIZE], output[BUFFER_SIZE], fft_magnitudes[BUFFER_SIZE / 2 + 1], fft_bin_frequencies[MAX_BIN_COUNT], fft_bin_magnitudes[MAX_BIN_COUNT];
 boost::circular_buffer<double> samples(BUFFER_SIZE);
-int fft_count = 0;
+int bin_size, bin_count;
+int start_idx, stop_idx;
+double frequency_resolution;
 
 bool exit_flag = false;
 mutex signal_mutex;
 condition_variable signal_cv;
 
 void Send2Broker(const Timestamp &timestamp) {
+  int i;
+
   publishing_bundle->clear_value();
 
-  for (const double &kElem : fft_magnitudes_average)
-	publishing_bundle->add_value(kElem);
+  cout << "bin_count: " << bin_count << endl;
+  cout << "bin_size: " << bin_size << endl;
+  cout << "start_idx: " << start_idx << endl;
+  cout << "stop_idx: " << stop_idx << endl;
+
+  for (i = 0; i < bin_count; i++) {
+	publishing_bundle->add_value(fft_bin_frequencies[i]);
+	cout << "F: " << fft_bin_frequencies[i] << endl;
+  }
+
+  for (i = 0; i < bin_count; i++) {
+	publishing_bundle->add_value(fft_bin_magnitudes[i]);
+	cout << "M: " << fft_bin_magnitudes[i] << endl;
+  }
 
   publisher_client->Publish(*publishing_bundle, timestamp);
 }
@@ -71,13 +87,14 @@ void Send2Broker(const Timestamp &timestamp) {
 
 void ProcessBundle(const Bundle &bundle) {
   double max_fft;
+  int i, j, k;
 
   auto start = high_resolution_clock::now();
 
   const auto &kValue = bundle.value();
 
   // Append received data. Note that we will process the last BUFFER_SIZE samples,
-  // so if value and BUFFER_SIZE are not aligned, some old data could be lost
+  // so if kValue and BUFFER_SIZE are not aligned, some old data could be lost
   samples.insert(samples.end(), kValue.begin(), kValue.end());
 
   // Check if we have enough data to proceed
@@ -85,7 +102,7 @@ void ProcessBundle(const Bundle &bundle) {
 	return;
 
   // Create input and apply window (window is now commented out until strictly needed)
-  for (int i = 0; i < BUFFER_SIZE; i++)
+  for (i = 0; i < BUFFER_SIZE; i++)
 //	input[i] = samples.at(i) * GetWindow(i, BUFFER_SIZE);
 	input[i] = samples.at(i);
 
@@ -110,11 +127,12 @@ void ProcessBundle(const Bundle &bundle) {
   fft_magnitudes[0] = 0;
 
   // Calculate magnitudes
-  for (int i = 1; i < (BUFFER_SIZE + 1) / 2; i++)  // (i < N/2 rounded up)
+  for (i = 1; i < (BUFFER_SIZE + 1) / 2; i++)  // (i < N/2 rounded up)
 	fft_magnitudes[i] = sqrt(output[i] * output[i] + output[BUFFER_SIZE - i] * output[BUFFER_SIZE - i]);
 
   if (BUFFER_SIZE % 2 == 0) // Only if N is even. NOLINT: BUFFER_SIZE could be odd too
 	fft_magnitudes[BUFFER_SIZE / 2] = abs(output[BUFFER_SIZE / 2]);  // Nyquist frequency
+
 
   // Find max magnitude
   max_fft = 0;
@@ -127,29 +145,17 @@ void ProcessBundle(const Bundle &bundle) {
   for (auto &elem : fft_magnitudes)
 	elem /= max_fft;
 
-  // Aggregate fft_magnitudes_average, for now
-  if (fft_count == 0) {
-	memcpy(fft_magnitudes_average, fft_magnitudes, sizeof(fft_magnitudes));
-  } else {
-	for (int i = 0; i < (BUFFER_SIZE / 2 + 1); i++)
-	  fft_magnitudes_average[i] += fft_magnitudes[i];
-  }
+  // Fill bins
+  for (i = start_idx, j = 0; i <= stop_idx; i += bin_size, j++) {
+	fft_bin_frequencies[j] = (i + ((double) bin_size / 2) - 0.5) * frequency_resolution;
 
-  fft_count++;
+	fft_bin_magnitudes[j] = 0;
+	for (k = 0; k < bin_size; k++)
+	  fft_bin_magnitudes[j] += fft_magnitudes[i + k];
+  }
 
   // Ready to send FFT
-  if (fft_count == AVERAGE_COUNT) {
-	// Calculate average
-	for (auto &elem : fft_magnitudes_average)
-	  elem /= AVERAGE_COUNT;
-
-	Send2Broker(bundle.timestamp());
-
-	fft_count = 0;
-  }
-
-  // Clear samples. This is a fixed (no sliding) window approach
-  samples.clear();
+  Send2Broker(bundle.timestamp());
 
   auto stop = high_resolution_clock::now();
   auto duration = duration_cast<microseconds>(stop - start);
@@ -166,21 +172,34 @@ void HandleSignal(int) {
   signal_cv.notify_one();
 }
 
-int main() {
-//  if (argc < 4) {
-//	cout << "Not enough arguments" << endl;
-//
-//	return 1;
-//  }
-//
-//  window_type = stoi(argv[2]);
-//  stop_view_frequency = stoi(argv[3]);
+int main(int argc, char *argv[]) {
+  int start_frequency, stop_frequency;
+
+  if (argc < 3) {
+	cout << "Not enough arguments" << endl;
+
+	return 1;
+  }
+
+  start_frequency = max(0, stoi(argv[1]));
+  stop_frequency = min(stoi(argv[2]), SAMPLING_FREQUENCY / 2) + 1;    // Include stop frequency in calculations
+
+  // Calculate bin info
+  frequency_resolution = (double) SAMPLING_FREQUENCY / BUFFER_SIZE;
+
+  // Check if we can fill all bins
+  bin_count = min((int) ((stop_frequency - start_frequency) / frequency_resolution), MAX_BIN_COUNT);
+
+  bin_size = floor(((stop_frequency - start_frequency) / frequency_resolution) / bin_count);
+
+  start_idx = floor(start_frequency / frequency_resolution);
+  stop_idx = min(start_idx + bin_count * bin_size, BUFFER_SIZE / 2 + 1 - bin_size);
 
   unique_lock<mutex> slck(signal_mutex);
   SubscriberClient subscriber_client(&ProcessBundle, vector<int>{DATA_APD_FULL});
   publisher_client = new PublisherClient();
   publishing_bundle = new Bundle();
-  publishing_bundle->set_type(DATA_FFT_FULL);
+  publishing_bundle->set_type(DATA_FFT_PARTIAL);
 
   // Register handler
   std::signal(SIGINT, HandleSignal);
