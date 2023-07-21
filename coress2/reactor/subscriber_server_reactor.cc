@@ -81,8 +81,8 @@ void SubscriberServerReactor::EnqueueMessage(const Bundle &bundle) {
 
 	//	std::cout << "Queue size: " << queue_.size() << std::endl;
 
-	// If this is the first element, we should send it now
-	if (queue_.size() == 1)
+	// If we are not finished and this is the first element, we should send it now
+	if (!finished_ && queue_.size() == 1)
 	  StartWrite(&queue_.front());
   }
 }
