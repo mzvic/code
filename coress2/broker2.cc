@@ -1,7 +1,11 @@
 #include <grpcpp/grpcpp.h>
+#include <sys/mman.h>
+#include <sys/wait.h>
 
 #include "core.grpc.pb.h"
 #include "reactor/reactor.h"
+
+#define STACK_SIZE (1024 * 1024)
 
 using namespace reactor;
 using namespace core;
@@ -15,6 +19,9 @@ using grpc::ServerWriteReactor;
 using std::list;
 using std::mutex;
 using std::shared_ptr;
+
+bool exit_flag = false;
+int pid = 0;
 
 list<SubscriberServerReactor *> subscriber_reactors;
 list<PublisherServerReactor *> publisher_reactors;
@@ -46,8 +53,8 @@ class BrokerServiceImpl final : public Broker::CallbackService, public ServerRea
 	  cout << "with no interests. Sending all messages" << endl;
 	} else {
 	  cout << "with interests:";
-	  for (const auto &elem : request->types())
-		cout << " " << elem;
+	  for (const auto &kElem : request->types())
+		cout << " " << kElem;
 	  cout << endl;
 	}
 
@@ -89,7 +96,7 @@ class BrokerServiceImpl final : public Broker::CallbackService, public ServerRea
   }
 };
 
-void RunServer() {
+int RunServer(void *) {
   BrokerServiceImpl service;
 
   string server_address("0.0.0.0:50051");
@@ -114,10 +121,36 @@ void RunServer() {
   cout << "Server listening on " << server_address << endl;
 
   server->Wait();
+
+  return 0;
 }
 
+void HandleSignal(int) {
+  if (pid == 0)        // Children ignore signals
+	return;
+
+  cout << "Exiting" << endl;
+
+  exit_flag = true;
+
+  kill(pid, SIGTERM);
+}
 int main() {
-  RunServer();
+  char *stack;
+
+  signal(SIGINT, HandleSignal);
+
+  while (!exit_flag) {
+	cout << "Starting new child process" << endl;
+
+	stack = static_cast<char *>(mmap(nullptr, STACK_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0));
+
+	pid = clone(RunServer, stack + STACK_SIZE, SIGCHLD, nullptr);
+
+	waitpid(pid, nullptr, 0);
+
+	munmap(stack, STACK_SIZE);
+  }
 
   return 0;
 }
