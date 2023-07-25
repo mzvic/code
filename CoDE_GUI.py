@@ -215,7 +215,7 @@ class MainWindow(QMainWindow):
             
         self.buttons[0].setChecked(True)  # 'Server'
         self.buttons[1].setChecked(True)  # 'Counts plot'
-        self.threads.append(SocketThread(12355))  
+        self.threads.append(SocketThread(12352))  
         self.layout.addLayout(button_layout_1)
         self.layout.addLayout(button_layout_2)
         self.note = QtWidgets.QLabel("Important: To be able to graph the FFT, the 'Plot counts' button must be enabled. Also, if the FFT settings are modified, 'Plot FFT' must be disabled and then enabled for the changes to take effect.")
