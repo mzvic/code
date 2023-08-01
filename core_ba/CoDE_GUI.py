@@ -216,7 +216,7 @@ class MainWindow(QMainWindow):
             '/home/code/Development/core_ba/bin/APD_plot_cvt',
             '/home/code/Development/core_ba/bin/APD_publisher',
             '/home/code/Development/core_ba/bin/APD_fft_partial',
-            '/home/code/Development/core_ba/bin/APD_reg_zero', # 'APD_reg' for RAW data with timestamp (TS) from the t0, 'APD_reg_zero' for RAW data with TS from zero...
+            '/home/code/Development/core_ba/bin/APD_reg_zero', # 'APD_reg' for 100kHz data with timestamp (TS) from the t0, 'APD_reg_zero' for 100kHz data with TS from zero...
             '/home/code/Development/core_ba/bin/APD_reg_proc', # 'APD_reg_proc' for data @ 100Hz with TS from zero...
             '/home/code/Development/core_ba/bin/APD_reg_fft_1',
             '/home/code/Development/core_ba/bin/APD_reg_fft_01',
@@ -227,7 +227,7 @@ class MainWindow(QMainWindow):
         button_names_1 = ["Server", "Counts plot"] 
 
         second_layout = QHBoxLayout() 
-        button_names_2 = ["Plot counts", "Plot FFT", "Export counts data [RAW]", "Export counts data [1kHz]", "Export FFT data [1Hz res]", "Export FFT data [0.1Hz res]", "Show spectrum averages"]
+        button_names_2 = ["Plot counts", "Plot FFT", "Export counts data [100kHz]", "Export counts data [1kHz]", "Export FFT data [1Hz resolution]", "Export FFT data [0.1Hz resolution]", "Show spectrum averages"]
         
         first_layout = QHBoxLayout() # Parámetros de entrada
         third_layout = QHBoxLayout() 
@@ -279,28 +279,28 @@ class MainWindow(QMainWindow):
             else:
                 second_layout.addWidget(start_stop_button)
             self.buttons.append(start_stop_button) 
+          
+        self.resizeEvent = self.update_input_width  
             
-        apd_counts_secs_label = QLabel("   Time-axis length in counts:")
-        
+        self.apd_counts_secs_label = QLabel("T-axis length in counts:")
+        self.apd_counts_secs_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.apd_counts_secs_input = QLineEdit(self)
-        self.apd_counts_secs_input.setFixedWidth(30) 
+        #self.apd_counts_secs_input.setFixedWidth(30) 
         self.apd_counts_secs_input.setText("5")       
-        first_layout.addWidget(apd_counts_secs_label)
+        first_layout.addWidget(self.apd_counts_secs_label)
         first_layout.addWidget(self.apd_counts_secs_input)              
 
-        # boton para mostrar promedios
-        #self.toggle_button_save_spec = QPushButton("Export FFT data [Avg]")
-        #self.toggle_button_save_spec.clicked.connect(self.toggle_save_spec)
-        #second_layout.addWidget(self.toggle_button_save_spec)
 
-        avg_time_label = QLabel("          Averaging period in spectrometer (s):")
+        avg_time_label = QLabel("Averaging period in spectrometer (s):")
+        avg_time_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.avg_time_input = QLineEdit(self)
         self.avg_time_input.setFixedWidth(30) 
         self.avg_time_input.setText("1")       
         third_layout.addWidget(avg_time_label)
         third_layout.addWidget(self.avg_time_input)     
 
-        spectrum_amount_label = QLabel("          Periods to show in spectrometer:")
+        spectrum_amount_label = QLabel("Periods to show in spectrometer:")
+        spectrum_amount_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.spectrum_amount_input = QLineEdit(self)
         self.spectrum_amount_input.setFixedWidth(40) 
         self.spectrum_amount_input.setText("100")       
@@ -334,14 +334,16 @@ class MainWindow(QMainWindow):
         self.update_graph2_thread.update_signal2.connect(self.update_graph2)
  
         
-        f_i_label = QLabel("          FFT initial freq:")
+        f_i_label = QLabel("FFT initial freq:")
+        f_i_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.f_i_input = QLineEdit(self)
         self.f_i_input.setFixedWidth(60) 
         self.f_i_input.setText("5")       
         third_layout.addWidget(f_i_label)
         third_layout.addWidget(self.f_i_input) 
 
-        f_f_label = QLabel("          FFT final freq:")
+        f_f_label = QLabel("FFT final freq:")
+        f_f_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.f_f_input = QLineEdit(self)
         self.f_f_input.setFixedWidth(60) 
         self.f_f_input.setText("1000")       
@@ -508,6 +510,14 @@ class MainWindow(QMainWindow):
 
 
     # ------------- Functions ----------------
+
+    def update_input_width(self, event=None):
+        window_width = self.width()-260 #(220-40)
+        input_width = window_width // 24
+        self.apd_counts_secs_label.setFixedWidth(input_width*4) 
+        self.apd_counts_secs_input.setFixedWidth(input_width*2)
+        self.update()
+
     def update_serial_ports(self):    
         self.serialPortsCombobox.clear()
         ports = list_ports.comports()
@@ -516,7 +526,7 @@ class MainWindow(QMainWindow):
 
     def toggle_process(self, i, checked):
         sender = self.sender()
-        button_names = ["Server", "Counts plot", "Plot counts", "Plot FFT", "Export counts data [RAW]", "Export counts data [1kHz]", "Export FFT data [1Hz res]", "Export FFT data [0.1Hz res]", "Show spectrum averages"]
+        button_names = ["Server", "Counts plot", "Plot counts", "Plot FFT", "Export counts data [100kHz]", "Export counts data [1kHz]", "Export FFT data [1Hz resolution]", "Export FFT data [0.1Hz resolution]", "Show spectrum averages"]
         if checked:
             if i == 2: 
                 sender.setText(button_names[i])
@@ -672,14 +682,15 @@ class MainWindow(QMainWindow):
         self.avg_count = self.avg_count + 1
         time_i = int(time.time())
         if (time_i - self.t_fft >= self.avg_time):
-            for i in range(self.fft_magnitudes):
-                self.data_matrix_avg[i] = self.data_matrix_avg[i]/self.avg_count 
+            #for i in range(self.fft_magnitudes):
+            self.data_matrix_avg = self.data_matrix_avg/self.avg_count 
+            self.avg_count = 0
 
             if not hasattr(self, 'spectrum_matrix'):
                 self.spectrum_matrix = np.zeros((1, self.fft_magnitudes))
 
             self.spectrum_matrix = np.vstack((self.data_matrix_avg, self.spectrum_matrix))
-            del self.data_matrix_avg
+            self.data_matrix_avg = np.zeros(self.fft_magnitudes)
             #gc.collect
             while self.spectrum_matrix.shape[0] >= self.spectrum_amount:
                 self.spectrum_matrix = np.delete(self.spectrum_matrix, -1, axis=0)
@@ -690,7 +701,7 @@ class MainWindow(QMainWindow):
             self.color_map.setImage(self.pm)
             self.color_map.getView().setRange(xRange=(self.f_i, self.f_f))
             self.t_fft = int(time.time())
-            self.avg_count = 0
+            
         
     def calculate_fundamental_frequency(self, freq, magn):
         valid_indices = [i for i in range(len(magn)) if freq[i] > 1.1 and magn[i] > 0.5]
