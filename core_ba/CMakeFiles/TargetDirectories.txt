@@ -1,11 +1,13 @@
 /home/code/Development/core_ba/CMakeFiles/rebuild_cache.dir
 /home/code/Development/core_ba/CMakeFiles/edit_cache.dir
+/home/code/Development/core_ba/CMakeFiles/APD_reg_zero.dir
 /home/code/Development/core_ba/CMakeFiles/APD_reg_fft_1.dir
 /home/code/Development/core_ba/CMakeFiles/APD_reg_fft_01.dir
 /home/code/Development/core_ba/CMakeFiles/client.dir
 /home/code/Development/core_ba/CMakeFiles/reactor.dir
 /home/code/Development/core_ba/CMakeFiles/core_grpc_proto.dir
 /home/code/Development/core_ba/CMakeFiles/APD_broker2.dir
+/home/code/Development/core_ba/CMakeFiles/APD_reg_proc.dir
 /home/code/Development/core_ba/CMakeFiles/APD_plot_cvt.dir
 /home/code/Development/core_ba/CMakeFiles/APD_publisher.dir
 /home/code/Development/core_ba/CMakeFiles/publisher6.dir

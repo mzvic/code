@@ -73,7 +73,7 @@ find_package(Boost REQUIRED COMPONENTS system iostreams)
 find_package(ZLIB REQUIRED)
 
 foreach (_target
-        APD_broker2 APD_plot_cvt APD_publisher publisher6 subscriber6 APD_fft_partial APD_fft_full APD_reg_fft_01 APD_reg_fft_1) #APD_reg_proc APD_reg_zero
+        APD_broker2 APD_plot_cvt APD_publisher publisher6 subscriber6 APD_fft_partial APD_fft_full APD_reg_fft_01 APD_reg_fft_1 APD_reg_zero APD_reg_proc) #APD_reg_proc APD_reg_zero
     add_executable(${_target} "${_target}.cc")
     target_link_libraries(${_target}
             core_grpc_proto

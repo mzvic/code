@@ -72,12 +72,14 @@ CMAKE_BINARY_DIR = /home/code/Development/core_ba
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
+all: CMakeFiles/APD_reg_zero.dir/all
 all: CMakeFiles/APD_reg_fft_1.dir/all
 all: CMakeFiles/APD_reg_fft_01.dir/all
 all: CMakeFiles/client.dir/all
 all: CMakeFiles/reactor.dir/all
 all: CMakeFiles/core_grpc_proto.dir/all
 all: CMakeFiles/APD_broker2.dir/all
+all: CMakeFiles/APD_reg_proc.dir/all
 all: CMakeFiles/APD_plot_cvt.dir/all
 all: CMakeFiles/APD_publisher.dir/all
 all: CMakeFiles/publisher6.dir/all
@@ -93,12 +95,14 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
+clean: CMakeFiles/APD_reg_zero.dir/clean
 clean: CMakeFiles/APD_reg_fft_1.dir/clean
 clean: CMakeFiles/APD_reg_fft_01.dir/clean
 clean: CMakeFiles/client.dir/clean
 clean: CMakeFiles/reactor.dir/clean
 clean: CMakeFiles/core_grpc_proto.dir/clean
 clean: CMakeFiles/APD_broker2.dir/clean
+clean: CMakeFiles/APD_reg_proc.dir/clean
 clean: CMakeFiles/APD_plot_cvt.dir/clean
 clean: CMakeFiles/APD_publisher.dir/clean
 clean: CMakeFiles/publisher6.dir/clean
@@ -107,6 +111,35 @@ clean: CMakeFiles/subscriber6.dir/clean
 clean: CMakeFiles/APD_fft_full.dir/clean
 
 .PHONY : clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/APD_reg_zero.dir
+
+# All Build rule for target.
+CMakeFiles/APD_reg_zero.dir/all: CMakeFiles/client.dir/all
+CMakeFiles/APD_reg_zero.dir/all: CMakeFiles/reactor.dir/all
+CMakeFiles/APD_reg_zero.dir/all: CMakeFiles/core_grpc_proto.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero.dir/build.make CMakeFiles/APD_reg_zero.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero.dir/build.make CMakeFiles/APD_reg_zero.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=17,18 "Built target APD_reg_zero"
+.PHONY : CMakeFiles/APD_reg_zero.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/APD_reg_zero.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 12
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/APD_reg_zero.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
+.PHONY : CMakeFiles/APD_reg_zero.dir/rule
+
+# Convenience name for target.
+APD_reg_zero: CMakeFiles/APD_reg_zero.dir/rule
+
+.PHONY : APD_reg_zero
+
+# clean rule for target.
+CMakeFiles/APD_reg_zero.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero.dir/build.make CMakeFiles/APD_reg_zero.dir/clean
+.PHONY : CMakeFiles/APD_reg_zero.dir/clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/APD_reg_fft_1.dir
@@ -173,7 +206,7 @@ CMakeFiles/APD_reg_fft_01.dir/clean:
 CMakeFiles/client.dir/all: CMakeFiles/core_grpc_proto.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=15,16,17 "Built target client"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=19,20,21 "Built target client"
 .PHONY : CMakeFiles/client.dir/all
 
 # Build rule for subdir invocation for target.
@@ -200,7 +233,7 @@ CMakeFiles/client.dir/clean:
 CMakeFiles/reactor.dir/all: CMakeFiles/core_grpc_proto.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/reactor.dir/build.make CMakeFiles/reactor.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/reactor.dir/build.make CMakeFiles/reactor.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=24,25,26 "Built target reactor"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=28,29,30 "Built target reactor"
 .PHONY : CMakeFiles/reactor.dir/all
 
 # Build rule for subdir invocation for target.
@@ -227,7 +260,7 @@ CMakeFiles/reactor.dir/clean:
 CMakeFiles/core_grpc_proto.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/core_grpc_proto.dir/build.make CMakeFiles/core_grpc_proto.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/core_grpc_proto.dir/build.make CMakeFiles/core_grpc_proto.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=18,19,20,21 "Built target core_grpc_proto"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=22,23,24,25 "Built target core_grpc_proto"
 .PHONY : CMakeFiles/core_grpc_proto.dir/all
 
 # Build rule for subdir invocation for target.
@@ -275,6 +308,35 @@ APD_broker2: CMakeFiles/APD_broker2.dir/rule
 CMakeFiles/APD_broker2.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_broker2.dir/build.make CMakeFiles/APD_broker2.dir/clean
 .PHONY : CMakeFiles/APD_broker2.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/APD_reg_proc.dir
+
+# All Build rule for target.
+CMakeFiles/APD_reg_proc.dir/all: CMakeFiles/client.dir/all
+CMakeFiles/APD_reg_proc.dir/all: CMakeFiles/reactor.dir/all
+CMakeFiles/APD_reg_proc.dir/all: CMakeFiles/core_grpc_proto.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc.dir/build.make CMakeFiles/APD_reg_proc.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc.dir/build.make CMakeFiles/APD_reg_proc.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=15,16 "Built target APD_reg_proc"
+.PHONY : CMakeFiles/APD_reg_proc.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/APD_reg_proc.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 12
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/APD_reg_proc.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
+.PHONY : CMakeFiles/APD_reg_proc.dir/rule
+
+# Convenience name for target.
+APD_reg_proc: CMakeFiles/APD_reg_proc.dir/rule
+
+.PHONY : APD_reg_proc
+
+# clean rule for target.
+CMakeFiles/APD_reg_proc.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc.dir/build.make CMakeFiles/APD_reg_proc.dir/clean
+.PHONY : CMakeFiles/APD_reg_proc.dir/clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/APD_plot_cvt.dir
@@ -343,7 +405,7 @@ CMakeFiles/publisher6.dir/all: CMakeFiles/reactor.dir/all
 CMakeFiles/publisher6.dir/all: CMakeFiles/core_grpc_proto.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/publisher6.dir/build.make CMakeFiles/publisher6.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/publisher6.dir/build.make CMakeFiles/publisher6.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=22,23 "Built target publisher6"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=26,27 "Built target publisher6"
 .PHONY : CMakeFiles/publisher6.dir/all
 
 # Build rule for subdir invocation for target.
@@ -401,7 +463,7 @@ CMakeFiles/subscriber6.dir/all: CMakeFiles/reactor.dir/all
 CMakeFiles/subscriber6.dir/all: CMakeFiles/core_grpc_proto.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/subscriber6.dir/build.make CMakeFiles/subscriber6.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/subscriber6.dir/build.make CMakeFiles/subscriber6.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=27,28 "Built target subscriber6"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=31,32 "Built target subscriber6"
 .PHONY : CMakeFiles/subscriber6.dir/all
 
 # Build rule for subdir invocation for target.
