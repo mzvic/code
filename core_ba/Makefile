@@ -130,6 +130,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named APD_reg_zero
+
+# Build rule for target.
+APD_reg_zero: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg_zero
+.PHONY : APD_reg_zero
+
+# fast build rule for target.
+APD_reg_zero/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero.dir/build.make CMakeFiles/APD_reg_zero.dir/build
+.PHONY : APD_reg_zero/fast
+
+#=============================================================================
 # Target rules for targets named APD_reg_fft_1
 
 # Build rule for target.
@@ -206,6 +219,19 @@ APD_broker2: cmake_check_build_system
 APD_broker2/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_broker2.dir/build.make CMakeFiles/APD_broker2.dir/build
 .PHONY : APD_broker2/fast
+
+#=============================================================================
+# Target rules for targets named APD_reg_proc
+
+# Build rule for target.
+APD_reg_proc: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg_proc
+.PHONY : APD_reg_proc
+
+# fast build rule for target.
+APD_reg_proc/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc.dir/build.make CMakeFiles/APD_reg_proc.dir/build
+.PHONY : APD_reg_proc/fast
 
 #=============================================================================
 # Target rules for targets named APD_plot_cvt
@@ -474,6 +500,60 @@ APD_reg_fft_1.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_1.dir/build.make CMakeFiles/APD_reg_fft_1.dir/APD_reg_fft_1.cc.s
 .PHONY : APD_reg_fft_1.cc.s
 
+APD_reg_proc.o: APD_reg_proc.cc.o
+
+.PHONY : APD_reg_proc.o
+
+# target to build an object file
+APD_reg_proc.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc.dir/build.make CMakeFiles/APD_reg_proc.dir/APD_reg_proc.cc.o
+.PHONY : APD_reg_proc.cc.o
+
+APD_reg_proc.i: APD_reg_proc.cc.i
+
+.PHONY : APD_reg_proc.i
+
+# target to preprocess a source file
+APD_reg_proc.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc.dir/build.make CMakeFiles/APD_reg_proc.dir/APD_reg_proc.cc.i
+.PHONY : APD_reg_proc.cc.i
+
+APD_reg_proc.s: APD_reg_proc.cc.s
+
+.PHONY : APD_reg_proc.s
+
+# target to generate assembly for a file
+APD_reg_proc.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc.dir/build.make CMakeFiles/APD_reg_proc.dir/APD_reg_proc.cc.s
+.PHONY : APD_reg_proc.cc.s
+
+APD_reg_zero.o: APD_reg_zero.cc.o
+
+.PHONY : APD_reg_zero.o
+
+# target to build an object file
+APD_reg_zero.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero.dir/build.make CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.o
+.PHONY : APD_reg_zero.cc.o
+
+APD_reg_zero.i: APD_reg_zero.cc.i
+
+.PHONY : APD_reg_zero.i
+
+# target to preprocess a source file
+APD_reg_zero.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero.dir/build.make CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.i
+.PHONY : APD_reg_zero.cc.i
+
+APD_reg_zero.s: APD_reg_zero.cc.s
+
+.PHONY : APD_reg_zero.s
+
+# target to generate assembly for a file
+APD_reg_zero.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero.dir/build.make CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.s
+.PHONY : APD_reg_zero.cc.s
+
 core.grpc.pb.o: core.grpc.pb.cc.o
 
 .PHONY : core.grpc.pb.o
@@ -705,6 +785,8 @@ help:
 	@echo "... APD_publisher"
 	@echo "... APD_reg_fft_01"
 	@echo "... APD_reg_fft_1"
+	@echo "... APD_reg_proc"
+	@echo "... APD_reg_zero"
 	@echo "... client"
 	@echo "... core_grpc_proto"
 	@echo "... publisher6"
@@ -731,6 +813,12 @@ help:
 	@echo "... APD_reg_fft_1.o"
 	@echo "... APD_reg_fft_1.i"
 	@echo "... APD_reg_fft_1.s"
+	@echo "... APD_reg_proc.o"
+	@echo "... APD_reg_proc.i"
+	@echo "... APD_reg_proc.s"
+	@echo "... APD_reg_zero.o"
+	@echo "... APD_reg_zero.i"
+	@echo "... APD_reg_zero.s"
 	@echo "... core.grpc.pb.o"
 	@echo "... core.grpc.pb.i"
 	@echo "... core.grpc.pb.s"

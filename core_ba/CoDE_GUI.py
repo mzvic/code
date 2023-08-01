@@ -217,7 +217,7 @@ class MainWindow(QMainWindow):
             '/home/code/Development/core_ba/bin/APD_publisher',
             '/home/code/Development/core_ba/bin/APD_fft_partial',
             '/home/code/Development/core_ba/bin/APD_reg_zero', # 'APD_reg' for RAW data with timestamp (TS) from the t0, 'APD_reg_zero' for RAW data with TS from zero...
-            '/home/code/Development/core_ba/APD_reg_proc', # 'APD_reg_proc' for data @ 100Hz with TS from zero...
+            '/home/code/Development/core_ba/bin/APD_reg_proc', # 'APD_reg_proc' for data @ 100Hz with TS from zero...
             '/home/code/Development/core_ba/bin/APD_reg_fft_1',
             '/home/code/Development/core_ba/bin/APD_reg_fft_01',
             '/home/code/Development/core_ba/bin/APD_fft_full'
@@ -607,7 +607,7 @@ class MainWindow(QMainWindow):
 
         self.data2.clear()
         self.freq2.clear()
-        gc.collect
+        #gc.collect
         self.graph2.clear()
         self.graph2.plotItem.setYRange(-0.1, 1.1)  
         self.graph2.plotItem.setXRange(np.log10(self.f_i), np.log10(self.f_f))
@@ -680,10 +680,10 @@ class MainWindow(QMainWindow):
 
             self.spectrum_matrix = np.vstack((self.data_matrix_avg, self.spectrum_matrix))
             del self.data_matrix_avg
-            gc.collect
+            #gc.collect
             while self.spectrum_matrix.shape[0] >= self.spectrum_amount:
                 self.spectrum_matrix = np.delete(self.spectrum_matrix, -1, axis=0)
-                gc.collect
+                #gc.collect
 
             self.plot_matrix = np.transpose(self.spectrum_matrix)
             self.pm = self.plot_matrix[:self.f_f, :]
@@ -769,7 +769,7 @@ class MainWindow(QMainWindow):
         del self.spectrum_matrix
         del self.plot_matrix
         del self.pm
-        gc.collect
+        #gc.collect
         self.pm = np.zeros((1, self.fft_magnitudes))
         self.color_map.setImage(self.pm)   
 

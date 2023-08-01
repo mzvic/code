@@ -53,19 +53,19 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /home/asus/.local/bin/cmake
+CMAKE_COMMAND = /home/code/.local/bin/cmake
 
 # The command to remove a file.
-RM = /home/asus/.local/bin/cmake -E rm -f
+RM = /home/code/.local/bin/cmake -E rm -f
 
 # Escaping for special characters.
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/asus/Documentos/code/coress2
+CMAKE_SOURCE_DIR = /home/code/Development/core_ba
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/asus/Documentos/code/coress2
+CMAKE_BINARY_DIR = /home/code/Development/core_ba
 
 # Include any dependencies generated for this target.
 include CMakeFiles/APD_reg_zero.dir/depend.make
@@ -78,16 +78,16 @@ include CMakeFiles/APD_reg_zero.dir/flags.make
 
 CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.o: CMakeFiles/APD_reg_zero.dir/flags.make
 CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.o: APD_reg_zero.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/asus/Documentos/code/coress2/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.o -c /home/asus/Documentos/code/coress2/APD_reg_zero.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.o -c /home/code/Development/core_ba/APD_reg_zero.cc
 
 CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/asus/Documentos/code/coress2/APD_reg_zero.cc > CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/code/Development/core_ba/APD_reg_zero.cc > CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.i
 
 CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/asus/Documentos/code/coress2/APD_reg_zero.cc -o CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/code/Development/core_ba/APD_reg_zero.cc -o CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.s
 
 # Object files for target APD_reg_zero
 APD_reg_zero_OBJECTS = \
@@ -101,69 +101,101 @@ bin/APD_reg_zero: CMakeFiles/APD_reg_zero.dir/build.make
 bin/APD_reg_zero: libcore_grpc_proto.a
 bin/APD_reg_zero: libreactor.a
 bin/APD_reg_zero: libclient.a
-bin/APD_reg_zero: /home/asus/.local/lib/libgrpc++_reflection.a
-bin/APD_reg_zero: /home/asus/.local/lib/libgrpc++.a
-bin/APD_reg_zero: /home/asus/.local/lib/libprotobuf.a
+bin/APD_reg_zero: /home/code/.local/lib/libgrpc++_reflection.a
+bin/APD_reg_zero: /home/code/.local/lib/libgrpc++.a
+bin/APD_reg_zero: /home/code/.local/lib/libprotobuf.a
+bin/APD_reg_zero: /usr/lib/x86_64-linux-gnu/libboost_system.so.1.74.0
+bin/APD_reg_zero: /usr/lib/x86_64-linux-gnu/libboost_iostreams.so.1.74.0
+bin/APD_reg_zero: /usr/lib/x86_64-linux-gnu/libz.so
 bin/APD_reg_zero: libcore_grpc_proto.a
-bin/APD_reg_zero: /home/asus/.local/lib/libgrpc++_reflection.a
-bin/APD_reg_zero: /home/asus/.local/lib/libgrpc++.a
-bin/APD_reg_zero: /home/asus/.local/lib/libgrpc.a
-bin/APD_reg_zero: /home/asus/.local/lib/libz.a
-bin/APD_reg_zero: /home/asus/.local/lib/libcares.a
-bin/APD_reg_zero: /home/asus/.local/lib/libaddress_sorting.a
-bin/APD_reg_zero: /home/asus/.local/lib/libre2.a
-bin/APD_reg_zero: /home/asus/.local/lib/libupb.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_raw_hash_set.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_hashtablez_sampler.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_hash.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_city.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_low_level_hash.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_statusor.a
-bin/APD_reg_zero: /home/asus/.local/lib/libgpr.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_bad_variant_access.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_status.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_strerror.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_random_distributions.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_random_seed_sequences.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_random_internal_pool_urbg.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_random_internal_randen.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_random_internal_randen_hwaes.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_random_internal_randen_hwaes_impl.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_random_internal_randen_slow.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_random_internal_platform.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_random_internal_seed_material.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_random_seed_gen_exception.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_cord.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_bad_optional_access.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_cordz_info.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_cord_internal.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_cordz_functions.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_exponential_biased.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_cordz_handle.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_str_format_internal.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_synchronization.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_stacktrace.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_symbolize.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_debugging_internal.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_demangle_internal.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_graphcycles_internal.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_malloc_internal.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_time.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_strings.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_throw_delegate.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_int128.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_strings_internal.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_base.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_spinlock_wait.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_raw_logging_internal.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_log_severity.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_civil_time.a
-bin/APD_reg_zero: /home/asus/.local/lib/libabsl_time_zone.a
-bin/APD_reg_zero: /home/asus/.local/lib/libssl.a
-bin/APD_reg_zero: /home/asus/.local/lib/libcrypto.a
-bin/APD_reg_zero: /home/asus/.local/lib/libprotobuf.a
+bin/APD_reg_zero: /home/code/.local/lib/libgrpc++_reflection.a
+bin/APD_reg_zero: /home/code/.local/lib/libgrpc++.a
+bin/APD_reg_zero: /home/code/.local/lib/libgrpc.a
+bin/APD_reg_zero: /home/code/.local/lib/libcares.a
+bin/APD_reg_zero: /home/code/.local/lib/libaddress_sorting.a
+bin/APD_reg_zero: /home/code/.local/lib/libre2.a
+bin/APD_reg_zero: /home/code/.local/lib/libupb.a
+bin/APD_reg_zero: /home/code/.local/lib/libgpr.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_random_distributions.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_random_seed_sequences.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_random_internal_pool_urbg.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_random_internal_randen.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_random_internal_randen_hwaes.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_random_internal_randen_hwaes_impl.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_random_internal_randen_slow.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_random_internal_platform.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_random_internal_seed_material.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_random_seed_gen_exception.a
+bin/APD_reg_zero: /home/code/.local/lib/libssl.a
+bin/APD_reg_zero: /home/code/.local/lib/libcrypto.a
+bin/APD_reg_zero: /home/code/.local/lib/libprotobuf.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_log_internal_check_op.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_leak_check.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_die_if_null.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_log_internal_conditions.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_log_internal_message.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_log_internal_nullguard.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_examine_stack.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_log_internal_format.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_log_internal_proto.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_log_internal_log_sink_set.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_log_sink.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_log_entry.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_flags.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_flags_internal.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_flags_marshalling.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_flags_reflection.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_flags_config.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_flags_program_name.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_flags_private_handle_accessor.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_flags_commandlineflag.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_flags_commandlineflag_internal.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_log_initialize.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_log_globals.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_log_internal_globals.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_hash.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_city.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_low_level_hash.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_raw_hash_set.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_hashtablez_sampler.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_statusor.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_status.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_cord.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_cordz_info.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_cord_internal.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_cordz_functions.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_exponential_biased.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_cordz_handle.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_crc_cord_state.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_crc32c.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_crc_internal.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_crc_cpu_detect.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_bad_optional_access.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_str_format_internal.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_strerror.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_synchronization.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_stacktrace.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_symbolize.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_debugging_internal.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_demangle_internal.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_graphcycles_internal.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_malloc_internal.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_time.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_civil_time.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_time_zone.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_bad_variant_access.a
+bin/APD_reg_zero: /home/code/.local/lib/libutf8_validity.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_strings.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_throw_delegate.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_int128.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_strings_internal.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_base.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_raw_logging_internal.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_log_severity.a
+bin/APD_reg_zero: /home/code/.local/lib/libabsl_spinlock_wait.a
+bin/APD_reg_zero: /usr/lib/x86_64-linux-gnu/libz.so
 bin/APD_reg_zero: CMakeFiles/APD_reg_zero.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/asus/Documentos/code/coress2/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable bin/APD_reg_zero"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable bin/APD_reg_zero"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/APD_reg_zero.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -176,6 +208,6 @@ CMakeFiles/APD_reg_zero.dir/clean:
 .PHONY : CMakeFiles/APD_reg_zero.dir/clean
 
 CMakeFiles/APD_reg_zero.dir/depend:
-	cd /home/asus/Documentos/code/coress2 && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/asus/Documentos/code/coress2 /home/asus/Documentos/code/coress2 /home/asus/Documentos/code/coress2 /home/asus/Documentos/code/coress2 /home/asus/Documentos/code/coress2/CMakeFiles/APD_reg_zero.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/code/Development/core_ba && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/code/Development/core_ba /home/code/Development/core_ba /home/code/Development/core_ba /home/code/Development/core_ba /home/code/Development/core_ba/CMakeFiles/APD_reg_zero.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/APD_reg_zero.dir/depend
 

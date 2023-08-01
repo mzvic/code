@@ -4,26 +4,29 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/asus/Documentos/code/coress2/APD_reg_proc.cc" "/home/asus/Documentos/code/coress2/CMakeFiles/APD_reg_proc.dir/APD_reg_proc.cc.o"
+  "/home/code/Development/core_ba/APD_reg_proc.cc" "/home/code/Development/core_ba/CMakeFiles/APD_reg_proc.dir/APD_reg_proc.cc.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
 # Preprocessor definitions for this target.
 set(CMAKE_TARGET_DEFINITIONS_CXX
+  "BOOST_ALL_NO_LIB"
+  "BOOST_IOSTREAMS_DYN_LINK"
+  "BOOST_SYSTEM_DYN_LINK"
   "CARES_STATICLIB"
   )
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "."
-  "/home/asus/.local/include"
+  "/home/code/.local/include"
   )
 
 # Targets to which this target links.
 set(CMAKE_TARGET_LINKED_INFO_FILES
-  "/home/asus/Documentos/code/coress2/CMakeFiles/core_grpc_proto.dir/DependInfo.cmake"
-  "/home/asus/Documentos/code/coress2/CMakeFiles/reactor.dir/DependInfo.cmake"
-  "/home/asus/Documentos/code/coress2/CMakeFiles/client.dir/DependInfo.cmake"
+  "/home/code/Development/core_ba/CMakeFiles/core_grpc_proto.dir/DependInfo.cmake"
+  "/home/code/Development/core_ba/CMakeFiles/reactor.dir/DependInfo.cmake"
+  "/home/code/Development/core_ba/CMakeFiles/client.dir/DependInfo.cmake"
   )
 
 # Fortran module output directory.
