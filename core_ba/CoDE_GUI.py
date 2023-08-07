@@ -22,11 +22,10 @@ import core_pb2_grpc as core_grpc
 import queue
 import gc
 
-
-
 a = []
 freq = []
 magn = []
+monitoring_TT = []
 
 class DateAxis(pg.AxisItem):
     def tickStrings(self, values, scale, spacing):
@@ -35,7 +34,6 @@ class DateAxis(pg.AxisItem):
 class UpdateGraph1Thread(QThread):
     bundle = None
     update_signal1 = pyqtSignal()
-
     def run(self):
         if self.isInterruptionRequested():
             return
@@ -50,7 +48,6 @@ class UpdateGraph1Thread(QThread):
         thread = threading.Thread(target=self.receive_bundles, args=(response_stream,))
         thread.start()
         thread.join()
-
     def receive_bundles(self, response_stream):
         if self.isInterruptionRequested():
             return
@@ -68,74 +65,70 @@ class UpdateGraph1Thread(QThread):
             ):
                 a[:] = bundle.value
                 self.update_signal1.emit()
-                #time.sleep(0.009)
-                #print(time.time() - a[-1]) 
 
 class UpdatePlot1Thread(QThread):
     plot_signal = pyqtSignal(list)
-
     def __init__(self):
         super(UpdatePlot1Thread, self).__init__()
         self.data_queue = queue.Queue()
-
     def run(self):
         while True:
             [self.times1, self.data1] = self.data_queue.get()
             self.plot_signal.emit([self.times1, self.data1])
-            
             while not self.data_queue.empty():
                 self.data_queue.get()
-                
             time.sleep(0.1)
-    
-
                   
 class UpdateGraph2Thread(QThread):
     bundle2 = None
     update_signal2 = pyqtSignal()
-
     def run(self):
-
         bundle2 = core.Bundle()
         channel2 = grpc.insecure_channel('localhost:50051')
         stub2 = core_grpc.BrokerStub(channel2)
         request2 = core.Interests()
         request2.types.append(core.DATA_FFT_PARTIAL)
         response_stream2 = stub2.Subscribe(request2)
-
         thread2 = threading.Thread(target=self.receive_bundles2, args=(response_stream2,))
         thread2.start()
         thread2.join()
-        #time.sleep(1)
-        
-
     def receive_bundles2(self, response_stream):
-        #time.sleep(0.5)
         for bundle2 in response_stream:
             fft = []
             fft[:] = bundle2.value
-            #print(len(fft))
-            #print(fft)
             half_length = len(fft) // 2
             freq[:] = fft[:half_length]
             magn[:] = fft[half_length:]
-
             self.update_signal2.emit()
-
-        
-            #print(freq)
-            #print(len(freq))
-            #print(magn)
-            #print(len(magn))
-                
-                
+            
+class UpdateTTThread(QThread):
+    bundle3 = None
+    update_signal3 = pyqtSignal()
+    def run(self):
+        bundle3 = core.Bundle()
+        channel3 = grpc.insecure_channel('localhost:50051')
+        stub3 = core_grpc.BrokerStub(channel3)
+        request3 = core.Interests()
+        request3.types.append(core.DATA_TT_MON)
+        response_stream3 = stub3.Subscribe(request3)
+        thread3 = threading.Thread(target=self.receive_bundles3, args=(response_stream3,))
+        thread3.start()
+        thread3.join()
+    def receive_bundles3(self, response_stream):
+        for bundle3 in response_stream:
+            if (len(bundle3.value)>0):
+                global monitoring_TT
+                monitoring_TT = []
+                monitoring_TT[:] = bundle3.value
+                #print(monitoring_TT)
+                self.update_signal3.emit()           
                 
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         
         self.setWindowTitle("CoDE Control Software")
-        icon = QtGui.QIcon("/home/code/Development/CoDE.png")  
+        icon = QtGui.QIcon("/home/asus/Documentos/CoDE/Core_SSobarzo/core/CoDE_logo.png")  
         self.setWindowIcon(icon)        
         self.tab_widget = QTabWidget()
         self.setCentralWidget(self.tab_widget)
@@ -158,7 +151,7 @@ class MainWindow(QMainWindow):
 
         self.layout = QVBoxLayout(self.tab1)
         self.threads = []
-        self.processes = [None] * 9
+        self.processes = [None] * 11
 
         self.graph1 = pg.PlotWidget(axisItems={'bottom': DateAxis(orientation='bottom')})
         self.graph1.setMinimumHeight(180)
@@ -212,17 +205,21 @@ class MainWindow(QMainWindow):
         self.t_fft = int(time.time())     
 
         self.binary_paths = [
-            '/home/code/Development/core_ba/bin/APD_broker2',
-            '/home/code/Development/core_ba/bin/APD_plot_cvt',
-            '/home/code/Development/core_ba/bin/APD_publisher',
-            '/home/code/Development/core_ba/bin/APD_fft_partial',
-            '/home/code/Development/core_ba/bin/APD_reg_zero', # 'APD_reg' for 100kHz data with timestamp (TS) from the t0, 'APD_reg_zero' for 100kHz data with TS from zero...
-            '/home/code/Development/core_ba/bin/APD_reg_proc', # 'APD_reg_proc' for data @ 100Hz with TS from zero...
-            '/home/code/Development/core_ba/bin/APD_reg_fft_1',
-            '/home/code/Development/core_ba/bin/APD_reg_fft_01',
-            '/home/code/Development/core_ba/bin/APD_fft_full'
+            '/home/asus/Documentos/code/coress2/bin/APD_broker2',
+            '/home/asus/Documentos/code/coress2/bin/APD_plot_cvt',
+            '/home/asus/Documentos/code/coress2/bin/APD_publisher',
+            '/home/asus/Documentos/code/coress2/bin/APD_fft_partial',
+            '/home/asus/Documentos/code/coress2/bin/APD_reg_zero', # 'APD_reg' for RAW data with timestamp (TS) from the t0, 'APD_reg_zero' for RAW data with TS from zero...
+            '/home/asus/Documentos/code/coress2/bin/APD_reg_proc', # 'APD_reg_proc' for data @ 100Hz with TS from zero...
+            '/home/asus/Documentos/code/coress2/bin/APD_reg_fft_1',
+            '/home/asus/Documentos/code/coress2/bin/APD_reg_fft_01',
+            '/home/asus/Documentos/code/coress2/bin/APD_fft_full',
+            '/home/asus/Documentos/code/coress2/bin/TwisTorrIO',
+            '/home/asus/Documentos/code/coress2/bin/TwisTorrSetter'        
         ]
-
+        
+        self.processes[9] = subprocess.Popen([self.binary_paths[9]]) 
+        
         hidden_layout = QHBoxLayout() 
         button_names_1 = ["Server", "Counts plot"] 
 
@@ -322,6 +319,7 @@ class MainWindow(QMainWindow):
         self.buttons[1].setChecked(True)  # 'Counts plot'
         selected_port = self.serialPortsCombobox.currentText()
         self.processes[2] = subprocess.Popen([self.binary_paths[2], str(selected_port)])
+        
           
         self.update_graph1_thread = UpdateGraph1Thread()
         self.update_graph1_thread.update_signal1.connect(self.update_graph1)
@@ -332,6 +330,10 @@ class MainWindow(QMainWindow):
         
         self.update_graph2_thread = UpdateGraph2Thread()
         self.update_graph2_thread.update_signal2.connect(self.update_graph2)
+        
+        self.update_TT_thread = UpdateTTThread()
+        self.update_TT_thread.update_signal3.connect(self.update_vacuum_values)
+        self.update_TT_thread.start()
  
         
         f_i_label = QLabel("FFT initial freq:")
@@ -374,7 +376,7 @@ class MainWindow(QMainWindow):
         # ----------------- Tab 2 -----------------
         self.layout2 = QGridLayout(self.tab2)
 
-        label_instrument = QLabel("Instrument")
+        label_instrument = QLabel("Parameter")
         label_monitor = QLabel("Monitor")
         label_setpoint = QLabel("Setpoint")
         label_instrument.setStyleSheet("text-decoration: underline; font-weight: bold;")
@@ -384,47 +386,54 @@ class MainWindow(QMainWindow):
         self.layout2.addWidget(label_instrument, 0, 0)
         self.layout2.addWidget(label_monitor, 0, 1)
         self.layout2.addWidget(label_setpoint, 0, 2)
-
-        monitor_vacuum_pressure = QLabel("N/A")
-        set_vacuum_pressure = QLineEdit()
-        set_vacuum_pressure.setPlaceholderText("Set pressure")
-        set_vacuum_pressure.setFixedWidth(100)
+        
+        self.monitor_vacuum_pressure = QLabel("N/A")
+        self.set_vacuum_pressure = QLineEdit()
+        self.set_vacuum_pressure.setText("1002")
+        #self.set_vacuum_pressure.setPlaceholderText("Set pressure")
+        self.set_vacuum_pressure.setFixedWidth(100)
         btn_vacuum_pressure = QPushButton("Set")
         self.layout2.addWidget(QLabel("Vacuum Presure:"), 1, 0)
-        self.layout2.addWidget(monitor_vacuum_pressure, 1, 1)
-        self.layout2.addWidget(set_vacuum_pressure, 1, 2)
+        self.layout2.addWidget(self.monitor_vacuum_pressure, 1, 1)
+        self.layout2.addWidget(self.set_vacuum_pressure, 1, 2)
         self.layout2.addWidget(btn_vacuum_pressure, 1, 3)
 
-        monitor_speed_motor = QLabel("N/A")
-        set_speed_motor = QLineEdit()
-        set_speed_motor.setPlaceholderText("Set speed")
-        set_speed_motor.setFixedWidth(100)
+        self.monitor_speed_motor = QLabel("N/A")
+        self.set_speed_motor = QLineEdit()
+        self.set_speed_motor.setText("5000") 
+        #self.set_speed_motor.setPlaceholderText("Set speed")
+        self.set_speed_motor.setFixedWidth(100)
         btn_speed_motor = QPushButton("Set")
         self.layout2.addWidget(QLabel("Speed Motor:"), 2, 0)
-        self.layout2.addWidget(monitor_speed_motor, 2, 1)
-        self.layout2.addWidget(set_speed_motor, 2, 2)
+        self.layout2.addWidget(self.monitor_speed_motor, 2, 1)
+        self.layout2.addWidget(self.set_speed_motor, 2, 2)
         self.layout2.addWidget(btn_speed_motor, 2, 3)
 
-        monitor_valve_state = QLabel("N/A")
-        set_valve_state = QLineEdit()
-        set_valve_state.setPlaceholderText("Set state")
-        set_valve_state.setFixedWidth(100)
+        self.monitor_valve_state = QLabel("N/A")
+        self.set_valve_state = QLineEdit()
+        self.set_valve_state.setText("1")
+        #self.set_valve_state.setPlaceholderText("Set state")
+        self.set_valve_state.setFixedWidth(100)
         btn_valve_state = QPushButton("Set")
         self.layout2.addWidget(QLabel("Valve State:"), 3, 0)
-        self.layout2.addWidget(monitor_valve_state, 3, 1)
-        self.layout2.addWidget(set_valve_state, 3, 2)
+        self.layout2.addWidget(self.monitor_valve_state, 3, 1)
+        self.layout2.addWidget(self.set_valve_state, 3, 2)
         self.layout2.addWidget(btn_valve_state, 3, 3)
 
-        monitor_bomb_power = QLabel("N/A")
+        self.monitor_bomb_power = QLabel("N/A")
         # btn_boost = QPushButton("Set")
         self.layout2.addWidget(QLabel("Bomb Power:"), 4, 0)
-        self.layout2.addWidget(monitor_bomb_power, 4, 1)
+        self.layout2.addWidget(self.monitor_bomb_power, 4, 1)
         # self.layout2.addWidget(btn_boost, 4, 3)
 
-        monitor_temperature = QLabel("N/A")
+        self.monitor_temperature = QLabel("N/A")
         self.layout2.addWidget(QLabel("Temperature:"), 5, 0)
-        self.layout2.addWidget(monitor_temperature, 5, 1)
-
+        self.layout2.addWidget(self.monitor_temperature, 5, 1)
+        
+        btn_vacuum_pressure.clicked.connect(lambda: self.execute_twistorr_set())
+        btn_speed_motor.clicked.connect(lambda: self.execute_twistorr_set())
+        btn_valve_state.clicked.connect(lambda: self.execute_twistorr_set())
+        
         self.layout2.setRowStretch(6, 1)
 
         # ---------------------------------------- 
@@ -510,6 +519,41 @@ class MainWindow(QMainWindow):
 
 
     # ------------- Functions ----------------
+
+    def execute_twistorr_set(self):
+        self.processes[10] = subprocess.Popen([self.binary_paths[10],str(self.pressure),str(self.motor),str(self.valve)])
+        #time.sleep(0.001)
+        #subprocess.run(['pkill', '-f', self.processes[10].args[0]], check=True)
+        
+    def update_vacuum_values(self):
+        self.pressure = self.set_vacuum_pressure.text()
+        self.motor = self.set_speed_motor.text()
+        self.valve = self.set_valve_state.text()
+
+        if len(monitoring_TT) >= 5:
+            #print(monitoring_TT)
+            vacuum_pressure = str(round(monitoring_TT[0], 2))
+            speed_motor = str(round(monitoring_TT[1], 2))
+            valve_state = "Open" if monitoring_TT[2] == 1 else "Closed"
+            bomb_power = str(round(monitoring_TT[3], 2))
+            temperature = str(round(monitoring_TT[4], 2))
+
+            self.monitor_vacuum_pressure.setText(vacuum_pressure)
+            self.monitor_speed_motor.setText(speed_motor)
+            self.monitor_valve_state.setText(valve_state)
+            self.monitor_bomb_power.setText(bomb_power)
+            self.monitor_temperature.setText(temperature)
+
+        time.sleep(0.001)   
+        
+    def start_update_tt_timer(self):
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_vacuum_values)
+        self.timer.start(10)  # tiempo de actualización de monitoreo twistorr
+
+    def stop_update_tt_timer(self):
+        if hasattr(self, 'timer'):
+            self.timer.stop()
 
     def update_input_width(self, event=None):
         window_width = self.width()-260 #(220-40)
@@ -741,7 +785,8 @@ class MainWindow(QMainWindow):
         for process in self.processes:
             if process is not None:
                 subprocess.run(['pkill', '-f', process.args[0]], check=True)
-        event.accept()
+        self.stop_update_timer()
+        event.accept()  
 
     def toggle_cursor(self):
         self.y_bar = not self.y_bar
@@ -818,6 +863,7 @@ if __name__ == "__main__":
     try:
         mainWindow = MainWindow()
         mainWindow.show()
+        mainWindow.start_update_tt_timer()  # Iniciar la actualización continua
         sys.exit(app.exec_())
     except Exception as e:
         error_message = "An unexpected error has occurred: {}".format(str(e))

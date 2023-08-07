@@ -88,6 +88,8 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
+  "CMakeFiles/TwisTorrSetter.dir/DependInfo.cmake"
+  "CMakeFiles/TwisTorrIO.dir/DependInfo.cmake"
   "CMakeFiles/APD_reg_zero.dir/DependInfo.cmake"
   "CMakeFiles/APD_reg_fft_1.dir/DependInfo.cmake"
   "CMakeFiles/APD_reg_fft_01.dir/DependInfo.cmake"

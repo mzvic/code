@@ -130,6 +130,32 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named TwisTorrSetter
+
+# Build rule for target.
+TwisTorrSetter: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 TwisTorrSetter
+.PHONY : TwisTorrSetter
+
+# fast build rule for target.
+TwisTorrSetter/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter.dir/build.make CMakeFiles/TwisTorrSetter.dir/build
+.PHONY : TwisTorrSetter/fast
+
+#=============================================================================
+# Target rules for targets named TwisTorrIO
+
+# Build rule for target.
+TwisTorrIO: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 TwisTorrIO
+.PHONY : TwisTorrIO
+
+# fast build rule for target.
+TwisTorrIO/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrIO.dir/build.make CMakeFiles/TwisTorrIO.dir/build
+.PHONY : TwisTorrIO/fast
+
+#=============================================================================
 # Target rules for targets named APD_reg_zero
 
 # Build rule for target.
@@ -554,6 +580,60 @@ APD_reg_zero.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero.dir/build.make CMakeFiles/APD_reg_zero.dir/APD_reg_zero.cc.s
 .PHONY : APD_reg_zero.cc.s
 
+TwisTorrIO.o: TwisTorrIO.cc.o
+
+.PHONY : TwisTorrIO.o
+
+# target to build an object file
+TwisTorrIO.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrIO.dir/build.make CMakeFiles/TwisTorrIO.dir/TwisTorrIO.cc.o
+.PHONY : TwisTorrIO.cc.o
+
+TwisTorrIO.i: TwisTorrIO.cc.i
+
+.PHONY : TwisTorrIO.i
+
+# target to preprocess a source file
+TwisTorrIO.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrIO.dir/build.make CMakeFiles/TwisTorrIO.dir/TwisTorrIO.cc.i
+.PHONY : TwisTorrIO.cc.i
+
+TwisTorrIO.s: TwisTorrIO.cc.s
+
+.PHONY : TwisTorrIO.s
+
+# target to generate assembly for a file
+TwisTorrIO.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrIO.dir/build.make CMakeFiles/TwisTorrIO.dir/TwisTorrIO.cc.s
+.PHONY : TwisTorrIO.cc.s
+
+TwisTorrSetter.o: TwisTorrSetter.cc.o
+
+.PHONY : TwisTorrSetter.o
+
+# target to build an object file
+TwisTorrSetter.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter.dir/build.make CMakeFiles/TwisTorrSetter.dir/TwisTorrSetter.cc.o
+.PHONY : TwisTorrSetter.cc.o
+
+TwisTorrSetter.i: TwisTorrSetter.cc.i
+
+.PHONY : TwisTorrSetter.i
+
+# target to preprocess a source file
+TwisTorrSetter.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter.dir/build.make CMakeFiles/TwisTorrSetter.dir/TwisTorrSetter.cc.i
+.PHONY : TwisTorrSetter.cc.i
+
+TwisTorrSetter.s: TwisTorrSetter.cc.s
+
+.PHONY : TwisTorrSetter.s
+
+# target to generate assembly for a file
+TwisTorrSetter.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter.dir/build.make CMakeFiles/TwisTorrSetter.dir/TwisTorrSetter.cc.s
+.PHONY : TwisTorrSetter.cc.s
+
 core.grpc.pb.o: core.grpc.pb.cc.o
 
 .PHONY : core.grpc.pb.o
@@ -787,6 +867,8 @@ help:
 	@echo "... APD_reg_fft_1"
 	@echo "... APD_reg_proc"
 	@echo "... APD_reg_zero"
+	@echo "... TwisTorrIO"
+	@echo "... TwisTorrSetter"
 	@echo "... client"
 	@echo "... core_grpc_proto"
 	@echo "... publisher6"
@@ -819,6 +901,12 @@ help:
 	@echo "... APD_reg_zero.o"
 	@echo "... APD_reg_zero.i"
 	@echo "... APD_reg_zero.s"
+	@echo "... TwisTorrIO.o"
+	@echo "... TwisTorrIO.i"
+	@echo "... TwisTorrIO.s"
+	@echo "... TwisTorrSetter.o"
+	@echo "... TwisTorrSetter.i"
+	@echo "... TwisTorrSetter.s"
 	@echo "... core.grpc.pb.o"
 	@echo "... core.grpc.pb.i"
 	@echo "... core.grpc.pb.s"

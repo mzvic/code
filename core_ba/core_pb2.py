@@ -15,7 +15,7 @@ from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\ncore.proto\x12\x04\x63ore\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"`\n\x06\x42undle\x12-\n\ttimestamp\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x18\n\x04type\x18\x02 \x01(\x0e\x32\n.core.Type\x12\r\n\x05value\x18\x03 \x03(\x01\"&\n\tInterests\x12\x19\n\x05types\x18\x01 \x03(\x0e\x32\n.core.Type*\xb9\x01\n\x04Type\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\x11\n\rDATA_APD_FULL\x10\x01\x12\x14\n\x10\x44\x41TA_APD_PARTIAL\x10\x02\x12\x11\n\rDATA_FFT_FULL\x10\x03\x12\x14\n\x10\x44\x41TA_FFT_PARTIAL\x10\x04\x12\x10\n\x0c\x44\x41TA_APD_CVT\x10\x05\x12\x10\n\x0cTIME_APD_CVT\x10\x06\x12\x11\n\rCONTROL_LASER\x10\x64\x12\x17\n\x13\x43ONTROL_VACUUM_PUMP\x10\x65\x32i\n\x06\x42roker\x12\x31\n\x07Publish\x12\x0c.core.Bundle\x1a\x16.google.protobuf.Empty(\x01\x12,\n\tSubscribe\x12\x0f.core.Interests\x1a\x0c.core.Bundle0\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\ncore.proto\x12\x04\x63ore\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"`\n\x06\x42undle\x12-\n\ttimestamp\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x18\n\x04type\x18\x02 \x01(\x0e\x32\n.core.Type\x12\r\n\x05value\x18\x03 \x03(\x01\"&\n\tInterests\x12\x19\n\x05types\x18\x01 \x03(\x0e\x32\n.core.Type*\xdb\x01\n\x04Type\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\x11\n\rDATA_APD_FULL\x10\x01\x12\x14\n\x10\x44\x41TA_APD_PARTIAL\x10\x02\x12\x11\n\rDATA_FFT_FULL\x10\x03\x12\x14\n\x10\x44\x41TA_FFT_PARTIAL\x10\x04\x12\x10\n\x0c\x44\x41TA_APD_CVT\x10\x05\x12\x10\n\x0cTIME_APD_CVT\x10\x06\x12\x0f\n\x0b\x44\x41TA_TT_SET\x10\x07\x12\x0f\n\x0b\x44\x41TA_TT_MON\x10\x08\x12\x11\n\rCONTROL_LASER\x10\x64\x12\x17\n\x13\x43ONTROL_VACUUM_PUMP\x10\x65\x32i\n\x06\x42roker\x12\x31\n\x07Publish\x12\x0c.core.Bundle\x1a\x16.google.protobuf.Empty(\x01\x12,\n\tSubscribe\x12\x0f.core.Interests\x1a\x0c.core.Bundle0\x01\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'core_pb2', globals())
@@ -23,11 +23,11 @@ if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
   _TYPE._serialized_start=221
-  _TYPE._serialized_end=406
+  _TYPE._serialized_end=440
   _BUNDLE._serialized_start=82
   _BUNDLE._serialized_end=178
   _INTERESTS._serialized_start=180
   _INTERESTS._serialized_end=218
-  _BROKER._serialized_start=408
-  _BROKER._serialized_end=513
+  _BROKER._serialized_start=442
+  _BROKER._serialized_end=547
 # @@protoc_insertion_point(module_scope)
