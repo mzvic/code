@@ -19,6 +19,8 @@ enum Type {
   DATA_FFT_PARTIAL = 4;
   DATA_APD_CVT = 5;
   TIME_APD_CVT = 6;
+  DATA_TT_SET = 7;
+  DATA_TT_MON = 8;    
   CONTROL_LASER = 100;
   CONTROL_VACUUM_PUMP = 101;
 }

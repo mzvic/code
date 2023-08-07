@@ -1,5 +1,7 @@
 /home/code/Development/core_ba/CMakeFiles/rebuild_cache.dir
 /home/code/Development/core_ba/CMakeFiles/edit_cache.dir
+/home/code/Development/core_ba/CMakeFiles/TwisTorrSetter.dir
+/home/code/Development/core_ba/CMakeFiles/TwisTorrIO.dir
 /home/code/Development/core_ba/CMakeFiles/APD_reg_zero.dir
 /home/code/Development/core_ba/CMakeFiles/APD_reg_fft_1.dir
 /home/code/Development/core_ba/CMakeFiles/APD_reg_fft_01.dir

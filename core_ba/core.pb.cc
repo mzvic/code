@@ -98,15 +98,15 @@ const char descriptor_table_protodef_core_2eproto[] PROTOBUF_SECTION_VARIABLE(pr
     "\"`\n\006Bundle\022-\n\ttimestamp\030\001 \001(\0132\032.google.p"
     "rotobuf.Timestamp\022\030\n\004type\030\002 \001(\0162\n.core.T"
     "ype\022\r\n\005value\030\003 \003(\001\"&\n\tInterests\022\031\n\005types"
-    "\030\001 \003(\0162\n.core.Type*\271\001\n\004Type\022\017\n\013UNSPECIFI"
+    "\030\001 \003(\0162\n.core.Type*\333\001\n\004Type\022\017\n\013UNSPECIFI"
     "ED\020\000\022\021\n\rDATA_APD_FULL\020\001\022\024\n\020DATA_APD_PART"
     "IAL\020\002\022\021\n\rDATA_FFT_FULL\020\003\022\024\n\020DATA_FFT_PAR"
     "TIAL\020\004\022\020\n\014DATA_APD_CVT\020\005\022\020\n\014TIME_APD_CVT"
-    "\020\006\022\021\n\rCONTROL_LASER\020d\022\027\n\023CONTROL_VACUUM_"
-    "PUMP\020e2i\n\006Broker\0221\n\007Publish\022\014.core.Bundl"
-    "e\032\026.google.protobuf.Empty(\001\022,\n\tSubscribe"
-    "\022\017.core.Interests\032\014.core.Bundle0\001b\006proto"
-    "3"
+    "\020\006\022\017\n\013DATA_TT_SET\020\007\022\017\n\013DATA_TT_MON\020\010\022\021\n\r"
+    "CONTROL_LASER\020d\022\027\n\023CONTROL_VACUUM_PUMP\020e"
+    "2i\n\006Broker\0221\n\007Publish\022\014.core.Bundle\032\026.go"
+    "ogle.protobuf.Empty(\001\022,\n\tSubscribe\022\017.cor"
+    "e.Interests\032\014.core.Bundle0\001b\006proto3"
 };
 static const ::_pbi::DescriptorTable* const descriptor_table_core_2eproto_deps[2] =
     {
@@ -117,7 +117,7 @@ static ::absl::once_flag descriptor_table_core_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_core_2eproto = {
     false,
     false,
-    521,
+    555,
     descriptor_table_protodef_core_2eproto,
     "core.proto",
     &descriptor_table_core_2eproto_once,
@@ -163,6 +163,8 @@ bool Type_IsValid(int value) {
     case 4:
     case 5:
     case 6:
+    case 7:
+    case 8:
     case 100:
     case 101:
       return true;

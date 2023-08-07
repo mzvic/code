@@ -72,6 +72,8 @@ CMAKE_BINARY_DIR = /home/code/Development/core_ba
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
+all: CMakeFiles/TwisTorrSetter.dir/all
+all: CMakeFiles/TwisTorrIO.dir/all
 all: CMakeFiles/APD_reg_zero.dir/all
 all: CMakeFiles/APD_reg_fft_1.dir/all
 all: CMakeFiles/APD_reg_fft_01.dir/all
@@ -95,6 +97,8 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
+clean: CMakeFiles/TwisTorrSetter.dir/clean
+clean: CMakeFiles/TwisTorrIO.dir/clean
 clean: CMakeFiles/APD_reg_zero.dir/clean
 clean: CMakeFiles/APD_reg_fft_1.dir/clean
 clean: CMakeFiles/APD_reg_fft_01.dir/clean
@@ -111,6 +115,64 @@ clean: CMakeFiles/subscriber6.dir/clean
 clean: CMakeFiles/APD_fft_full.dir/clean
 
 .PHONY : clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/TwisTorrSetter.dir
+
+# All Build rule for target.
+CMakeFiles/TwisTorrSetter.dir/all: CMakeFiles/client.dir/all
+CMakeFiles/TwisTorrSetter.dir/all: CMakeFiles/reactor.dir/all
+CMakeFiles/TwisTorrSetter.dir/all: CMakeFiles/core_grpc_proto.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter.dir/build.make CMakeFiles/TwisTorrSetter.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter.dir/build.make CMakeFiles/TwisTorrSetter.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=21,22 "Built target TwisTorrSetter"
+.PHONY : CMakeFiles/TwisTorrSetter.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/TwisTorrSetter.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 12
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/TwisTorrSetter.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
+.PHONY : CMakeFiles/TwisTorrSetter.dir/rule
+
+# Convenience name for target.
+TwisTorrSetter: CMakeFiles/TwisTorrSetter.dir/rule
+
+.PHONY : TwisTorrSetter
+
+# clean rule for target.
+CMakeFiles/TwisTorrSetter.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter.dir/build.make CMakeFiles/TwisTorrSetter.dir/clean
+.PHONY : CMakeFiles/TwisTorrSetter.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/TwisTorrIO.dir
+
+# All Build rule for target.
+CMakeFiles/TwisTorrIO.dir/all: CMakeFiles/client.dir/all
+CMakeFiles/TwisTorrIO.dir/all: CMakeFiles/reactor.dir/all
+CMakeFiles/TwisTorrIO.dir/all: CMakeFiles/core_grpc_proto.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrIO.dir/build.make CMakeFiles/TwisTorrIO.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrIO.dir/build.make CMakeFiles/TwisTorrIO.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=19,20 "Built target TwisTorrIO"
+.PHONY : CMakeFiles/TwisTorrIO.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/TwisTorrIO.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 12
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/TwisTorrIO.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
+.PHONY : CMakeFiles/TwisTorrIO.dir/rule
+
+# Convenience name for target.
+TwisTorrIO: CMakeFiles/TwisTorrIO.dir/rule
+
+.PHONY : TwisTorrIO
+
+# clean rule for target.
+CMakeFiles/TwisTorrIO.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrIO.dir/build.make CMakeFiles/TwisTorrIO.dir/clean
+.PHONY : CMakeFiles/TwisTorrIO.dir/clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/APD_reg_zero.dir
@@ -206,7 +268,7 @@ CMakeFiles/APD_reg_fft_01.dir/clean:
 CMakeFiles/client.dir/all: CMakeFiles/core_grpc_proto.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=19,20,21 "Built target client"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=23,24,25 "Built target client"
 .PHONY : CMakeFiles/client.dir/all
 
 # Build rule for subdir invocation for target.
@@ -233,7 +295,7 @@ CMakeFiles/client.dir/clean:
 CMakeFiles/reactor.dir/all: CMakeFiles/core_grpc_proto.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/reactor.dir/build.make CMakeFiles/reactor.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/reactor.dir/build.make CMakeFiles/reactor.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=28,29,30 "Built target reactor"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=32,33,34 "Built target reactor"
 .PHONY : CMakeFiles/reactor.dir/all
 
 # Build rule for subdir invocation for target.
@@ -260,7 +322,7 @@ CMakeFiles/reactor.dir/clean:
 CMakeFiles/core_grpc_proto.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/core_grpc_proto.dir/build.make CMakeFiles/core_grpc_proto.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/core_grpc_proto.dir/build.make CMakeFiles/core_grpc_proto.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=22,23,24,25 "Built target core_grpc_proto"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=26,27,28,29 "Built target core_grpc_proto"
 .PHONY : CMakeFiles/core_grpc_proto.dir/all
 
 # Build rule for subdir invocation for target.
@@ -405,7 +467,7 @@ CMakeFiles/publisher6.dir/all: CMakeFiles/reactor.dir/all
 CMakeFiles/publisher6.dir/all: CMakeFiles/core_grpc_proto.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/publisher6.dir/build.make CMakeFiles/publisher6.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/publisher6.dir/build.make CMakeFiles/publisher6.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=26,27 "Built target publisher6"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=30,31 "Built target publisher6"
 .PHONY : CMakeFiles/publisher6.dir/all
 
 # Build rule for subdir invocation for target.
@@ -463,7 +525,7 @@ CMakeFiles/subscriber6.dir/all: CMakeFiles/reactor.dir/all
 CMakeFiles/subscriber6.dir/all: CMakeFiles/core_grpc_proto.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/subscriber6.dir/build.make CMakeFiles/subscriber6.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/subscriber6.dir/build.make CMakeFiles/subscriber6.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=31,32 "Built target subscriber6"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=35,36 "Built target subscriber6"
 .PHONY : CMakeFiles/subscriber6.dir/all
 
 # Build rule for subdir invocation for target.

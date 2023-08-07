@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
           bundle.add_value(*p);
         if (c >= amount_data){
           publisher_client.Publish(bundle);
-          std::this_thread::sleep_for(std::chrono::microseconds(2));
+          //std::this_thread::sleep_for(std::chrono::microseconds(2));
           bundle.clear_value(); 
           c = 0;
         }
