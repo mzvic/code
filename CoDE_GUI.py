@@ -209,17 +209,17 @@ class MainWindow(QMainWindow):
 
 
         self.binary_paths = [
-            path + 'core_ba/bin/APD_broker2',
-            path + 'core_ba/bin/APD_plot_cvt',
-            path + 'core_ba/bin/APD_publisher',
-            path + 'core_ba/bin/APD_fft_partial',
-            path + 'core_ba/bin/APD_reg_zero', # 'APD_reg' for RAW data with timestamp (TS) from the t0, 'APD_reg_zero' for RAW data with TS from zero...
-            path + 'core_ba/bin/APD_reg_proc', # 'APD_reg_proc' for data @ 100Hz with TS from zero...
-            path + 'core_ba/bin/APD_reg_fft_1',
-            path + 'core_ba/bin/APD_reg_fft_01',
-            path + 'core_ba/bin/APD_fft_full',
-            path + 'core_ba/bin/TwisTorrIO',
-            path + 'core_ba/bin/TwisTorrSetter'        
+            path + '/core_ba/bin/APD_broker2',
+            path + '/core_ba/bin/APD_plot_cvt',
+            path + '/core_ba/bin/APD_publisher',
+            path + '/core_ba/bin/APD_fft_partial',
+            path + '/core_ba/bin/APD_reg_zero', # 'APD_reg' for RAW data with timestamp (TS) from the t0, 'APD_reg_zero' for RAW data with TS from zero...
+            path + '/core_ba/bin/APD_reg_proc', # 'APD_reg_proc' for data @ 100Hz with TS from zero...
+            path + '/core_ba/bin/APD_reg_fft_1',
+            path + '/core_ba/bin/APD_reg_fft_01',
+            path + '/core_ba/bin/APD_fft_full',
+            path + '/core_ba/bin/TwisTorrIO',
+            path + '/core_ba/bin/TwisTorrSetter'        
         ]
         
         self.processes[9] = subprocess.Popen([self.binary_paths[9]]) 
