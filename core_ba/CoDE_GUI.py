@@ -128,7 +128,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         
         self.setWindowTitle("CoDE Control Software")
-        icon = QtGui.QIcon("/home/asus/Documentos/CoDE/Core_SSobarzo/core/CoDE_logo.png")  
+        icon = QtGui.QIcon("/home/code/Develpment/CoDE.png")  
         self.setWindowIcon(icon)        
         self.tab_widget = QTabWidget()
         self.setCentralWidget(self.tab_widget)
@@ -205,17 +205,17 @@ class MainWindow(QMainWindow):
         self.t_fft = int(time.time())     
 
         self.binary_paths = [
-            '/home/asus/Documentos/code/coress2/bin/APD_broker2',
-            '/home/asus/Documentos/code/coress2/bin/APD_plot_cvt',
-            '/home/asus/Documentos/code/coress2/bin/APD_publisher',
-            '/home/asus/Documentos/code/coress2/bin/APD_fft_partial',
-            '/home/asus/Documentos/code/coress2/bin/APD_reg_zero', # 'APD_reg' for RAW data with timestamp (TS) from the t0, 'APD_reg_zero' for RAW data with TS from zero...
-            '/home/asus/Documentos/code/coress2/bin/APD_reg_proc', # 'APD_reg_proc' for data @ 100Hz with TS from zero...
-            '/home/asus/Documentos/code/coress2/bin/APD_reg_fft_1',
-            '/home/asus/Documentos/code/coress2/bin/APD_reg_fft_01',
-            '/home/asus/Documentos/code/coress2/bin/APD_fft_full',
-            '/home/asus/Documentos/code/coress2/bin/TwisTorrIO',
-            '/home/asus/Documentos/code/coress2/bin/TwisTorrSetter'        
+            '/home/code/Development/core_ba/bin/APD_broker2',
+            '/home/code/Development/core_ba/bin/APD_plot_cvt',
+            '/home/code/Development/core_ba/bin/APD_publisher',
+            '/home/code/Development/core_ba/bin/APD_fft_partial',
+            '/home/code/Development/core_ba/bin/APD_reg_zero', # 'APD_reg' for RAW data with timestamp (TS) from the t0, 'APD_reg_zero' for RAW data with TS from zero...
+            '/home/code/Development/core_ba/bin/APD_reg_proc', # 'APD_reg_proc' for data @ 100Hz with TS from zero...
+            '/home/code/Development/core_ba/bin/APD_reg_fft_1',
+            '/home/code/Development/core_ba/bin/APD_reg_fft_01',
+            '/home/code/Development/core_ba/bin/APD_fft_full',
+            '/home/code/Development/core_ba/bin/TwisTorrIO',
+            '/home/code/Development/core_ba/bin/TwisTorrSetter'        
         ]
         
         self.processes[9] = subprocess.Popen([self.binary_paths[9]]) 
