@@ -129,10 +129,11 @@ void ProcessBundle(const Bundle &bundle) {
   // Append received data. Note that we will process the last BUFFER_SIZE samples,
   // so if value and BUFFER_SIZE are not aligned, some old data could be lost
   samples.insert(samples.end(), kValue.begin(), kValue.end());
-  if (samples_count < 100){
+  if (samples_count < 1000){
 	samples_count++;
 	return;  
 	}
+  //cout << "Obtaining FFT..." << endl;	
   //cout << "Samples_count: " << samples_count << endl;	
   // Check if we have enough data to proceed
   if (samples.size() < BUFFER_SIZE)
