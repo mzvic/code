@@ -17,11 +17,10 @@ import time
 import threading
 import grpc #grpcio, grpcio-tools
 from google.protobuf.timestamp_pb2 import Timestamp
-import core_ba.core_pb2 as core
-import core_ba.core_pb2_grpc as core_grpc
+import core_pb2 as core
+import core_pb2_grpc as core_grpc
 import queue
 import gc
-import os
 
 a = []
 freq = []
@@ -31,6 +30,10 @@ monitoring_TT = []
 class DateAxis(pg.AxisItem):
     def tickStrings(self, values, scale, spacing):
         return [datetime.fromtimestamp(float(value)).strftime('%H:%M:%S.%f')[:-3] for value in values]
+
+class CustomImageAxis(pg.AxisItem):
+    def tickStrings(self, values, scale, spacing):
+        return [f"{value/10:.1f}" for value in values]
 
 class UpdateGraph1Thread(QThread):
     bundle = None
@@ -127,11 +130,11 @@ class UpdateTTThread(QThread):
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-        
+
         path = os.getcwd()
 
         self.setWindowTitle("CoDE Control Software")
-        icon = QtGui.QIcon(path + "/CoDE.png")  
+        icon = QtGui.QIcon(path + "/CoDE.png")    
         self.setWindowIcon(icon)        
         self.tab_widget = QTabWidget()
         self.setCentralWidget(self.tab_widget)
@@ -190,14 +193,16 @@ class MainWindow(QMainWindow):
         self.freq2 = []
 
         #self.color_map = pg.ImageView(view=pg.PlotItem(axisItems={'left': DateAxis(orientation='left')}))
-        self.color_map = pg.ImageView(view=pg.PlotItem())
+        self.color_map = pg.ImageView(view=pg.PlotItem(axisItems={'bottom': CustomImageAxis(orientation='bottom')}))
         self.layout.addWidget(self.color_map)
         plot_item = self.color_map.getView()
         self.color_map.setMinimumHeight(180)
         self.color_map.setMaximumHeight(300)
         self.color_map.setColorMap(pg.colormap.get('plasma'))
+        
         #self.color_map.getView().setLogMode(x=True)
-        self.fft_magnitudes = 50000
+        self.fft_magnitudes = 500000
+
         #self.spectrum_amount = 100
         #self.color_map.getView().setRange(xRange=(0, self.fft_magnitudes))
         #self.color_map.getView().setRange(yRange=(0, self.spectrum_amount))
@@ -206,8 +211,6 @@ class MainWindow(QMainWindow):
  
         plot_item.showGrid(x=True, y=True)
         self.t_fft = int(time.time())     
-
-
         self.binary_paths = [
             path + '/core_ba/bin/APD_broker2',
             path + '/core_ba/bin/APD_plot_cvt',
@@ -221,6 +224,7 @@ class MainWindow(QMainWindow):
             path + '/core_ba/bin/TwisTorrIO',
             path + '/core_ba/bin/TwisTorrSetter'        
         ]
+        
         
         self.processes[9] = subprocess.Popen([self.binary_paths[9]]) 
         
@@ -287,7 +291,7 @@ class MainWindow(QMainWindow):
         self.apd_counts_secs_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.apd_counts_secs_input = QLineEdit(self)
         #self.apd_counts_secs_input.setFixedWidth(30) 
-        self.apd_counts_secs_input.setText("5")       
+        self.apd_counts_secs_input.setText("10")       
         first_layout.addWidget(self.apd_counts_secs_label)
         first_layout.addWidget(self.apd_counts_secs_input)              
 
@@ -304,7 +308,7 @@ class MainWindow(QMainWindow):
         spectrum_amount_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.spectrum_amount_input = QLineEdit(self)
         self.spectrum_amount_input.setFixedWidth(40) 
-        self.spectrum_amount_input.setText("100")       
+        self.spectrum_amount_input.setText("120")       
         third_layout.addWidget(spectrum_amount_label)
         third_layout.addWidget(self.spectrum_amount_input)   
         
@@ -344,7 +348,7 @@ class MainWindow(QMainWindow):
         f_i_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.f_i_input = QLineEdit(self)
         self.f_i_input.setFixedWidth(60) 
-        self.f_i_input.setText("5")       
+        self.f_i_input.setText("10")       
         third_layout.addWidget(f_i_label)
         third_layout.addWidget(self.f_i_input) 
 
@@ -352,7 +356,7 @@ class MainWindow(QMainWindow):
         f_f_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.f_f_input = QLineEdit(self)
         self.f_f_input.setFixedWidth(60) 
-        self.f_f_input.setText("1000")       
+        self.f_f_input.setText("150")       
         third_layout.addWidget(f_f_label)
         third_layout.addWidget(self.f_f_input)  
         
@@ -538,7 +542,7 @@ class MainWindow(QMainWindow):
             #print(monitoring_TT)
             vacuum_pressure = str(round(monitoring_TT[0], 2))
             speed_motor = str(round(monitoring_TT[1], 2))
-            valve_state = "Open" if monitoring_TT[2] == 1 else "Closed"
+            valve_state = "Open" if monitoring_TT[2] >= 1 else "Closed"
             bomb_power = str(round(monitoring_TT[3], 2))
             temperature = str(round(monitoring_TT[4], 2))
 
@@ -717,18 +721,20 @@ class MainWindow(QMainWindow):
         #time.sleep(0.1)    
 
     def update_graph3(self):
-         
+        self.color_map.setLevels(0, 1)
         self.spectrum_amount = int(self.spectrum_amount_input.text())
         self.avg_time = int(self.avg_time_input.text())
         if not hasattr(self, 'data_matrix_avg'):
             self.data_matrix_avg = np.zeros(self.fft_magnitudes)
 
         for i in range(len(self.data2)):
-            freq_value = int(self.freq2[i]) 
+            freq_value = int(self.freq2[i]*10) 
+            #print(freq_value)
             magn_value = float(self.data2[i])
             self.data_matrix_avg[freq_value] += magn_value
         self.avg_count = self.avg_count + 1
         time_i = int(time.time())
+        
         if (time_i - self.t_fft >= self.avg_time):
             #for i in range(self.fft_magnitudes):
             self.data_matrix_avg = self.data_matrix_avg/self.avg_count 
@@ -739,15 +745,14 @@ class MainWindow(QMainWindow):
 
             self.spectrum_matrix = np.vstack((self.data_matrix_avg, self.spectrum_matrix))
             self.data_matrix_avg = np.zeros(self.fft_magnitudes)
-            #gc.collect
-            while self.spectrum_matrix.shape[0] >= self.spectrum_amount:
-                self.spectrum_matrix = np.delete(self.spectrum_matrix, -1, axis=0)
-                #gc.collect
+            #print(self.spectrum_matrix.shape[0])
+            while self.spectrum_matrix.shape[0] > self.spectrum_amount:
+                self.spectrum_matrix = self.spectrum_matrix[-self.spectrum_amount:, :]
 
             self.plot_matrix = np.transpose(self.spectrum_matrix)
-            self.pm = self.plot_matrix[:self.f_f, :]
+            self.pm = self.plot_matrix[:self.f_f*10, :]
             self.color_map.setImage(self.pm)
-            self.color_map.getView().setRange(xRange=(self.f_i, self.f_f))
+            self.color_map.getView().setRange(xRange=(self.f_i*10, self.f_f*10))
             self.t_fft = int(time.time())
             
         
@@ -832,11 +837,6 @@ class MainWindow(QMainWindow):
         #gc.collect
         self.pm = np.zeros((1, self.fft_magnitudes))
         self.color_map.setImage(self.pm)   
-
-
-
-
-            
             
 def apply_dark_theme(app):
     dark_palette = QtGui.QPalette()
@@ -867,7 +867,7 @@ if __name__ == "__main__":
     try:
         mainWindow = MainWindow()
         mainWindow.show()
-        mainWindow.start_update_tt_timer()  # Iniciar la actualización continua
+        mainWindow.start_update_tt_timer()  
         sys.exit(app.exec_())
     except Exception as e:
         error_message = "An unexpected error has occurred: {}".format(str(e))
