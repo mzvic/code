@@ -198,17 +198,17 @@ class MainWindow(QMainWindow):
         
         # Paths to c++ processes
         self.binary_paths = [
-            path + '/core_ba/bin/APD_broker2',
-            path + '/core_ba/bin/APD_plot_cvt',
-            path + '/core_ba/bin/APD_publisher',
-            path + '/core_ba/bin/APD_fft_partial',
-            path + '/core_ba/bin/APD_reg_zero', 
-            path + '/core_ba/bin/APD_reg_proc', 
-            path + '/core_ba/bin/APD_reg_fft_1',
-            path + '/core_ba/bin/APD_reg_fft_01',
-            path + '/core_ba/bin/APD_fft_full',
-            path + '/core_ba/bin/TwisTorrIO',
-            path + '/core_ba/bin/TwisTorrSetter'        
+            path + '/core_ba/bin/APD_broker2_code_sw',
+            path + '/core_ba/bin/APD_plot_cvt_code_sw',
+            path + '/core_ba/bin/APD_publisher_code_sw',
+            path + '/core_ba/bin/APD_fft_partial_code_sw',
+            path + '/core_ba/bin/APD_reg_zero_code_sw', 
+            path + '/core_ba/bin/APD_reg_proc_code_sw', 
+            path + '/core_ba/bin/APD_reg_fft_1_code_sw',
+            path + '/core_ba/bin/APD_reg_fft_01_code_sw',
+            path + '/core_ba/bin/APD_fft_full_code_sw',
+            path + '/core_ba/bin/TwisTorrIO_code_sw',
+            path + '/core_ba/bin/TwisTorrSetter_code_sw'        
         ]
 
         # Title of the window
@@ -472,7 +472,7 @@ class MainWindow(QMainWindow):
         selected_port = self.serialPortsCombobox.currentText()
 
         #################################################################################################################################################################### APD--> revisar
-        self.processes[2] = subprocess.Popen([self.binary_paths[2], str(selected_port)])
+        #self.processes[2] = subprocess.Popen([self.binary_paths[2], str(selected_port)])
 
         # Hidden row
         self.buttons[0].hide()  
@@ -728,6 +728,8 @@ class MainWindow(QMainWindow):
             if i == 2: 
                 sender.setText(button_names[i])
                 sender.setStyleSheet("background-color: darkblue; color: white;")
+                selected_port = self.serialPortsCombobox.currentText()
+                self.processes[i] = subprocess.Popen([self.binary_paths[i], str(selected_port)])
                 self.update_graph1_thread.start()
             
             # Handle different cases based on the value of 'i'
@@ -777,18 +779,18 @@ class MainWindow(QMainWindow):
                     sender.setText(button_names[i])
                     sender.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
                 else: 
-                    if i == 7:
-                        sender.setText(button_names[i+1])
-                        sender.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
-                        subprocess.run(['pkill', '-f', self.processes[i+1].args[0]], check=True)
-                        self.processes[i+1] = None
-                        print(f"Process {i + 2} stopped.")
-                    
-                    sender.setText(button_names[i])
+                if i == 7:
+                    sender.setText(button_names[i+1])
                     sender.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
-                    subprocess.run(['pkill', '-f', self.processes[i].args[0]], check=True)
-                    self.processes[i] = None
-                    print(f"Process {i + 1} stopped.")
+                    subprocess.run(['pkill', '-f', self.processes[i+1].args[0]], check=True)
+                    self.processes[i+1] = None
+                    print(f"Process {i + 2} stopped.")
+                    
+                sender.setText(button_names[i])
+                sender.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                subprocess.run(['pkill', '-f', self.processes[i].args[0]], check=True)
+                self.processes[i] = None
+                t(f"Process {i + 1} stopped.")
 
 
     def update_graph1(self):
