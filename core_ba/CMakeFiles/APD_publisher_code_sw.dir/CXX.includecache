@@ -4741,6 +4741,10 @@ stdbool.h
 -
 csignal
 -
+mutex
+-
+condition_variable
+-
 chrono
 -
 iostream
