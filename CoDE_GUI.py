@@ -23,6 +23,7 @@ import queue
 import gc
 import os
 
+
 # List to store counts from APD
 counts = []
 
@@ -31,6 +32,7 @@ freq = []
 magn = []
 
 # List to store monitoring data from TwistTor
+
 monitoring_TT = []
 
 # Custom Axis class to display timestamps as dates
@@ -87,6 +89,7 @@ class UpdateGraph1Thread(QThread):
             if self.isInterruptionRequested():
                 break
             
+
             # Check if the 'counts' list is empty
             if not counts:
                 # Copy the bundle value to the 'counts' list
@@ -102,6 +105,7 @@ class UpdateGraph1Thread(QThread):
                 ):
                     # Update 'counts' with the new bundle value
                     counts[:] = bundle.value
+
 
                     # Emit a signal to indicate an update in graph 1
                     self.update_signal1.emit()
@@ -162,7 +166,9 @@ class UpdateGraph2Thread(QThread):
             self.update_signal2.emit()  # Emit a signal to indicate updated data
 
             
+
 # Definition of a custom thread class for updating TwistTorr monitoring data
+
 class UpdateTTThread(QThread):
     bundle3 = None
     update_signal3 = pyqtSignal()
@@ -728,8 +734,10 @@ class MainWindow(QMainWindow):
             if i == 2: 
                 sender.setText(button_names[i])
                 sender.setStyleSheet("background-color: darkblue; color: white;")
+
                 selected_port = self.serialPortsCombobox.currentText()
                 self.processes[i] = subprocess.Popen([self.binary_paths[i], str(selected_port)])
+
                 self.update_graph1_thread.start()
             
             # Handle different cases based on the value of 'i'
@@ -779,25 +787,29 @@ class MainWindow(QMainWindow):
                     sender.setText(button_names[i])
                     sender.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
                 else: 
-                if i == 7:
-                    sender.setText(button_names[i+1])
-                    sender.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
-                    subprocess.run(['pkill', '-f', self.processes[i+1].args[0]], check=True)
-                    self.processes[i+1] = None
-                    print(f"Process {i + 2} stopped.")
+
+                    if i == 7:
+                        sender.setText(button_names[i+1])
+                        sender.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                        subprocess.run(['pkill', '-f', self.processes[i+1].args[0]], check=True)
+                        self.processes[i+1] = None
+                        print(f"Process {i + 2} stopped.")
                     
-                sender.setText(button_names[i])
-                sender.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
-                subprocess.run(['pkill', '-f', self.processes[i].args[0]], check=True)
-                self.processes[i] = None
-                t(f"Process {i + 1} stopped.")
+                    sender.setText(button_names[i])
+                    sender.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                    subprocess.run(['pkill', '-f', self.processes[i].args[0]], check=True)
+                    self.processes[i] = None
+                    print(f"Process {i + 1} stopped.")
+
 
 
     def update_graph1(self):
         len_cvt = 10
         for i in range(0, len_cvt, 2):
+
             timestamp = float(counts[i + 1])  # Extract timestamp from data
             value = float(counts[i])  # Extract value from data
+
             self.times1.append(timestamp)  # Add timestamp to times1 list
             self.data1.append(value)  # Add value to data1 list
 
@@ -963,7 +975,9 @@ class MainWindow(QMainWindow):
         for process in self.processes:
             if process is not None:
                 subprocess.run(['pkill', '-f', process.args[0]], check=True)
+
         self.stop_update_tt_timer()
+
         event.accept()
 
     def toggle_cursor(self):
@@ -1003,6 +1017,7 @@ class MainWindow(QMainWindow):
         del self.pm
         self.pm = np.zeros((1, self.fft_magnitudes))
         self.color_map.setImage(self.pm)
+
 
 # Apply dark theme to the GUI            
 def apply_dark_theme(app):
