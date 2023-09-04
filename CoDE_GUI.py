@@ -23,14 +23,16 @@ import queue
 import gc
 import os
 
-# List to store data from a bundle
-a = []
 
-# Lists to store frequency and magnitude data
+# List to store counts from APD
+counts = []
+
+# Lists to store FFT data from APD
 freq = []
 magn = []
 
-# List to store monitoring data
+# List to store monitoring data from TwistTor
+
 monitoring_TT = []
 
 # Custom Axis class to display timestamps as dates
@@ -87,21 +89,23 @@ class UpdateGraph1Thread(QThread):
             if self.isInterruptionRequested():
                 break
             
-            # Check if the 'a' list is empty
-            if not a:
-                # Copy the bundle value to the 'a' list
-                a[:] = bundle.value
+
+            # Check if the 'counts' list is empty
+            if not counts:
+                # Copy the bundle value to the 'counts' list
+                counts[:] = bundle.value
             else:
-                # Compare values in the bundle with values in 'a'
+                # Compare values in the bundle with values in 'counts'
                 if (
-                    bundle.value[1] != a[1]
-                    and bundle.value[3] != a[3]
-                    and bundle.value[5] != a[5]
-                    and bundle.value[7] != a[7]
-                    and bundle.value[9] != a[9]
+                    bundle.value[1] != counts[1]
+                    and bundle.value[3] != counts[3]
+                    and bundle.value[5] != counts[5]
+                    and bundle.value[7] != counts[7]
+                    and bundle.value[9] != counts[9]
                 ):
-                    # Update 'a' with the new bundle value
-                    a[:] = bundle.value
+                    # Update 'counts' with the new bundle value
+                    counts[:] = bundle.value
+
 
                     # Emit a signal to indicate an update in graph 1
                     self.update_signal1.emit()
@@ -162,7 +166,9 @@ class UpdateGraph2Thread(QThread):
             self.update_signal2.emit()  # Emit a signal to indicate updated data
 
             
-# Definition of a custom thread class for updating Twistorr monitoring data
+
+# Definition of a custom thread class for updating TwistTorr monitoring data
+
 class UpdateTTThread(QThread):
     bundle3 = None
     update_signal3 = pyqtSignal()
@@ -193,14 +199,34 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
 
-        path = os.getcwd()
+        #path = os.getcwd()
+        path = '/home/code/Development'
+        
+        # Paths to c++ processes
+        self.binary_paths = [
+            path + '/core_ba/bin/APD_broker2_code_sw',
+            path + '/core_ba/bin/APD_plot_cvt_code_sw',
+            path + '/core_ba/bin/APD_publisher_code_sw',
+            path + '/core_ba/bin/APD_fft_partial_code_sw',
+            path + '/core_ba/bin/APD_reg_zero_code_sw', 
+            path + '/core_ba/bin/APD_reg_proc_code_sw', 
+            path + '/core_ba/bin/APD_reg_fft_1_code_sw',
+            path + '/core_ba/bin/APD_reg_fft_01_code_sw',
+            path + '/core_ba/bin/APD_fft_full_code_sw',
+            path + '/core_ba/bin/TwisTorrIO_code_sw',
+            path + '/core_ba/bin/TwisTorrSetter_code_sw'        
+        ]
 
+        # Title of the window
         self.setWindowTitle("CoDE Control Software")
+        
+        # Icon for the window
         icon = QtGui.QIcon(path + "/CoDE.png")    
         self.setWindowIcon(icon)        
         self.tab_widget = QTabWidget()
         self.setCentralWidget(self.tab_widget)
 
+        # Creates different tabs
         self.tab1 = QWidget()
         self.tab2 = QWidget()
         self.tab3 = QWidget()
@@ -209,6 +235,7 @@ class MainWindow(QMainWindow):
         self.tab6 = QWidget()
         self.tab7 = QWidget()  
 
+        # Set names to tabs    
         self.tab_widget.addTab(self.tab1, "APD")
         self.tab_widget.addTab(self.tab2, "Vacuum")
         self.tab_widget.addTab(self.tab3, "ESI")
@@ -217,108 +244,133 @@ class MainWindow(QMainWindow):
         self.tab_widget.addTab(self.tab6, "Data processing")
         self.tab_widget.addTab(self.tab7, "Registers")                
 
-        self.layout = QVBoxLayout(self.tab1)
-        self.threads = []
-        self.processes = [None] * 11
 
+        # Amont of processes depends on amount of c++ processes indicated earlier
+        self.processes = [None] * 11
+        self.threads = []
+        self.processes[9] = subprocess.Popen([self.binary_paths[9]])
+
+        # ------------------------------------------------------------------------------------------- #
+        # APD tab
+        # ------------------------------------------------------------------------------------------- #
+        self.layout1 = QVBoxLayout(self.tab1) 
+ 
+        # Plot 1 object 
         self.graph1 = pg.PlotWidget(axisItems={'bottom': DateAxis(orientation='bottom')})
+        
+        # Plot 1 height
         self.graph1.setMinimumHeight(180)
         self.graph1.setMaximumHeight(300)
-        self.layout.addWidget(self.graph1)
+
+        # Plot 1 displayed in the APD tab
+        self.layout1.addWidget(self.graph1) 
         plotItem1 = self.graph1.getPlotItem()
         plotItem1.showGrid(True, True, 0.7)
+        
+        # Initial data for plot 1
         self.plot1 = self.graph1.plot([0,1,2,3], [0,0,0,0], pen=pg.mkPen(color=(255, 0, 0)))
+        
+        # Axis labels
         self.graph1.setLabel('left', 'Counts')
         self.graph1.setLabel('bottom', 'Time', units='hh:mm:ss.uuuuuu')
         
+        # List to be displayed in plot 1
         self.data1 = []
         self.times1 = []
 
+        # Plot 2 object 
         self.graph2 = pg.PlotWidget()
+        
+        # Plot 2 height
         self.graph2.setMinimumHeight(180)
         self.graph2.setMaximumHeight(300)
-        self.layout.addWidget(self.graph2)
+        
+        # Plot 2 displayed in the APD tab
+        self.layout1.addWidget(self.graph2)
         plotItem2 = self.graph2.getPlotItem()
         plotItem2.showGrid(True, True, 0.7)
+        
+        # Axis labels
         self.graph2.setLabel("left", "|Power|")
         self.graph2.setLabel("bottom", "Frequency", "Hz")
         self.graph2.plotItem.setLogMode(x=True)
         self.h_line = pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen(color=(0, 255, 0), width=1))
         self.graph2.addItem(self.h_line) 
         
-
+        # Boolean for enable cursor ID (yellow bar) and spectrometer
         self.cursor_position = None
         self.y_bar = False
         self.spec = False
 
+        # List to be displayed in plot 2
         self.data2 = []
         self.freq2 = []
 
-        #self.color_map = pg.ImageView(view=pg.PlotItem(axisItems={'left': DateAxis(orientation='left')}))
+        # Plot 3 object 
         self.color_map = pg.ImageView(view=pg.PlotItem(axisItems={'bottom': CustomImageAxis(orientation='bottom')}))
-        self.layout.addWidget(self.color_map)
+        
+        # Plot 3 displayed in the APD tab
+        self.layout1.addWidget(self.color_map)
         plot_item = self.color_map.getView()
+
+        # Plot 3 height
         self.color_map.setMinimumHeight(180)
         self.color_map.setMaximumHeight(300)
-        self.color_map.setColorMap(pg.colormap.get('plasma'))
-        
-        #self.color_map.getView().setLogMode(x=True)
-        self.fft_magnitudes = 500000
 
-        #self.spectrum_amount = 100
-        #self.color_map.getView().setRange(xRange=(0, self.fft_magnitudes))
-        #self.color_map.getView().setRange(yRange=(0, self.spectrum_amount))
+        # Some parameters and settings for plot 3
+        self.color_map.setColorMap(pg.colormap.get('plasma')) # Histogram color setting
+        self.fft_magnitudes = 500000
         self.color_map.getView().autoRange() 
         self.avg_count = 0
- 
         plot_item.showGrid(x=True, y=True)
         self.t_fft = int(time.time())     
-        self.binary_paths = [
-            path + '/core_ba/bin/APD_broker2',
-            path + '/core_ba/bin/APD_plot_cvt',
-            path + '/core_ba/bin/APD_publisher',
-            path + '/core_ba/bin/APD_fft_partial',
-            path + '/core_ba/bin/APD_reg_zero', # 'APD_reg' for RAW data with timestamp (TS) from the t0, 'APD_reg_zero' for RAW data with TS from zero...
-            path + '/core_ba/bin/APD_reg_proc', # 'APD_reg_proc' for data @ 100Hz with TS from zero...
-            path + '/core_ba/bin/APD_reg_fft_1',
-            path + '/core_ba/bin/APD_reg_fft_01',
-            path + '/core_ba/bin/APD_fft_full',
-            path + '/core_ba/bin/TwisTorrIO',
-            path + '/core_ba/bin/TwisTorrSetter'        
-        ]
-        
-        
-        self.processes[9] = subprocess.Popen([self.binary_paths[9]]) 
-        
-        hidden_layout = QHBoxLayout() 
-        button_names_1 = ["Server", "Counts plot"] 
 
-        second_layout = QHBoxLayout() 
-        button_names_2 = ["Plot counts", "Plot FFT", "Export counts data [100kHz]", "Export counts data [1kHz]", "Export FFT data [1Hz resolution]", "Export FFT data [0.1Hz resolution]", "Show spectrum averages"]
+        # Connect UpdateGraph1Thread() to a thread (receives data for counts vs. time [APD])
+        self.update_graph1_thread = UpdateGraph1Thread()
+        self.update_graph1_thread.update_signal1.connect(self.update_graph1)
+
+        # Connect UpdatePlot1Thread() to a thread (display the counts vs. data in plot 1 [APD])
+        self.update_plot1_thread = UpdatePlot1Thread()
+        self.update_plot1_thread.plot_signal.connect(self.update_plot1)
+        self.update_plot1_thread.start()
         
-        first_layout = QHBoxLayout() # Parámetros de entrada
-        third_layout = QHBoxLayout() 
+        # Connect UpdateGraph2Thread() to a thread (receives and display fft data in plot 2 [APD])
+        self.update_graph2_thread = UpdateGraph2Thread()
+        self.update_graph2_thread.update_signal2.connect(self.update_graph2)
+
+        # Buttons in APD tab
+        button_names_1a = ["Server", "Counts plot"] 
+        button_names_1b = ["Plot counts", "Plot FFT", "Export counts data [100kHz]", "Export counts data [1kHz]", "Export FFT data [1Hz resolution]", "Export FFT data [0.1Hz resolution]", "Show spectrum averages"]
+        
+        # Input parameters in APD tab: Hidden, first, second and third row
+        hidden_layout_1 = QHBoxLayout() 
+        first_layout_1 = QHBoxLayout()    
+        second_layout_1 = QHBoxLayout()
+        third_layout_1 = QHBoxLayout() 
+
+        # FPGA serial port select (first_layout_1)
         serialPortsLabel = QLabel("FPGA serial port:")
         serialPortsLabel.setFixedWidth(100)
         self.serialPortsCombobox = QComboBox(self)
         self.update_serial_ports()
-        index_p = self.serialPortsCombobox.findText('/dev/ttyUSB1', QtCore.Qt.MatchFixedString)
+        index_p = self.serialPortsCombobox.findText('/dev/ttyUSB1', QtCore.Qt.MatchFixedString) # Default value
         if index_p >= 0:
              self.serialPortsCombobox.setCurrentIndex(index_p)        
         self.serialPortsCombobox.setMaximumWidth(120)
-        first_layout.addWidget(serialPortsLabel)
-        first_layout.addWidget(self.serialPortsCombobox)
+        first_layout_1.addWidget(serialPortsLabel)
+        first_layout_1.addWidget(self.serialPortsCombobox)
         
+        # FFT window type select (second_layout_1)
         windowTypeLabel = QLabel("FFT Window Type:")
         windowTypeLabel.setFixedWidth(100)
         self.windowTypeCombobox = QComboBox(self)
         self.windowTypeCombobox.addItems(['Hamming', 'Hann', 'Blackman-Harris 4', 'Blackman-Harris 7', 'No window'])
-        index_w = self.windowTypeCombobox.findText('No window', QtCore.Qt.MatchFixedString)
+        index_w = self.windowTypeCombobox.findText('No window', QtCore.Qt.MatchFixedString) # Default value
         if index_w >= 0:
              self.windowTypeCombobox.setCurrentIndex(index_w)
         self.windowTypeCombobox.setMaximumWidth(120) 
-        second_layout.addWidget(windowTypeLabel)
-        second_layout.addWidget(self.windowTypeCombobox)
+        second_layout_1.addWidget(windowTypeLabel)
+        second_layout_1.addWidget(self.windowTypeCombobox)
         
         self.window_type_values = {
             0: 1,  # 'Hamming'
@@ -328,139 +380,143 @@ class MainWindow(QMainWindow):
             4: 5,  # 'No window'
         } 
 
-        self.buttons = [] # Creación de botones para ejecutar procesos
-        
-        for i in range(2):
-            start_stop_button = QPushButton(button_names_1[i])
+        # Buttons creation (button_names_1a/b)     
+        self.buttons = []
+
+        # Hidden row
+        for i in range(2): 
+            start_stop_button = QPushButton(button_names_1a[i])
             start_stop_button.setCheckable(True)
             start_stop_button.toggled.connect(lambda checked, i=i: self.toggle_process(i, checked))            
-            hidden_layout.addWidget(start_stop_button)
+            hidden_layout_1.addWidget(start_stop_button)
             self.buttons.append(start_stop_button)      
-
+        
+        # First, seconds and third row
         for i in range(2, 8):
-            start_stop_button = QPushButton(button_names_2[i - 2])
+            start_stop_button = QPushButton(button_names_1b[i - 2])
             start_stop_button.setCheckable(True)
             start_stop_button.toggled.connect(lambda checked, i=i: self.toggle_process(i, checked))
             if i==2 or i==4 or i ==5 :
-                first_layout.addWidget(start_stop_button)
+                first_layout_1.addWidget(start_stop_button)
             else:
-                second_layout.addWidget(start_stop_button)
+                second_layout_1.addWidget(start_stop_button)
             self.buttons.append(start_stop_button) 
-          
+        
+        # Time axis lenght for counts vs. time plot in 'first_layout_1' (we only update the width of this field because of the buttons/inputs distribution of the firts row)  
         self.resizeEvent = self.update_input_width  
-            
         self.apd_counts_secs_label = QLabel("T-axis length in counts:")
         self.apd_counts_secs_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.apd_counts_secs_input = QLineEdit(self)
-        #self.apd_counts_secs_input.setFixedWidth(30) 
-        self.apd_counts_secs_input.setText("10")       
-        first_layout.addWidget(self.apd_counts_secs_label)
-        first_layout.addWidget(self.apd_counts_secs_input)              
+        self.apd_counts_secs_input.setText("10") # Default value      
+        first_layout_1.addWidget(self.apd_counts_secs_label)
+        first_layout_1.addWidget(self.apd_counts_secs_input)
 
+        # Shows a yellow bar to see the magnitude of the frequency below the mouse cursor (in 'second_layout_1')
+        self.toggle_button = QPushButton("Peak ID with cursor")
+        self.toggle_button.setCheckable(True) 
+        self.toggle_button.clicked.connect(self.toggle_cursor)
+        second_layout_1.addWidget(self.toggle_button)                                       
 
+        # Averaging period for the FFTs in seconds (in 'third_layout_1')
         avg_time_label = QLabel("Averaging period in spectrometer (s):")
         avg_time_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.avg_time_input = QLineEdit(self)
         self.avg_time_input.setFixedWidth(30) 
-        self.avg_time_input.setText("1")       
-        third_layout.addWidget(avg_time_label)
-        third_layout.addWidget(self.avg_time_input)     
+        self.avg_time_input.setText("30") # Default value       
+        third_layout_1.addWidget(avg_time_label)
+        third_layout_1.addWidget(self.avg_time_input)     
 
+        # Amount of averaging periods to show in spectrometer (in 'third_layout_1')
         spectrum_amount_label = QLabel("Periods to show in spectrometer:")
         spectrum_amount_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.spectrum_amount_input = QLineEdit(self)
         self.spectrum_amount_input.setFixedWidth(40) 
-        self.spectrum_amount_input.setText("120")       
-        third_layout.addWidget(spectrum_amount_label)
-        third_layout.addWidget(self.spectrum_amount_input)   
+        self.spectrum_amount_input.setText("120") # Default value      
+        third_layout_1.addWidget(spectrum_amount_label)
+        third_layout_1.addWidget(self.spectrum_amount_input)   
         
-        # boton para mostrar promedios
+        # Button to start/stop showing spectrometer (in 'third_layout_1')
         self.toggle_button_spec = QPushButton("Show spectrum averages")
-        self.toggle_button_spec.setCheckable(True)  # Habilitar la opción de alternancia
+        self.toggle_button_spec.setCheckable(True)  # Enables alternancy
         self.toggle_button_spec.clicked.connect(self.toggle_spec)
-        third_layout.addWidget(self.toggle_button_spec)
+        third_layout_1.addWidget(self.toggle_button_spec)
         
-        # boton para mostrar promedios
+        # Button to clean spectrometer (in 'third_layout_1')
         self.toggle_button_clean_spec = QPushButton("Clean spectrometer")
         self.toggle_button_clean_spec.clicked.connect(self.toggle_clean_spec)
-        third_layout.addWidget(self.toggle_button_clean_spec)
-
-        self.buttons[0].setChecked(True)  # 'Server'
-        self.buttons[1].setChecked(True)  # 'Counts plot'
-        selected_port = self.serialPortsCombobox.currentText()
-        self.processes[2] = subprocess.Popen([self.binary_paths[2], str(selected_port)])
+        third_layout_1.addWidget(self.toggle_button_clean_spec)
         
-          
-        self.update_graph1_thread = UpdateGraph1Thread()
-        self.update_graph1_thread.update_signal1.connect(self.update_graph1)
-
-        self.update_plot1_thread = UpdatePlot1Thread()
-        self.update_plot1_thread.plot_signal.connect(self.update_plot1)
-        self.update_plot1_thread.start()
-        
-        self.update_graph2_thread = UpdateGraph2Thread()
-        self.update_graph2_thread.update_signal2.connect(self.update_graph2)
-        
-        self.update_TT_thread = UpdateTTThread()
-        self.update_TT_thread.update_signal3.connect(self.update_vacuum_values)
-        self.update_TT_thread.start()
- 
-        
+        # Start of the frequency range of interest (in 'third_layout_1')
         f_i_label = QLabel("FFT initial freq:")
         f_i_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.f_i_input = QLineEdit(self)
         self.f_i_input.setFixedWidth(60) 
-        self.f_i_input.setText("10")       
-        third_layout.addWidget(f_i_label)
-        third_layout.addWidget(self.f_i_input) 
+        self.f_i_input.setText("10") # Default value    
+        third_layout_1.addWidget(f_i_label)
+        third_layout_1.addWidget(self.f_i_input) 
 
+        # End of the frequency range of interest (in 'third_layout_1')
         f_f_label = QLabel("FFT final freq:")
         f_f_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.f_f_input = QLineEdit(self)
         self.f_f_input.setFixedWidth(60) 
-        self.f_f_input.setText("150")       
-        third_layout.addWidget(f_f_label)
-        third_layout.addWidget(self.f_f_input)  
+        self.f_f_input.setText("150") # Default value     
+        third_layout_1.addWidget(f_f_label)
+        third_layout_1.addWidget(self.f_f_input)  
         
-        
+        # Converts the frequency range to 'int' values
         self.f_i = int(self.f_i_input.text()) 
         self.f_f = int(self.f_f_input.text())                
-        
-        self.layout.addLayout(hidden_layout)
-        self.layout.addLayout(first_layout) 
-        self.layout.addLayout(second_layout)
-        self.layout.addLayout(third_layout)
-        
+            
+        # Just a note
         self.note = QtWidgets.QLabel("Important: To be able to graph the FFT, the 'Plot counts' button must be enabled. Also, if the FFT settings are modified, 'Plot FFT' must be disabled and then enabled for the changes to take effect.")
-        self.layout.addWidget(self.note)
-        self.buttons[0].hide()  ###### Se esconden los primeros 2 botones...
-        self.buttons[1].hide()  
-        
-        # boton para mostrar peaks (barra amarilla)
-        self.toggle_button = QPushButton("Peak ID with cursor")
-        self.toggle_button.setCheckable(True)  # Habilitar la opción de alternancia
-        self.toggle_button.clicked.connect(self.toggle_cursor)
-        second_layout.addWidget(self.toggle_button)                 
+        self.layout1.addWidget(self.note)
 
-        # -----------------------------------------
-        # ----------------- Tab 2 -----------------
+        # Enable hidden buttons
+        self.buttons[0].setChecked(True)  # 'Server'
+        self.buttons[1].setChecked(True)  # 'Counts plot'
+        selected_port = self.serialPortsCombobox.currentText()
+
+        #################################################################################################################################################################### APD--> revisar
+        #self.processes[2] = subprocess.Popen([self.binary_paths[2], str(selected_port)])
+
+        # Hidden row
+        self.buttons[0].hide()  
+        self.buttons[1].hide()  
+
+        # Displays the buttons and text inputs in the APD tab
+        self.layout1.addLayout(hidden_layout_1)
+        self.layout1.addLayout(first_layout_1) 
+        self.layout1.addLayout(second_layout_1)
+        self.layout1.addLayout(third_layout_1)
+
+        # ------------------------------------------------------------------------------------------- #
+        # Vacuum TAB
+        # ------------------------------------------------------------------------------------------- #
         self.layout2 = QGridLayout(self.tab2)
 
-        label_instrument = QLabel("Parameter")
+        # Connect UpdateTTThread() to a thread (receives TwistTorr data [Vacuum])
+        self.update_TT_thread = UpdateTTThread()
+        self.update_TT_thread.update_signal3.connect(self.update_vacuum_values)
+        self.update_TT_thread.start()        
+
+        # Labels for the column titles
+        label_parameter = QLabel("Parameter")
         label_monitor = QLabel("Monitor")
         label_setpoint = QLabel("Setpoint")
-        label_instrument.setStyleSheet("text-decoration: underline; font-weight: bold;")
+        label_parameter.setStyleSheet("text-decoration: underline; font-weight: bold;")
         label_monitor.setStyleSheet("text-decoration: underline; font-weight: bold;")
         label_setpoint.setStyleSheet("text-decoration: underline; font-weight: bold;")
 
-        self.layout2.addWidget(label_instrument, 0, 0)
+        # Set row index order for the titles
+        self.layout2.addWidget(label_parameter, 0, 0)
         self.layout2.addWidget(label_monitor, 0, 1)
         self.layout2.addWidget(label_setpoint, 0, 2)
         
+        # Setpoint field for vacuum pressure
         self.monitor_vacuum_pressure = QLabel("N/A")
         self.set_vacuum_pressure = QLineEdit()
-        self.set_vacuum_pressure.setText("1002")
-        #self.set_vacuum_pressure.setPlaceholderText("Set pressure")
+        self.set_vacuum_pressure.setText("1002") # Default value
         self.set_vacuum_pressure.setFixedWidth(100)
         btn_vacuum_pressure = QPushButton("Set")
         self.layout2.addWidget(QLabel("Vacuum Presure:"), 1, 0)
@@ -468,10 +524,10 @@ class MainWindow(QMainWindow):
         self.layout2.addWidget(self.set_vacuum_pressure, 1, 2)
         self.layout2.addWidget(btn_vacuum_pressure, 1, 3)
 
+        # Setpoint field for motor speed
         self.monitor_speed_motor = QLabel("N/A")
         self.set_speed_motor = QLineEdit()
-        self.set_speed_motor.setText("5000") 
-        #self.set_speed_motor.setPlaceholderText("Set speed")
+        self.set_speed_motor.setText("5000") # Default value
         self.set_speed_motor.setFixedWidth(100)
         btn_speed_motor = QPushButton("Set")
         self.layout2.addWidget(QLabel("Speed Motor:"), 2, 0)
@@ -479,10 +535,10 @@ class MainWindow(QMainWindow):
         self.layout2.addWidget(self.set_speed_motor, 2, 2)
         self.layout2.addWidget(btn_speed_motor, 2, 3)
 
+        # Setpoint field for valve state
         self.monitor_valve_state = QLabel("N/A")
         self.set_valve_state = QLineEdit()
-        self.set_valve_state.setText("1")
-        #self.set_valve_state.setPlaceholderText("Set state")
+        self.set_valve_state.setText("1") # Default value
         self.set_valve_state.setFixedWidth(100)
         btn_valve_state = QPushButton("Set")
         self.layout2.addWidget(QLabel("Valve State:"), 3, 0)
@@ -490,26 +546,31 @@ class MainWindow(QMainWindow):
         self.layout2.addWidget(self.set_valve_state, 3, 2)
         self.layout2.addWidget(btn_valve_state, 3, 3)
 
+        # For monitoring bomb power variable
         self.monitor_bomb_power = QLabel("N/A")
-        # btn_boost = QPushButton("Set")
         self.layout2.addWidget(QLabel("Bomb Power:"), 4, 0)
         self.layout2.addWidget(self.monitor_bomb_power, 4, 1)
-        # self.layout2.addWidget(btn_boost, 4, 3)
 
+        # For monitoring temperature variable
         self.monitor_temperature = QLabel("N/A")
         self.layout2.addWidget(QLabel("Temperature:"), 5, 0)
         self.layout2.addWidget(self.monitor_temperature, 5, 1)
         
+        # Connect any set button with execute_twistorr_set() function
         btn_vacuum_pressure.clicked.connect(lambda: self.execute_twistorr_set())
         btn_speed_motor.clicked.connect(lambda: self.execute_twistorr_set())
         btn_valve_state.clicked.connect(lambda: self.execute_twistorr_set())
         
         self.layout2.setRowStretch(6, 1)
 
-        # ---------------------------------------- 
-        # ----------------- Tab 3 -----------------
-        # ----------------------------------------  
-        # ----------------- Tab 4 -----------------
+
+        # ------------------------------------------------------------------------------------------- #
+        # ESI TAB
+        # ------------------------------------------------------------------------------------------- #
+
+        # ------------------------------------------------------------------------------------------- #
+        # Particle Trap TAB
+        # ------------------------------------------------------------------------------------------- #
         self.layout4 = QGridLayout(self.tab4)
 
         input_mass = QLineEdit()
@@ -587,17 +648,24 @@ class MainWindow(QMainWindow):
         # Connect the "Calculate" button click event to the calculate_q function
         btn_calculate.clicked.connect(calculate_q)
 
+        # ------------------------------------------------------------------------------------------- #
+        # Temperature TAB
+        # ------------------------------------------------------------------------------------------- #
 
-        # ----------------------------------------
-        # ----------------- Tab 5 -----------------
-        # ----------------------------------------
-        # ----------------- Tab 6 -----------------
-        # ----------------------------------------
-        # ----------------- Tab 7 -----------------
-        # ----------------------------------------   
+        # ------------------------------------------------------------------------------------------- #
+        # Data Processing TAB
+        # ------------------------------------------------------------------------------------------- #
+
+        # ------------------------------------------------------------------------------------------- #
+        # Registers TAB
+        # ------------------------------------------------------------------------------------------- #
+ 
 
 
-    # ------------- Functions ----------------
+
+        # ------------------------------------------------------------------------------------------------------------------ #
+        #----------------------- FUNCTIONS --------------------------------------------------------------------------------- #
+        # ------------------------------------------------------------------------------------------------------------------ #
 
     def execute_twistorr_set(self):
         # Execute the TwisTorr Setter binary with pressure, motor, and valve parameters
@@ -666,6 +734,10 @@ class MainWindow(QMainWindow):
             if i == 2: 
                 sender.setText(button_names[i])
                 sender.setStyleSheet("background-color: darkblue; color: white;")
+
+                selected_port = self.serialPortsCombobox.currentText()
+                self.processes[i] = subprocess.Popen([self.binary_paths[i], str(selected_port)])
+
                 self.update_graph1_thread.start()
             
             # Handle different cases based on the value of 'i'
@@ -715,6 +787,7 @@ class MainWindow(QMainWindow):
                     sender.setText(button_names[i])
                     sender.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
                 else: 
+
                     if i == 7:
                         sender.setText(button_names[i+1])
                         sender.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
@@ -729,11 +802,14 @@ class MainWindow(QMainWindow):
                     print(f"Process {i + 1} stopped.")
 
 
+
     def update_graph1(self):
         len_cvt = 10
         for i in range(0, len_cvt, 2):
-            timestamp = float(a[i + 1])  # Extract timestamp from data
-            value = float(a[i])  # Extract value from data
+
+            timestamp = float(counts[i + 1])  # Extract timestamp from data
+            value = float(counts[i])  # Extract value from data
+
             self.times1.append(timestamp)  # Add timestamp to times1 list
             self.data1.append(value)  # Add value to data1 list
 
@@ -899,7 +975,9 @@ class MainWindow(QMainWindow):
         for process in self.processes:
             if process is not None:
                 subprocess.run(['pkill', '-f', process.args[0]], check=True)
-        self.stop_update_timer()
+
+        self.stop_update_tt_timer()
+
         event.accept()
 
     def toggle_cursor(self):
@@ -940,7 +1018,8 @@ class MainWindow(QMainWindow):
         self.pm = np.zeros((1, self.fft_magnitudes))
         self.color_map.setImage(self.pm)
 
-            
+
+# Apply dark theme to the GUI            
 def apply_dark_theme(app):
     dark_palette = QtGui.QPalette()
     dark_palette.setColor(QtGui.QPalette.Window, QtGui.QColor(53, 53, 53))
