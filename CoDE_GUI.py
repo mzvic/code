@@ -199,8 +199,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
 
-        #path = os.getcwd()
-        path = '/home/code/Development'
+        path = os.getcwd()
+        #path = '/home/code/Development'
         
         # Paths to c++ processes
         self.binary_paths = [
@@ -233,7 +233,111 @@ class MainWindow(QMainWindow):
         self.tab4 = QWidget()
         self.tab5 = QWidget()
         self.tab6 = QWidget()
-        self.tab7 = QWidget()  
+        self.tab7 = QWidget()
+
+        # Add lateral view to the window for monitoring data
+        self.dock = QtWidgets.QDockWidget(self)
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.dock)
+        self.dock.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable | QtWidgets.QDockWidget.DockWidgetFloatable)
+        self.dock.setFixedWidth(200)
+        self.dock.setFixedHeight(600)
+
+        # create gridlayout for the dock widget
+        self.dock_grid = QtWidgets.QGridLayout()
+
+        # create title label (monitoring data)
+        self.title_label = QtWidgets.QLabel("Monitoring data")
+        self.title_label.setAlignment(Qt.AlignCenter)
+        self.title_label.setStyleSheet("text-decoration: underline; font-weight: bold;")
+        self.dock_grid.addWidget(self.title_label, 0, 0, 1, 2)
+
+        # ---- TRAP ----
+        self.trap_label = QtWidgets.QLabel("Trap")
+        self.trap_label.setAlignment(Qt.AlignCenter)
+        self.trap_label.setStyleSheet("font-weight: bold;")
+        self.dock_grid.addWidget(self.trap_label, 1, 0, 1, 1)        
+        # --------------------------------------------------
+        self.trap_button = QtWidgets.QPushButton()
+        self.trap_button.setCheckable(True)
+        self.trap_button.setStyleSheet("background-color: red")
+        self.trap_button.setFixedWidth(50)
+        self.dock_grid.addWidget(self.trap_button, 1, 1 , 1, 1)
+
+        # ---------------------------------------------
+        self.voltage_monitor = QtWidgets.QLabel("N/A")
+        self.voltage_monitor.setAlignment(Qt.AlignCenter)
+        self.dock_grid.addWidget(self.voltage_monitor, 2, 0, 1, 1)
+
+        self.voltage_label = QtWidgets.QLabel("[V]")
+        self.voltage_label.setAlignment(Qt.AlignCenter)
+        self.dock_grid.addWidget(self.voltage_label, 2, 1, 1, 1)
+        # ---------------------------------------------
+        self.frequency_monitor = QtWidgets.QLabel("N/A")
+        self.frequency_monitor.setAlignment(Qt.AlignCenter)
+        self.dock_grid.addWidget(self.frequency_monitor, 3, 0, 1, 1)
+
+        self.frequency_label = QtWidgets.QLabel("[Hz]")
+        self.frequency_label.setAlignment(Qt.AlignCenter)
+        self.dock_grid.addWidget(self.frequency_label, 3, 1, 1, 1)
+        # --------------------------------------------- 
+
+
+        # ---- SYSTEM PRESSURE ----
+        self.system_pressure_label = QtWidgets.QLabel("System Pressure")
+        self.system_pressure_label.setAlignment(Qt.AlignCenter)
+        self.system_pressure_label.setStyleSheet("font-weight: bold;")
+        self.dock_grid.addWidget(self.system_pressure_label, 4, 0, 1, 1)
+        # ---------------------------------------------
+        self.pressure_button = QtWidgets.QPushButton()
+        self.pressure_button.setCheckable(True)
+        self.pressure_button.setStyleSheet("background-color: red")
+        self.dock_grid.addWidget(self.pressure_button, 4, 1, 1, 1)
+        # --------------------------------------------
+        self.pressure_monitor = QtWidgets.QLabel("N/A")
+        self.pressure_monitor.setAlignment(Qt.AlignCenter)
+        self.dock_grid.addWidget(self.pressure_monitor, 5, 0)
+        # ---------------------------------------------
+        self.pressure_label = QtWidgets.QLabel("[kPa]")
+        self.pressure_label.setAlignment(Qt.AlignCenter)
+        self.dock_grid.addWidget(self.pressure_label, 5, 1)
+        # ---------------------------------------------
+
+
+        # ---- LASER ----
+        self.laser_label = QtWidgets.QLabel("Laser")
+        self.laser_label.setAlignment(Qt.AlignCenter)
+        self.laser_label.setStyleSheet("font-weight: bold;")
+        self.dock_grid.addWidget(self.laser_label, 6, 0, 1, 1)
+        # ---------------------------------------------
+        self.laser_button = QtWidgets.QPushButton()
+        self.laser_button.setCheckable(True)
+        self.laser_button.setStyleSheet("background-color: red")
+        self.dock_grid.addWidget(self.laser_button, 6, 1, 1, 1)
+
+        # ---------------------------------------------
+        self.empty = QtWidgets.QLabel("")
+        self.dock_grid.addWidget(self.empty, 7, 0, 1, 1)
+        # ---------------------------------------------
+
+        # ---- APD ----
+        self.apd_label = QtWidgets.QLabel("APD")
+        self.apd_label.setAlignment(Qt.AlignCenter)
+        self.apd_label.setStyleSheet("font-weight: bold;")
+        self.dock_grid.addWidget(self.apd_label, 8, 0, 1, 1)
+        # ---------------------------------------------
+        self.apd_button = QtWidgets.QPushButton()
+        self.apd_button.setCheckable(True)
+        self.apd_button.setStyleSheet("background-color: red")
+        self.dock_grid.addWidget(self.apd_button, 8, 1, 1, 1)
+
+
+        # add to the dock widget
+        self.dock_widget = QtWidgets.QWidget()
+        self.dock_widget.setLayout(self.dock_grid)
+        self.dock.setWidget(self.dock_widget)
+
+
+
 
         # Set names to tabs    
         self.tab_widget.addTab(self.tab1, "APD")
