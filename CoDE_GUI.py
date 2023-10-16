@@ -22,6 +22,7 @@ import core_ba.core_pb2_grpc as core_grpc
 import queue
 import gc
 import os
+import pyvisa
 
 
 # List to store counts from APD
@@ -193,8 +194,93 @@ class UpdateTTThread(QThread):
                 monitoring_TT = []
                 monitoring_TT[:] = bundle3.value  # Copy the bundle value to the monitoring_TT list
                 self.update_signal3.emit()  # Emit a signal to indicate updated data
+
+# Definition of a custom thread class for updating Rigol data        
+class RigolDataThread(QThread):
+    rigol_data_updated = pyqtSignal(np.ndarray, np.ndarray)
+    
+    def __init__(self):
+        super().__init__()
+        self.rigol_status = 0
+        self.rigol_chn_n = None
+        self.rigol_auto = None
+        self.rigol_voltage_set = None
+        self.rigol_voltage_value = 0
+        self.rigol_frequency_set = None
+        self.rigol_frequency_value = 0
+        self.rigol_function_set = None
+        self.rigol_function_value = 0
+        self.rigol_tscale_set = None
+        self.rigol_tscale_value = 0.01
+        self.rigol_attenuation_set = None
+        self.rigol_attenuation_value = 1
+        self.rigol_voltage_offset_set = None
+        self.rigol_voltage_offset_value = 0
+        self.rigol_coupling_set = None
+        self.rigol_coupling_value = 0                       
+
+    def set_rigol_status(self, status):
+        self.rigol_status = status
+
+    def set_rigol_channel(self, chn_n):
+        self.rigol_chn_n = chn_n
         
+    def set_rigol_auto(self, auto):
+        self.rigol_auto = auto    
+
+    def set_rigol_voltage(self, voltage_set, voltage_value):
+        self.rigol_voltage_set = voltage_set  
+        self.rigol_voltage_value = voltage_value   
+
+    def set_rigol_frequency(self, frequency_set, frequency_value):
+        self.rigol_frequency_set = frequency_set
+        self.rigol_frequency_value = frequency_value        
+
+    def set_rigol_function(self, function_set, function_value):
+        self.rigol_function_set = function_set
+        self.rigol_function_value = function_value  
+
+    def set_rigol_tscale(self, tscale_set, tscale_value):
+        self.rigol_tscale_set = tscale_set   
+        self.rigol_tscale_value = tscale_value
+
+    def set_rigol_voltage_offset(self, voltage_offset_set, voltage_offset_value):
+        self.rigol_voltage_offset_set = voltage_offset_set   
+        self.rigol_voltage_offset_value = voltage_offset_value
+
+    def set_rigol_attenuation(self, attenuation_set, attenuation_value):
+        self.rigol_attenuation_set = attenuation_set   
+        self.rigol_attenuation_value = attenuation_value
+
+    def set_rigol_coupling(self, coupling_set, coupling_value):
+        self.rigol_coupling_set = coupling_set   
+        self.rigol_coupling_value = coupling_value
+        
+    def run(self):
+        while True:
+            if self.rigol_chn_n is not None:
+                status = self.rigol_status
+                channel = self.rigol_chn_n
+                auto = self.rigol_auto
+                voltage = self.rigol_voltage_set
+                frequency = self.rigol_frequency_set
+                function = self.rigol_function_set
+                tscale = self.rigol_tscale_set
+                voltage_offset = self.rigol_voltage_offset_set
+                attenuation = self.rigol_attenuation_set
+                coupling = self.rigol_coupling_set
+                voltage_V = self.rigol_voltage_value
+                frequency_V = self.rigol_frequency_value
+                function_V = self.rigol_function_value
+                tscale_V = self.rigol_tscale_value 
+                voltage_offset_V = self.rigol_voltage_offset_value
+                attenuation_V = self.rigol_attenuation_value
+                coupling_V = self.rigol_coupling_value
                 
+                rigol_x_data, rigol_y_data = get_rigol_data(status, channel, auto, voltage, frequency, function, tscale, voltage_offset, attenuation, coupling, voltage_V, frequency_V, function_V, tscale_V, voltage_offset_V, attenuation_V, coupling_V)
+                self.rigol_data_updated.emit(rigol_x_data, rigol_y_data)
+            #time.sleep(0.2)
+    
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -376,7 +462,7 @@ class MainWindow(QMainWindow):
         
         # Axis labels
         self.graph1.setLabel('left', 'Counts')
-        self.graph1.setLabel('bottom', 'Time', units='hh:mm:ss.uuuuuu')
+        self.graph1.setLabel('bottom', 'Time', units='hh:mm:ss.µµµµµµ')
         
         # List to be displayed in plot 1
         self.data1 = []
@@ -444,7 +530,7 @@ class MainWindow(QMainWindow):
 
         # Buttons in APD tab
         button_names_1a = ["Server", "Counts plot"] 
-        button_names_1b = ["Plot counts", "Plot FFT", "Export counts data [100kHz]", "Export counts data [1kHz]", "Export FFT data [1Hz resolution]", "Export FFT data [0.1Hz resolution]", "Show spectrum averages"]
+        button_names_1b = ["Plot counts", "Plot FFT", "Export counts data [100kHz]", "Export counts data [1kHz]", "Export FFT data [0.1Hz resolution]", "Export FFT data [0.01Hz resolution]"]
         
         # Input parameters in APD tab: Hidden, first, second and third row
         hidden_layout_1 = QHBoxLayout() 
@@ -526,7 +612,7 @@ class MainWindow(QMainWindow):
         avg_time_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.avg_time_input = QLineEdit(self)
         self.avg_time_input.setFixedWidth(30) 
-        self.avg_time_input.setText("30") # Default value       
+        self.avg_time_input.setText("120") # Default value       
         third_layout_1.addWidget(avg_time_label)
         third_layout_1.addWidget(self.avg_time_input)     
 
@@ -659,6 +745,14 @@ class MainWindow(QMainWindow):
         self.monitor_temperature = QLabel("N/A")
         self.layout2.addWidget(QLabel("Temperature:"), 5, 0)
         self.layout2.addWidget(self.monitor_temperature, 5, 1)
+
+        self.graph_pressure_vacuum = pg.PlotWidget(axisItems={'left': DateAxis(orientation='left')})
+        self.layout2.addWidget(self.graph_pressure_vacuum, 6, 0, 1, 4)
+        self.graph_pressure_vacuum.invertY()
+        
+        self.graph_pressure_vacuum.showGrid(x=True, y=True, alpha=1)           
+        self.graph_pressure_vacuum.setLabel('left', 'Time', units='hh:mm:ss.µµµµµµ')
+        self.graph_pressure_vacuum.setLabel('bottom', 'Pressure [Torr]')
         
         # Connect any set button with execute_twistorr_set() function
         btn_vacuum_pressure.clicked.connect(lambda: self.execute_twistorr_set())
@@ -677,51 +771,162 @@ class MainWindow(QMainWindow):
         # ------------------------------------------------------------------------------------------- #
         self.layout4 = QGridLayout(self.tab4)
 
+        self.layout4.addWidget(QLabel("q Calculator:"), 1, 4)
+
         input_mass = QLineEdit()
-        self.layout4.addWidget(QLabel("Mass:"), 1, 0)
-        self.layout4.addWidget(input_mass, 1, 1)
+        input_mass.setFixedWidth(320)
+        self.layout4.addWidget(QLabel("Mass:"), 2, 4)
+        self.layout4.addWidget(input_mass, 2, 5)
+        self.layout4.addWidget(QLabel("[kg]"), 2, 6)
 
         input_charge = QLineEdit()
-        self.layout4.addWidget(QLabel("Charge:"), 2, 0)
-        self.layout4.addWidget(input_charge, 2, 1)
+        input_charge.setFixedWidth(320)
+        self.layout4.addWidget(QLabel("Charge:"), 3, 4)
+        self.layout4.addWidget(input_charge, 3, 5)
+        self.layout4.addWidget(QLabel("[C]"), 3, 6)
 
         input_geometrical = QLineEdit()
-        self.layout4.addWidget(QLabel("Geometrical Parameter:"), 3, 0)
-        self.layout4.addWidget(input_geometrical, 3, 1)
+        input_geometrical.setFixedWidth(320)
+        self.layout4.addWidget(QLabel("Geometrical Parameter:"), 4, 4)
+        self.layout4.addWidget(input_geometrical, 4, 5)
+        #self.layout4.addWidget(QLabel("[unit]"), 3, 2)
 
         input_voltage = QLineEdit()
-        self.layout4.addWidget(QLabel("Voltage:"), 4, 0)
-        self.layout4.addWidget(input_voltage, 4, 1)
+        input_voltage.setFixedWidth(320)
+        self.layout4.addWidget(QLabel("Voltage:"), 5, 4)
+        self.layout4.addWidget(input_voltage, 5, 5)
+        self.layout4.addWidget(QLabel("[V]"), 5, 6)
 
         input_frequency = QLineEdit()
-        self.layout4.addWidget(QLabel("Frequency:"), 5, 0)
-        self.layout4.addWidget(input_frequency, 5, 1)
-
-        btn_trap = QPushButton("On/Off")
-        btn_trap.setCheckable(True)
-        btn_trap.setFixedHeight(200)
-        btn_trap.setFixedWidth(200)
-        self.layout4.addWidget(btn_trap, 1, 3, 6, 1)
+        input_frequency.setFixedWidth(320)
+        self.layout4.addWidget(QLabel("Frequency:"), 6, 4)
+        self.layout4.addWidget(input_frequency, 6, 5)
+        self.layout4.addWidget(QLabel("[Hz]"), 6, 6)
 
         btn_calculate = QPushButton("Calculate")
-        self.layout4.addWidget(btn_calculate, 7, 1)
+        self.layout4.addWidget(btn_calculate, 8, 4, 1, 2)
 
         q_calculated = QLabel("N/A")
-        self.layout4.addWidget(QLabel("q:"), 6, 0)
-        self.layout4.addWidget(q_calculated, 6, 1)
+        self.layout4.addWidget(QLabel("q:"), 7, 4)
+        self.layout4.addWidget(q_calculated, 7, 5)
 
-
-        self.graph_voltage_trap = pg.PlotWidget(axisItems={'bottom': DateAxis(orientation='bottom')})
-        self.layout4.addWidget(self.graph_voltage_trap, 8, 0, 1, 4)
-        self.graph_voltage_trap.setLabel('left', 'Voltage (V)')
-        self.graph_voltage_trap.setLabel('bottom', 'Time (s)')
-        self.graph_voltage_trap.showGrid(x=True, y=True)
-        self.graph_voltage_trap.setYRange(-0.1, 0.1)
-        self.graph_voltage_trap.setXRange(0, 10)
+        # Connection status
+        self.rigol = False
+        self.rigol_connect = QPushButton("Connect to Rigol MSO5074")
+        self.rigol_connect.setCheckable(True)  
+        self.rigol_connect.setStyleSheet("background-color: 53, 53, 53;")  
+        self.rigol_connect.clicked.connect(self.toggle_rigol_connect) 
+        self.layout4.addWidget(self.rigol_connect, 1, 0, 1, 3)
         
+        # Osciloscope title
+        self.layout4.addWidget(QLabel("Osciloscope settings (CH 1-2):"), 2, 0)
+        # Channel
+        self.rigol_chn = True
+        self.rigol_chn_n = 1
+        self.rigol_channel = QPushButton("Set oscilloscope channel")
+        self.rigol_channel.setCheckable(True)  
+        self.rigol_channel.clicked.connect(self.toggle_rigol_channel) 
+        self.layout4.addWidget(self.rigol_channel, 2, 1)  
+
+        # Auto
+        self.rigol_auto_btn = QPushButton("Auto [Oscilloscope]")
+        self.rigol_auto_btn.clicked.connect(self.btn_rigol_auto) 
+        self.layout4.addWidget(self.rigol_auto_btn, 2, 2) 
+  
+        # Voltage display range
+        self.layout4.addWidget(QLabel("Voltage display range (min, max)[V]:"), 3, 0)
+        self.rigol_voltage_min = QLineEdit()
+        self.rigol_voltage_min.setText("-3") 
+        self.rigol_voltage_min.setFixedWidth(220)
+        self.rigol_voltage_max = QLineEdit()
+        self.rigol_voltage_max.setText("3")  
+        self.rigol_voltage_max.setFixedWidth(220)           
+        self.layout4.addWidget(self.rigol_voltage_min, 3, 1)
+        self.layout4.addWidget(self.rigol_voltage_max, 3, 2)  
+
+        # Attenuation: :CHANnel<n>:PROBe <atten>
+        self.rigol_attenuation_btn = QPushButton("Set")
+        self.layout4.addWidget(QLabel("Attenuation:"), 4, 0)
+        self.attenuationCombobox = QComboBox(self)
+        self.attenuationCombobox.addItems(['1', '0.0001', '0.0002', '0.0005', '0.001', '0.002', '0.005', '0.01', '0.02', '0.05', '0.1', '0.2', '0.5', '2', '5', '10', '20', '50', '100', '200', '500', '1000', '2000', '5000', '10000', '20000', '50000'])
+        self.rigol_attenuation_btn.clicked.connect(self.toggle_rigol_attenuation) 
+        self.layout4.addWidget(self.attenuationCombobox,4, 1)
+        self.layout4.addWidget(self.rigol_attenuation_btn,4, 2)   
         
+        # Coupling: :CHANnel<n>:COUPling <coupling>
+        self.rigol_coupling_btn = QPushButton("Set")
+        self.layout4.addWidget(QLabel("Coupling:"), 5, 0)
+        self.couplingCombobox = QComboBox(self)
+        self.couplingCombobox.addItems(['AC', 'DC', 'GND'])
+        self.rigol_coupling_btn.clicked.connect(self.toggle_rigol_coupling) 
+        self.layout4.addWidget(self.couplingCombobox,5, 1)
+        self.layout4.addWidget(self.rigol_coupling_btn,5, 2)                     
+        
+        # Time scale
+        self.rigol_time_scale = QLineEdit()
+        self.rigol_time_scale.setText("0.001") 
+        self.rigol_time_scale.setFixedWidth(220)
+        self.rigol_time_scale_btn = QPushButton("Set")
+        self.layout4.addWidget(QLabel("Time scale [s]:"), 6, 0) 
+        self.rigol_time_scale_btn.clicked.connect(self.toggle_rigol_tscale)
+        self.layout4.addWidget(self.rigol_time_scale, 6, 1)
+        self.layout4.addWidget(self.rigol_time_scale_btn, 6, 2) 
+        
+        # Particle trap
+        self.layout4.addWidget(QLabel("Particle trap control (function generator, channel 1):"), 7, 0, 1, 3)
 
+        # Voltage
+        self.rigol_voltage = QLineEdit()
+        self.rigol_voltage.setText("2") 
+        self.rigol_voltage.setFixedWidth(220)
+        self.rigol_voltage_btn = QPushButton("Set")
+        self.layout4.addWidget(QLabel("Voltage [Vpp]:"), 8, 0)
+        self.rigol_voltage_btn.clicked.connect(self.toggle_rigol_voltage)
+        self.layout4.addWidget(self.rigol_voltage, 8, 1)
+        self.layout4.addWidget(self.rigol_voltage_btn, 8, 2)
 
+        # Voltage offset: :CHANnel<n>:OFFSet <offset>
+        self.rigol_voltage_offset = QLineEdit()
+        self.rigol_voltage_offset.setText("0") 
+        self.rigol_voltage_offset.setFixedWidth(220)
+        self.rigol_voltage_offset_btn = QPushButton("Set")
+        self.layout4.addWidget(QLabel("Voltage offset [V]:"), 9, 0)
+        self.rigol_voltage_offset_btn.clicked.connect(self.toggle_rigol_voltage_offset)
+        self.layout4.addWidget(self.rigol_voltage_offset, 9, 1)
+        self.layout4.addWidget(self.rigol_voltage_offset_btn, 9, 2)        
+
+        # Frequency
+        self.rigol_frequency = QLineEdit()
+        self.rigol_frequency.setText("10000") 
+        self.rigol_frequency.setFixedWidth(220)
+        self.rigol_frequency_btn = QPushButton("Set")
+        self.layout4.addWidget(QLabel("Frequency [Hz]:"), 10, 0)
+        self.rigol_frequency_btn.clicked.connect(self.toggle_rigol_frequency)
+        self.layout4.addWidget(self.rigol_frequency, 10, 1)
+        self.layout4.addWidget(self.rigol_frequency_btn, 10, 2)                                 
+
+        # Function
+        self.rigol_function_btn = QPushButton("Set")
+        self.layout4.addWidget(QLabel("Function:"), 11, 0)
+        self.functionTypeCombobox = QComboBox(self)
+        self.functionTypeCombobox.addItems(['Sinusoid', 'Square', 'Ramp', 'Pulse', 'DC'])
+        self.rigol_function_btn.clicked.connect(self.toggle_rigol_function) 
+        self.layout4.addWidget(self.functionTypeCombobox,11, 1)
+        self.layout4.addWidget(self.rigol_function_btn,11, 2)
+
+        self.graph_voltage_trap = pg.PlotWidget()
+        self.layout4.addWidget(self.graph_voltage_trap, 12, 0, 1, 7)
+        self.rigol_data_x = []
+        self.rigol_data_y = []     
+
+        self.graph_voltage_trap.showGrid(x=True, y=True, alpha=1)           
+        self.graph_voltage_trap.setLabel('left', 'Voltage [V]')
+        self.graph_voltage_trap.setLabel('bottom', 'Time [seconds]')
+ 
+        self.rigol_thread = RigolDataThread()
+        self.rigol_thread.rigol_data_updated.connect(self.update_rigol_plot)
+        self.rigol_thread.start()
+        
         def calculate_q():
             # Get input values from the text fields
             geometrical = input_geometrical.text()
@@ -770,7 +975,122 @@ class MainWindow(QMainWindow):
         # ------------------------------------------------------------------------------------------------------------------ #
         #----------------------- FUNCTIONS --------------------------------------------------------------------------------- #
         # ------------------------------------------------------------------------------------------------------------------ #
+    
+    # Start asking for data to rigol
+    def toggle_rigol_connect(self):
+        if self.rigol_connect.isChecked():
+            self.rigol_connect.setStyleSheet("background-color: darkblue;")
+            self.rigol = True
+            self.rigol_thread.set_rigol_status(1)
+        else:
+            self.rigol_connect.setStyleSheet("background-color: 53, 53, 53;")
+            self.rigol = False 
+            self.rigol_thread.set_rigol_status(2)
+            self.rigol_channel.setStyleSheet("background-color: 53, 53, 53;")
+            self.rigol_channel.setChecked(False)
+            self.rigol_channel.setText("Set oscilloscope channel")
 
+    # Set input channel 1/2
+    def toggle_rigol_channel(self):
+        if self.rigol_connect.isChecked():
+            if self.rigol_channel.isChecked():
+                self.rigol_channel.setStyleSheet("background-color: yellow; color: black;")
+                self.rigol_chn = True
+                self.rigol_thread.set_rigol_channel(1)
+                self.rigol_channel.setText("Channel 1 [Oscilloscope]")
+                self.color = 'y'
+            else:
+                self.rigol_channel.setStyleSheet("background-color: green; color: black;")
+                self.rigol_chn = False
+                self.rigol_thread.set_rigol_channel(2)
+                self.rigol_channel.setText("Channel 2 [Oscilloscope]")  
+                self.color = 'g'
+            self.graph_voltage_trap.clear()
+            self.rigol_plot = self.graph_voltage_trap.plot(pen=self.color)    
+        else:
+            self.rigol_channel.setChecked(False)      
+
+    def btn_rigol_auto(self):
+        self.rigol_thread.set_rigol_auto(1)
+        time.sleep(0.1)
+        self.rigol_thread.set_rigol_auto(1)
+        time.sleep(0.1)       
+        self.rigol_thread.set_rigol_auto(1)
+        time.sleep(0.1)         
+        self.rigol_thread.set_rigol_auto(0)
+
+    def toggle_rigol_tscale(self):
+        tscale = float(self.rigol_time_scale.text())/10
+        self.rigol_thread.set_rigol_tscale(1, tscale)
+        time.sleep(0.1)
+        self.rigol_thread.set_rigol_tscale(1, tscale)
+        time.sleep(0.1)
+        self.rigol_thread.set_rigol_tscale(1, tscale)
+        time.sleep(0.1)                
+        self.rigol_thread.set_rigol_tscale(0, tscale)
+
+    def toggle_rigol_voltage(self):
+        volt = float(self.rigol_voltage.text())
+        self.rigol_thread.set_rigol_voltage(1, volt)
+        time.sleep(0.1)
+        self.rigol_thread.set_rigol_voltage(1, volt)
+        time.sleep(0.1)
+        self.rigol_thread.set_rigol_voltage(1, volt)
+        time.sleep(0.1)                
+        self.rigol_thread.set_rigol_voltage(0, volt) 
+        
+    def toggle_rigol_voltage_offset(self):
+        volt_offset = float(self.rigol_voltage_offset.text())
+        self.rigol_thread.set_rigol_voltage_offset(1, volt_offset)
+        time.sleep(0.1)
+        self.rigol_thread.set_rigol_voltage_offset(1, volt_offset)
+        time.sleep(0.1)
+        self.rigol_thread.set_rigol_voltage_offset(1, volt_offset)
+        time.sleep(0.1)                
+        self.rigol_thread.set_rigol_voltage_offset(0, volt_offset)        
+
+    def toggle_rigol_frequency(self):
+        freq = float(self.rigol_frequency.text())
+        self.rigol_thread.set_rigol_frequency(1, freq)
+        time.sleep(0.1)
+        self.rigol_thread.set_rigol_frequency(1, freq)
+        time.sleep(0.1)
+        self.rigol_thread.set_rigol_frequency(1, freq)
+        time.sleep(0.1)                
+        self.rigol_thread.set_rigol_frequency(0, freq) 
+
+    def toggle_rigol_function(self):
+        function = self.functionTypeCombobox.currentText()
+        self.rigol_thread.set_rigol_function(1, function)
+        time.sleep(0.1)
+        self.rigol_thread.set_rigol_function(1, function)
+        time.sleep(0.1)
+        self.rigol_thread.set_rigol_function(1, function)
+        time.sleep(0.1)                
+        self.rigol_thread.set_rigol_function(0, function) 
+        
+    def toggle_rigol_coupling(self):
+        coupling = self.couplingCombobox.currentText()
+        self.rigol_thread.set_rigol_coupling(1, coupling)
+        time.sleep(0.1)
+        self.rigol_thread.set_rigol_coupling(1, coupling)
+        time.sleep(0.1)
+        self.rigol_thread.set_rigol_coupling(1, coupling)
+        time.sleep(0.1)                
+        self.rigol_thread.set_rigol_coupling(0, coupling) 
+        
+    def toggle_rigol_attenuation(self): 
+        attenuation = float(self.attenuationCombobox.currentText())
+        if int(attenuation) >= 1:
+            attenuation = int(self.attenuationCombobox.currentText())
+        self.rigol_thread.set_rigol_attenuation(1, attenuation)
+        time.sleep(0.1)
+        self.rigol_thread.set_rigol_attenuation(1, attenuation)
+        time.sleep(0.1)
+        self.rigol_thread.set_rigol_attenuation(1, attenuation)
+        time.sleep(0.1)                
+        self.rigol_thread.set_rigol_attenuation(0, attenuation)                               
+                
     def execute_twistorr_set(self):
         # Execute the TwisTorr Setter binary with pressure, motor, and valve parameters
         self.processes[10] = subprocess.Popen([self.binary_paths[10], str(self.pressure), str(self.motor), str(self.valve)])
@@ -831,8 +1151,8 @@ class MainWindow(QMainWindow):
         # Get the sender of the signal and the corresponding button names
         sender = self.sender()
         button_names = ["Server", "Counts plot", "Plot counts", "Plot FFT", "Export counts data [100kHz]",
-                        "Export counts data [1kHz]", "Export FFT data [1Hz resolution]",
-                        "Export FFT data [0.1Hz resolution]", "Show spectrum averages"]
+                        "Export counts data [1kHz]", "Export FFT data [0.1Hz resolution]",
+                        "Export FFT data [0.01Hz resolution]", "Show spectrum averages"]
         
         if checked:
             if i == 2: 
@@ -868,7 +1188,7 @@ class MainWindow(QMainWindow):
                 avg_period = self.avg_time_input.text()  
                 fft_window_type = self.windowTypeCombobox.currentIndex()
                 fft_window_value = self.window_type_values[fft_window_type]                               
-                self.processes[i+1] = subprocess.Popen([self.binary_paths[i+1], str(fft_window_value)])
+                self.processes[i+1] = subprocess.Popen([self.binary_paths[i+1], str(self.f_i), str(self.f_f), str(fft_window_value)])
                 self.processes[i] = subprocess.Popen([self.binary_paths[i], avg_period])
                 self.update_graph2_thread.start()                       
             
@@ -887,24 +1207,19 @@ class MainWindow(QMainWindow):
                     # self.update_graph2_thread.wait()                    
                 
                 # Handle different cases based on the value of 'i'
-                if i == 2:
-                    sender.setText(button_names[i])
-                    sender.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
-                else: 
 
-                    if i == 7:
-                        sender.setText(button_names[i+1])
-                        sender.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
-                        subprocess.run(['pkill', '-f', self.processes[i+1].args[0]], check=True)
-                        self.processes[i+1] = None
-                        print(f"Process {i + 2} stopped.")
+                if i == 7:
+                    sender.setText(button_names[i+1])
+                    sender.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                    subprocess.run(['pkill', '-f', self.processes[i+1].args[0]], check=True)
+                    self.processes[i+1] = None
+                    print(f"Process {i + 2} stopped.")
                     
-                    sender.setText(button_names[i])
-                    sender.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
-                    subprocess.run(['pkill', '-f', self.processes[i].args[0]], check=True)
-                    self.processes[i] = None
-                    print(f"Process {i + 1} stopped.")
-
+                sender.setText(button_names[i])
+                sender.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                subprocess.run(['pkill', '-f', self.processes[i].args[0]], check=True)
+                self.processes[i] = None
+                print(f"Process {i + 1} stopped.")
 
 
     def update_graph1(self):
@@ -1021,7 +1336,7 @@ class MainWindow(QMainWindow):
 
             # Trim the spectrum matrix to the specified spectrum amount
             while self.spectrum_matrix.shape[0] > self.spectrum_amount:
-                self.spectrum_matrix = self.spectrum_matrix[-self.spectrum_amount:, :]
+                self.spectrum_matrix = self.spectrum_matrix[:self.spectrum_amount, :]
 
             # Transpose the spectrum matrix for plotting
             self.plot_matrix = np.transpose(self.spectrum_matrix)
@@ -1031,8 +1346,16 @@ class MainWindow(QMainWindow):
             self.color_map.setImage(self.pm)
             self.color_map.getView().setRange(xRange=(self.f_i * 10, self.f_f * 10))
             self.t_fft = int(time.time())
-
-            
+     
+    # Updating data grom rigol
+    def update_rigol_plot(self, rigol_x_data, rigol_y_data):
+        if self.rigol:    
+            if len(rigol_x_data) > 0:
+                self.graph_voltage_trap.setXRange(0, rigol_x_data[-1])
+            self.graph_voltage_trap.setYRange(float(self.rigol_voltage_min.text()),float(self.rigol_voltage_max.text()))
+            self.rigol_plot.setData(x=rigol_x_data, y=rigol_y_data)     
+        else:
+            self.graph_voltage_trap.clear()                  
         
     def calculate_fundamental_frequency(self, freq, magn):
         # Find valid indices with frequency > 1.1 and magnitude > 0.5
@@ -1121,6 +1444,95 @@ class MainWindow(QMainWindow):
         del self.pm
         self.pm = np.zeros((1, self.fft_magnitudes))
         self.color_map.setImage(self.pm)
+
+# Reset Rigol USB
+os.system('usbreset 1ab1:0515')
+rm = pyvisa.ResourceManager('@py')
+scope = rm.open_resource('USB0::6833::1301::MS5A242205632::0::INSTR', timeout = 5000)
+scope.write(":RUN")
+scope.write(":OUTP 1")
+scope.write(":CHAN1:OFFS 0")
+scope.write(":TIM:OFFS 0")
+scope.write(":TIM:MODE MAIN")
+scope.write(":CHAN1:SCAL 1")
+scope.write(":CHAN1:DISP 1")
+scope.write(":CHAN2:DISP 1")
+scope.write(":CHAN1:PROB 1")
+scope.write(":CHAN2:PROB 1")
+scope.write(":TRIG:COUP DC")
+#scope.write("")
+#rigol_ip = scope.query(':LAN:IPAD?').strip()
+#print(rigol_ip) 
+scope.close()
+
+# Get traces from rigol
+rigol_prev_stat = 0
+def get_rigol_data(status, channel, auto, voltage, frequency, function, tscale, voltage_offset, attenuation, coupling, voltage_V, frequency_V, function_V, tscale_V, voltage_offset_V, attenuation_V, coupling_V):
+    global rigol_prev_stat
+    #print(status,rigol_prev_stat)
+    try:
+        if status == 1:
+            rm = pyvisa.ResourceManager('@py')
+            scope = rm.open_resource('USB0::6833::1301::MS5A242205632::0::INSTR', timeout=15000)
+            while status == 1:        
+                    #print("channel:",channel)
+                    #print("voltage set:",voltage," value:", voltage_V)
+                    #print("frequency set:",frequency," value:", frequency_V)
+                    #print("function set:",function," value:", function_V)
+                    #print("tscale set:",tscale," value:", tscale_V)
+                if (tscale == 1):
+                    scope.write(f":TIM:MAIN:SCAL {tscale_V}")  
+                    time.sleep(tscale_V*5)
+                elif (voltage == 1):
+                    scope.write(f":VOLT {voltage_V}") 
+                elif (frequency == 1):
+                    scope.write(f":FREQ {frequency_V}") 
+                elif (function == 1):
+                    scope.write(f":FUNC {function_V}") 
+                elif (voltage_offset == 1):
+                    scope.write(f":CHAN{channel}:OFFS {voltage_offset_V}") 
+                elif (attenuation == 1):
+                    scope.write(f":CHAN{channel}:PROB {attenuation_V}") 
+                elif (coupling == 1):
+                    scope.write(f":CHAN{channel}:COUP {coupling_V}")                                                              
+                elif (auto == 1):
+                    scope.write(":AUT")  
+                    time.sleep(0.2)
+                    scope.write(f":CHAN{channel}:SCAL 1")
+                    time.sleep(0.2)
+                    scope.write(f":CHAN{channel}:PROB 1")
+                    time.sleep(0.2)
+                scope.write(f":WAV:SOUR CHAN{channel}")
+                scope.write(":WAV:MODE NORM")
+                scope.write(":WAV:FORM BYTE")
+                scope.write(":WAV:POIN 1000") 
+                rigol_timescale = float(scope.query(":TIM:SCAL?"))
+                rigol_timeoffset = float(scope.query(":TIM:OFFS?"))
+                rigol_voltscale = float(scope.query(f":CHAN{channel}:SCAL?"))
+                rigol_voltoffset = float(scope.query(f":CHAN{channel}:OFFS?"))
+                rigol_attenuation = float(scope.query(f":CHAN{channel}:PROB?")) 
+                rigol_rawdata = scope.query_binary_values(":WAV:DATA? CHAN{channel}", datatype='B', container=np.array)
+                rigol_data_size = len(rigol_rawdata)
+                rigol_sample_rate = float(scope.query(':ACQ:SRAT?'))
+                rigol_data = rigol_rawdata * -1 + 255
+                rigol_data = (((rigol_data - 127 - rigol_voltoffset / rigol_voltscale * 25) / 25 * rigol_voltscale)*1.05)*(rigol_attenuation)
+                rigol_x_values = np.arange(0, len(rigol_data)) / 100 * rigol_timescale
+                print("attenuation set:",attenuation," value setted:", attenuation_V," value read:",rigol_attenuation)
+                return rigol_x_values, rigol_data/rigol_voltscale
+        else:
+            return np.array([]), np.array([]) 
+    except Exception as e:
+         print("Error:", str(e))
+         return np.array([]), np.array([]) 
+    finally:
+        if status == 1:
+            scope.close()
+        elif status == 2:
+            if rigol_prev_stat != status:
+                os.system('usbreset 1ab1:0515')
+                rigol_prev_stat = status
+            time.sleep(0.1)
+            return np.array([]), np.array([])
 
 
 # Apply dark theme to the GUI            

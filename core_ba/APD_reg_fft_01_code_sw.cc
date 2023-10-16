@@ -60,8 +60,8 @@ void avg_fft(vector<float> subs_values, int fft_frequencies){
     FILE *file = fopen(filename, "a");
     
     // Length is assigned to the frequency and magnitude vectors
-    data_freq_avg.resize(fft_frequencies);
-    data_fft_avg.resize(fft_frequencies);
+    data_freq_avg.resize(fft_frequencies/2);
+    data_fft_avg.resize(fft_frequencies/2);
     
     // The length of the bundle is obtained
     int bundle_size = subs_values.size();
@@ -77,17 +77,17 @@ void avg_fft(vector<float> subs_values, int fft_frequencies){
         tf.tv_sec -= 14400;
 
         // Values are assigned to the frequency vector
-        for (float i = 0; i < fft_frequencies; ++i) {
-            data_freq_avg[i] = (i)/100;
+        for (float i = 0; i < fft_frequencies/2; ++i) {
+            data_freq_avg[i] = subs_values[i];
+            
         }
-        // A vector ('data_ffft_avg') is generated with the accumulated magnitudes during the period indicated by the user, the frequency is denoted by the index of the vector (divide by 100)
-        for (float i = 0; i < (fft_frequencies); ++i) {
-            float freq_i = (i)/100;
-            float fft_i = subs_values[i];
+        // A vector ('data_fft_avg') is generated with the accumulated magnitudes during the period indicated by the user
+        for (float i = 0; i < (fft_frequencies/2); ++i) {// /10; ++i) {
+            float fft_i = subs_values[i + fft_frequencies/2];          
             data_fft_avg[i] = data_fft_avg[i] + fft_i;
         }
         c += 1;
-
+        
         // Check if the period entered by the user has passed
         if ((tf.tv_sec >= t_0 + T) && (t_0 > 0)) {
             // If the vector of accumulated values already has at least one value, proceed
@@ -115,7 +115,7 @@ void avg_fft(vector<float> subs_values, int fft_frequencies){
             // The magnitudes are stored in the log file
             for (int i = 0; i < data_fft_avg.size(); ++i) {
                 fprintf(file, "%f ", data_fft_avg[i]);
-            }                   
+            }                
             fprintf(file, "\n");
             
             // Frequencies are stored in the log file
@@ -126,17 +126,17 @@ void avg_fft(vector<float> subs_values, int fft_frequencies){
             
             // The number of spectra contained in the average is printed (commented out for now)
             //std::cout << "Amount of spectrum averaged: " << c << std::endl;
-            
+
             // Vectors related to FFT averaging are reset
-            data_freq_avg.resize(fft_frequencies);
-            data_freq_avg.assign(fft_frequencies, 0.0);
-            data_fft_avg.resize(fft_frequencies);
-            data_fft_avg.assign(fft_frequencies, 0.0);
+            data_freq_avg.resize(fft_frequencies/2);
+            data_freq_avg.assign(fft_frequencies/2, 0.0);
+            data_fft_avg.resize(fft_frequencies/2);
+            data_fft_avg.assign(fft_frequencies/2, 0.0);
             
             // The count of averaged spectra is restarted
             c = 0;
         } else if (t_0 == 0) { // If the period entered by the user still does not pass, the time variable is updated (variable to check if it is possible to proceed to the previous if)
-            t_0 = tf.tv_sec;            
+            t_0 = tf.tv_sec;          
         }  
     }
     // The file is closed
@@ -148,13 +148,13 @@ void ProcessSub(const Bundle &bundle) {
   while (fft_frequencies == 0){
     fft_frequencies = bundle.value().size();
   }
-
+  
   subs_values.assign(fft_frequencies, 0.0);
   
   for (int i = 0; i < fft_frequencies; i++) {
 	subs_values[i] = bundle.value(i);
   }  
-
+  
   avg_fft(subs_values, fft_frequencies); 
 }
 
@@ -168,17 +168,17 @@ int main(int argc, char *argv[]) {
     T = std::stoi(argv[1]);
     std::unique_lock<std::mutex> slck(signal_mutex);
 
-    // Obtains the time at which data recording begins    
+    // Obtains the time at which data recording begins 
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
     ts.tv_sec -= 14400;
     struct tm t;
     gmtime_r(&ts.tv_sec, &t);
-
+    
     // File name format
     char buf[50];
-    strftime(buf, sizeof(buf), "[0.1Hz_res]FFT_avg_logs_%d-%m-%Y_%H:%M:%S", &t);
-    printf("Creating [0.1Hz res] FFT log file...");
+    strftime(buf, sizeof(buf), "[0.01Hz_res]FFT_avg_logs_%d-%m-%Y_%H:%M:%S", &t);
+    printf("Creating [0.01Hz res] FFT log file...");
     snprintf(filename, sizeof(filename), "%s.txt", buf);
     
     // The file is opened to check that it was created correctly    
@@ -187,8 +187,8 @@ int main(int argc, char *argv[]) {
         printf("Error creating FFT log file...\n");
     }else{
         printf("Created file '%s'...\n", filename);}
-
-    // The function that receives the bundle for processing is called       
+    
+    // The function that receives the bundle for processing is called   
     SubscriberClient subscriber_client(&ProcessSub, vector<int>{DATA_FFT_FULL});
      
     std::signal(SIGINT, HandleSignal);
