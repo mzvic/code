@@ -177,8 +177,8 @@ int main(int argc, char *argv[]) {
     
     // File name format
     char buf[50];
-    strftime(buf, sizeof(buf), "[1Hz_res]FFT_avg_logs_%d-%m-%Y_%H:%M:%S", &t);
-    printf("Creating [1Hz res] FFT log file...");
+    strftime(buf, sizeof(buf), "[0.1Hz_res]FFT_avg_logs_%d-%m-%Y_%H:%M:%S", &t);
+    printf("Creating [0.1Hz res] FFT log file...");
     snprintf(filename, sizeof(filename), "%s.txt", buf);
     
     // The file is opened to check that it was created correctly    
