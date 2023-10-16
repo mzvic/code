@@ -1106,7 +1106,7 @@ class MainWindow(QMainWindow):
                 sender.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
                 subprocess.run(['pkill', '-f', self.processes[i].args[0]], check=True)
                 self.processes[i] = None
-                t(f"Process {i + 1} stopped.")
+                print(f"Process {i + 1} stopped.")
 
 
     def update_graph1(self):
