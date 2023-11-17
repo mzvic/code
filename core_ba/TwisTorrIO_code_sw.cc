@@ -12,6 +12,11 @@
 #include "core.grpc.pb.h"
 #include "client.h"
 #include <sstream>
+#include <iomanip> 
+#include <algorithm>
+#include <fstream>
+#include <boost/asio/serial_port.hpp>
+#include <boost/asio/serial_port_base.hpp>
 
 using namespace core;
 using namespace std::chrono;
@@ -29,7 +34,9 @@ const char *portname;
 int fd;
 bool exit_reading = false;
 
-float a, b, c, d, e;
+char xor_STX = 2;
+char xor_ADDR = 128;
+char xor_ETX = 3;
 
 void HandleSignal(int) {
     std::unique_lock<std::mutex> slck(signal_mutex);
@@ -38,51 +45,19 @@ void HandleSignal(int) {
     signal_cv.notify_one();
 }
 
+
+
 void Send2Broker(const Timestamp &timestamp) {
     publishing_bundle->clear_value();
     char buf[70];
     int rdlen;
     rdlen = read(fd, buf, sizeof(buf) - 1);
     if (rdlen > 0) {
-        buf[rdlen] = '\0';
-        std::istringstream iss(buf);
-        std::string value;
-        char variable;
-        while (iss >> variable >> value) {
-            try {
-                float parsed_value = std::stof(value);
-                switch (variable) {
-                    case 'a':
-                        a = parsed_value;
-                        break;
-                    case 'b':
-                        b = parsed_value;
-                        break;
-                    case 'c':
-                        c = parsed_value;
-                        break;
-                    case 'd':
-                        d = parsed_value;
-                        break;
-                    case 'e':
-                        e = parsed_value;
-                        break;
-                    default:
-                        //std::cout << "Unknown variable identifier: " << variable << std::endl;
-                        break;
-                }
-            } catch (std::exception &e) {
-                //std::cout << "Error parsing value: " << e.what() << std::endl;
-            }
+        for (int i = 0; i < rdlen; i++) {
+            printf("%02X ", static_cast<unsigned char>(buf[i]));
         }
+        printf("\n");
     }
-    //std::cout << a << " " << b << " " << c << " " << d << " " << e << std::endl;
-    publishing_bundle->add_value(a);
-    publishing_bundle->add_value(b);
-    publishing_bundle->add_value(c);
-    publishing_bundle->add_value(d);
-    publishing_bundle->add_value(e);
-    publisher_client->Publish(*publishing_bundle, timestamp);
 }
 
 void Send2BrokerLoop(const Timestamp &timestamp) {
@@ -103,77 +78,91 @@ void ProcessSub(const Bundle &bundle) {
         std::unique_lock<std::mutex> slck(signal_mutex);
         exit_reading = true;
         slck.unlock();
-
+    
         for (int i = 0; i < bundle.value().size(); i++) {
             subs_values[i] = bundle.value(i);
         }
-        std::stringstream ss;
-        for (size_t i = 0; i < subs_values.size(); ++i) {
-            ss << subs_values[i];
-            if (i != subs_values.size() - 1) {
-                ss << " ";
-            }
+        
+        std::string xor_WIN;
+        char xor_OnOff = '1';
+        char xor_WR = '1';
+        char xor_checksum;
+        if (subs_values[1] == 0){ // para pressure, 162 para setear
+            xor_WIN = "162";
+        }else if (subs_values[1] == 1){ // para motor 117/120 (low/high)
+            xor_WIN = "117";
+        }else if (subs_values[1] == 2){ // para valve 122
+            xor_WIN = "122";  
         }
+        
+        char xor_WIN1 = xor_WIN[0];
+        char xor_WIN2 = xor_WIN[1];
+        char xor_WIN3 = xor_WIN[2];
+        
+        xor_checksum = xor_ADDR ^ xor_WIN1 ^ xor_WIN2 ^ xor_WIN3 ^ xor_WR ^ xor_OnOff ^ xor_ETX;
+        char crc_1 = ((xor_checksum >> 4) & 0XF);
+        char crc_2 = (xor_checksum & 0xF);
+        char ascii_crc_1[3];
+        char ascii_crc_2[3];
+        snprintf(ascii_crc_1, sizeof(ascii_crc_1), "%X", crc_1);
+        snprintf(ascii_crc_2, sizeof(ascii_crc_2), "%X", crc_2);
 
-        std::string result = ss.str();
+        std::cout << xor_STX << "\n";
+        std::cout << xor_ADDR << "\n";
+        std::cout << xor_WIN1 << "\n";
+        std::cout << xor_WIN2 << "\n";
+        std::cout << xor_WIN3 << "\n";
+        std::cout << xor_WR << "\n";
+        std::cout << xor_OnOff << "\n";           
+        std::cout << xor_ETX << "\n";        
+        std::cout << ascii_crc_1 << "\n";
+        std::cout << ascii_crc_2 << "\n";
+        std::ifstream serial("/dev/ttyACM0", std::ios::binary);                
+        if (xor_checksum){
 
-        std::cout << result << std::endl;
-        if (result.length() > 0) {
-            int bytes_written = write(fd, result.c_str(), result.length());
-            (void)bytes_written;
+            std::ofstream serial_out("/dev/ttyACM0", std::ios::binary);
+            serial_out.write(&xor_STX, 1);
+            serial_out.write(&xor_ADDR, 1);
+            serial_out.write(&xor_WIN1, 1);
+            serial_out.write(&xor_WIN2, 1);
+            serial_out.write(&xor_WIN3, 1);
+            serial_out.write(&xor_WR, 1);
+            serial_out.write(&xor_OnOff, 1);
+            serial_out.write(&xor_ETX, 1);
+            serial_out.write(ascii_crc_1, 1);
+            serial_out.write(ascii_crc_2, 1);
         }
+        
+        // lectura temperatura de la bomba: 204
+        // lectura estado valvula: 122
+        // lectura presión: 224
+        // lectura potencia bomba: 202 
+        // lectura rpm motor bomba: 226
+        
+        char ANS;
+        while (serial.read(&ANS, 1)) {
+            std::cout << ANS;
+        }
+        
         slck.lock();
         exit_reading = false;
         slck.unlock();
     }
 }
 
-int set_interface_attribs(int fd, int speed){
-    struct termios tty;
-    if (tcgetattr(fd, &tty) < 0) {
-	printf("Error from tcgetattr: %s\n", strerror(errno));
-	return -1;}
-    cfsetospeed(&tty, (speed_t)speed);
-    cfsetispeed(&tty, (speed_t)speed);
-    tty.c_cflag |= (CLOCAL | CREAD);    
-    tty.c_cflag &= ~CSIZE;
-    tty.c_cflag |= CS8;         
-    tty.c_cflag &= ~PARENB;     
-    tty.c_cflag &= ~CSTOPB;     
-    tty.c_cflag &= ~CRTSCTS;   
-    tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
-    tty.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
-    tty.c_oflag &= ~OPOST;
-    tty.c_cc[VMIN] = 1;
-    tty.c_cc[VTIME] = 1;
-    if (tcsetattr(fd, TCSANOW, &tty) != 0) {
-	printf("Error from tcsetattr: %s\n", strerror(errno));
-	return -1;}
-    return 0;
-}
-
-void set_mincount(int fd, int mcount){
-    struct termios tty;
-    if (tcgetattr(fd, &tty) < 0) {
-	printf("Error tcgetattr: %s\n", strerror(errno));
-	return;}
-    tty.c_cc[VMIN] = mcount ? 1 : 0;
-    tty.c_cc[VTIME] = 5;       
-    if (tcsetattr(fd, TCSANOW, &tty) < 0)
-	printf("Error tcsetattr: %s\n", strerror(errno));
-}  
 
 int main(int argc, char **argv) {
-    portname = "/dev/ttyACM0";
-    fd = open(portname, O_RDWR | O_NOCTTY | O_SYNC);
-
-    if (fd < 0) {
-        printf("Error opening %s: %s\n", portname, strerror(errno));
-        return -1;
-    }
-
-    set_interface_attribs(fd, B2000000);
-    set_mincount(fd, 0);
+    try {
+        boost::asio::io_service io;
+        boost::asio::serial_port serial(io, "/dev/ttyACM0"); 
+        serial.set_option(boost::asio::serial_port_base::baud_rate(2000000));
+        serial.set_option(boost::asio::serial_port_base::character_size(8));
+        serial.set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
+        serial.set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
+    } catch (const std::exception& e) {
+        std::cerr << "Error al configurar el puerto serie: " << e.what() << std::endl;
+        return 1;
+    }    
 
     std::unique_lock<std::mutex> slck(signal_mutex);
     SubscriberClient subscriber_client(&ProcessSub, std::vector<int>{DATA_TT_SET});

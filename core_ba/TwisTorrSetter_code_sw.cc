@@ -15,17 +15,17 @@ bool exit_flag = false;
 std::mutex signal_mutex;
 
 int main(int argc, char* argv[]) {
-  if (argc != 4) {
-    std::cerr << "Usage: " << argv[0] << " <pressure> <motor> <valve>\n";
+  if (argc != 3) {
+    std::cerr << "Usage: " << argv[0] << " <value> <variable>\n";
     return 1;
   }
   //std::cout << "Arguments: " << argv[1] << ", " << argv[2] << ", " << argv[3] << "\n";
 
-  int pressure, motor, valve;
+  int variable;
+  float value;
   try {
-    pressure = std::stoi(argv[1]);
-    motor = std::stoi(argv[2]);
-    valve = std::stoi(argv[3]);
+    value = std::stoi(argv[1]);
+    variable = std::stoi(argv[2]);
   } catch (const std::invalid_argument& e) {
     std::cerr << "Invalid argument: " << e.what() << "\n";
     return 1;
@@ -40,9 +40,8 @@ int main(int argc, char* argv[]) {
   publishing_bundle->set_type(DATA_TT_SET);
 
   publishing_bundle->clear_value();
-  publishing_bundle->add_value(pressure);
-  publishing_bundle->add_value(motor);
-  publishing_bundle->add_value(valve);
+  publishing_bundle->add_value(value);
+  publishing_bundle->add_value(variable);
   publisher_client->Publish(*publishing_bundle, timestamp);
 
   delete publisher_client;

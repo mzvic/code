@@ -4749,6 +4749,16 @@ client.h
 /home/code/Development/core_ba/client.h
 sstream
 -
+iomanip
+-
+algorithm
+-
+fstream
+-
+boost/asio/serial_port.hpp
+-
+boost/asio/serial_port_base.hpp
+-
 
 /home/code/Development/core_ba/client.h
 condition_variable
