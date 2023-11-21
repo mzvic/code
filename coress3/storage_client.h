@@ -7,16 +7,18 @@
 #include "core.grpc.pb.h"
 #include "core.pb.h"
 
-#define SERVER_ADDRESS "localhost:50052"
+#define STORAGE_SERVER_ADDRESS "localhost:50052"
 
 class PusherClient : public ClientUpstream<Bundle, Empty> {
  public:
   explicit PusherClient();
+  ~PusherClient();
   void Initialize(ClientUpstreamReactor<Bundle> *) override;
 };
 
 class PullerClient : public ClientDownstream<Bundle, Query> {
  public:
   explicit PullerClient(const function<void(const Bundle &)> &);
+  ~PullerClient();
   void Initialize(ClientDownstreamReactor<Bundle> *) override;
 };

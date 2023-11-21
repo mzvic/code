@@ -20,6 +20,9 @@ void HandleSignal(int) {
   exit_flag = true;
 }
 
+#pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
+#pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
+#pragma ide diagnostic ignored "cert-msc50-cpp"
 int main(int argc, char *argv[]) {
   Bundle bundle;
   long sample;
@@ -49,19 +52,17 @@ int main(int argc, char *argv[]) {
 	  for (const auto &kElem : frequencies)
 		output += (int) (100 * sin(2 * M_PI * (kElem * ((double) sample / 100000))));
 
+	  output += (((float) rand() / RAND_MAX) - 0.5f) * 10;
+
 	  bundle.add_value(output);
 
 	  sample++;
 	}
 
-	publisher_client->EnqueueOutboundMessage(bundle);
+	publisher_client->Publish(bundle);
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
-
-  // The publisher broker_client will wait until the outgoing inbound_queue is empty to finish
-  // Here we are removing all pending elements to end it immediately
-  publisher_client->Flush();
 
   delete publisher_client;
 

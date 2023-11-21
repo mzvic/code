@@ -31,7 +31,7 @@ bool exit_flag = false;
 mutex signal_mutex;
 condition_variable signal_cv;
 
-void Send2Broker(const Timestamp &timestamp) {
+void SendToStorage(const Timestamp &timestamp) {
   int i;
 
   publishing_bundle->clear_value();
@@ -51,7 +51,7 @@ void Send2Broker(const Timestamp &timestamp) {
 	cout << "M: " << fft_bin_magnitudes[i] << endl;
   }
 
-  publisher_client->EnqueueOutboundMessage(*publishing_bundle, timestamp);
+  publisher_client->Publish(*publishing_bundle, timestamp);
 }
 
 /*double GetWindow(int n, int N) {
@@ -92,11 +92,11 @@ void ProcessBundle(const Bundle &bundle) {
 
   auto start = high_resolution_clock::now();
 
-  const auto &value = bundle.value();
+  const auto &kValue = bundle.value();
 
   // Append received data. Note that we will process the last BUFFER_SIZE samples,
   // so if kValue and BUFFER_SIZE are not aligned, some old data could be lost
-  samples.insert(samples.end(), value.begin(), value.end());
+  samples.insert(samples.end(), kValue.begin(), kValue.end());
 
   // Check if we have enough data to proceed
   if (samples.size() < BUFFER_SIZE)
@@ -156,7 +156,7 @@ void ProcessBundle(const Bundle &bundle) {
   }
 
   // Ready to send FFT
-  Send2Broker(bundle.timestamp());
+  SendToStorage(bundle.timestamp());
 
   auto stop = high_resolution_clock::now();
   auto duration = duration_cast<microseconds>(stop - start);
@@ -218,8 +218,8 @@ int main(int argc, char *argv[]) {
 
   fftw_cleanup_threads();
 
-  free(publisher_client);
-  free(publishing_bundle);
+  delete publisher_client;
+  delete publishing_bundle;
 
   return 0;
 }

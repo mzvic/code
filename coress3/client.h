@@ -1,3 +1,6 @@
+#ifndef CORE_CLIENT_H_
+#define CORE_CLIENT_H_
+
 #include <condition_variable>
 #include <grpcpp/grpcpp.h>
 #include <queue>
@@ -25,30 +28,30 @@ class ClientUpstream {
  public:
   explicit ClientUpstream(bool);
   ~ClientUpstream();
-  void OnClientUpstreamReactorOnDone(bool);
-  void EnqueueOutboundMessage(Outbound &);
-  void EnqueueOutboundMessage(Outbound &, const Timestamp &);
-  void Flush();
-  void Terminate();
   void SetDoneCallback(const function<void(bool)> &);
+  void EnqueueOutboundMessage(const Outbound &);
+//  void EnqueueOutboundMessage(Outbound &, const Timestamp &);
+//  void Flush();
+//  void Terminate();
   const Response &GetResponse();
 
  protected:
   Response response_;        // Here the server response will be stored
   void Start();
+  void Stop();
 
  private:
   ClientUpstreamReactor<Outbound> *client_upstream_reactor_;
   bool persistent_;
   queue<Outbound> queue_;
   recursive_mutex queue_mutex_;
-  function<void(bool)> done_callback_;
+  function<void(bool)> done_callback_;    // Callback once underlying reactor is done. Called on non-persistent mode only and is a good place to get response if ok
 
   mutex state_mutex_;
   condition_variable wait_cv_;
   State state_ = RUNNING;
 
-  void Stop();
+  void OnClientUpstreamReactorOnDone(bool);
   virtual void Initialize(ClientUpstreamReactor<Outbound> *) = 0;
 };
 
@@ -62,6 +65,7 @@ class ClientDownstream {
  protected:
   Request request_;    // Here we store the request to be sent to the server
   void Start();
+  void Stop();
 
  private:
   ClientDownstreamReactor<Inbound> *client_downstream_reactor_;
@@ -77,12 +81,13 @@ class ClientDownstream {
   condition_variable wait_cv_;
   State state_ = RUNNING;
 
-  void Stop();
   void OnClientDownstreamReactorOnDone(bool);
-  void Enqueue(Inbound &);
+  void EnqueueInboundMessage(const Inbound &);
   void QueueProcessing();
   virtual void Initialize(ClientDownstreamReactor<Inbound> *) = 0;
 };
 } //namespace client
 
-#include "client.tpp" // The only portable way of using templates at the moment is to implement them in header files by using inline functions.
+#include "client.tpp" // The only portable way of using templates is to implement them in header files
+
+#endif //CORE_CLIENT_H_

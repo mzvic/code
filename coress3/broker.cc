@@ -53,7 +53,7 @@ void OnServerDownstreamReactorDone(void *subscriber_reactor) {
   LOG("Removing subscriber reactor. Count: " << subscriber_reactors.size());
 }
 
-void ProcessInboundMessage(const Bundle &bundle) {
+void ProcessInboundBundle(const Bundle &bundle) {
   unique_lock<mutex> slck(subscriber_mutex);
   unique_lock<mutex> ilck(inbound_mutex);
 
@@ -73,9 +73,10 @@ class BrokerServiceImpl final : public Broker::CallbackService {
 //	cout << "Creating new Publisher Reactor" << endl;
 //	LOG("Creating new publisher");
 
+	// This reactor will self delete after completion
 	publisher_reactors.push_back(new ServerUpstreamReactor<Bundle, Empty>(response));
 
-	publisher_reactors.back()->SetInboundCallback(&ProcessInboundMessage);
+	publisher_reactors.back()->SetInboundCallback(&ProcessInboundBundle);
 //	publisher_reactors.back()->SetReadyCallback(&OnServerUpstreamReactorReady);
 	publisher_reactors.back()->SetDoneCallback(&OnServerUpstreamReactorDone);
 
@@ -100,6 +101,7 @@ class BrokerServiceImpl final : public Broker::CallbackService {
 //	  cout << endl;
 //	}
 
+	// This reactor will self delete after completion
 	subscriber_reactors.push_back(new ServerDownstreamReactor<Bundle, Interests>(request));
 
 	subscriber_reactors.back()->SetDoneCallback(&OnServerDownstreamReactorDone);
@@ -114,6 +116,8 @@ class BrokerServiceImpl final : public Broker::CallbackService {
 int RunServer(void *) {
   BrokerServiceImpl service;
   ServerBuilder builder;
+  sigset_t set;
+  int s;
 
   // grpc::EnableDefaultHealthCheckService(true);
   // grpc::reflection::InitProtoReflectionServerBuilderPlugin();
@@ -134,24 +138,60 @@ int RunServer(void *) {
 //  cout << "Server listening on " << SERVER_ADDRESS << endl;
   LOG("Listening on " << SERVER_ADDRESS);
 
+
+  // Register signal processing and wait
+  // Children ignore SIGINT (Ctrl-C) signal. They exit by SIGTERM sent by the parent
+  signal(SIGINT, SIG_IGN);
+
+  // Block SIGTERM signal
+  sigemptyset(&set);
+  sigaddset(&set, SIGTERM);
+  sigprocmask(SIG_BLOCK, &set, nullptr);
+
+  LOG("Server up and running");
+
+  // Wait for SIGTERM signal from parent
+  sigwait(&set, &s);
+
+  // Start shutdown procedure
+  LOG("Shutting down server");
+
+  exit_flag = true;
+
+  // Terminate all reactors
+  {
+	unique_lock<mutex> plck(publisher_mutex);
+	unique_lock<mutex> slck(subscriber_mutex);
+
+	for (auto const &kPublisherReactor : publisher_reactors)
+	  kPublisherReactor->Terminate();
+
+	for (auto const &kSubscriberReactor : subscriber_reactors)
+	  kSubscriberReactor->Terminate(false);
+  }
+
+  // GRPC server shutdown must be done on a separate thread to avoid hung ups
+  thread shutdown_thread([&server] { server->Shutdown(); });
+  shutdown_thread.join();
   server->Wait();
 
   return 0;
 }
 
 void HandleSignal(int) {
-  if (pid == 0)        // Children ignore signals
-	return;
+//  if (pid == 0)        // Children ignore signals
+//	return;
 
-//  cout << "Exiting" << endl;
   LOG("Exiting");
 
   exit_flag = true;
 
   kill(pid, SIGTERM);
 }
+
 int main() {
   char *stack;
+  bool first_run = true;
 
   signal(SIGINT, HandleSignal);
 
@@ -162,6 +202,13 @@ int main() {
 	stack = static_cast<char *>(mmap(nullptr, STACK_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0));
 
 	pid = clone(RunServer, stack + STACK_SIZE, SIGCHLD, nullptr);
+
+	// Register signal handler on first iteration
+	if (first_run) {
+	  signal(SIGINT, &HandleSignal);
+
+	  first_run = false;
+	}
 
 	waitpid(pid, nullptr, 0);
 

@@ -8,7 +8,6 @@ import "google/protobuf/timestamp.proto";
 service Broker {
   rpc Publish (stream Bundle) returns (google.protobuf.Empty);
   rpc Subscribe (Interests) returns (stream Bundle);
-//  rpc Subscribe (google.protobuf.Empty) returns (stream Bundle);
 }
 
 service Storage{
@@ -18,6 +17,7 @@ service Storage{
 
 enum Type {
   UNSPECIFIED = 0;
+
   DATA_APD_FULL = 1;
   DATA_APD_PARTIAL = 2;
   DATA_FFT_FULL = 3;
@@ -26,7 +26,7 @@ enum Type {
   CONTROL_LASER = 100;
   CONTROL_VACUUM_PUMP = 101;
 
-  STORAGE_FFT_FULL = 1000;
+  STORAGE_RECORD = 1000;
 }
 
 message Bundle {

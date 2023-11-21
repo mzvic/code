@@ -12,10 +12,10 @@ using namespace std::chrono;
 using namespace google::protobuf;
 
 #define BUFFER_SIZE 10000000    // 0.01 Hz resolution at a sampling frequency of 100000
-#define AVERAGE_COUNT 5        // Number of FFTs to average and send
+#define AVERAGE_COUNT 1        // Number of FFTs to average and send
 
 Bundle *publishing_bundle;
-PublisherClient *publisher_client;
+PublisherClient *pusher_client;
 SubscriberClient *subscriber_client;
 
 fftw_plan plan = nullptr;
@@ -27,7 +27,7 @@ bool exit_flag = false;
 mutex signal_mutex;
 condition_variable signal_cv;
 
-void Send2Broker(const Timestamp &timestamp) {
+void SendToBroker(const Timestamp &timestamp) {
   cout << "Publishing data" << endl;
 
   publishing_bundle->clear_value();
@@ -36,7 +36,7 @@ void Send2Broker(const Timestamp &timestamp) {
 	publishing_bundle->add_value(kElem);
 
 //  publisher_client->Publish(*publishing_bundle, timestamp);
-  publisher_client->EnqueueOutboundMessage(*publishing_bundle, timestamp);
+  pusher_client->Publish(*publishing_bundle, timestamp);
 }
 
 void ProcessBundle(const Bundle &bundle) {
@@ -71,7 +71,8 @@ void ProcessBundle(const Bundle &bundle) {
 	memcpy(input_backup, input, BUFFER_SIZE * sizeof(double));
 
 	// Create plan
-	plan = fftw_plan_r2r_1d(BUFFER_SIZE, input, output, FFTW_R2HC, FFTW_MEASURE);
+//	plan = fftw_plan_r2r_1d(BUFFER_SIZE, input, output, FFTW_R2HC, FFTW_MEASURE);
+	plan = fftw_plan_r2r_1d(BUFFER_SIZE, input, output, FFTW_R2HC, FFTW_ESTIMATE);
 
 	// Restore input
 	//	copy(begin(input_backup), end(input_backup), begin(input));
@@ -125,7 +126,7 @@ void ProcessBundle(const Bundle &bundle) {
 	for (auto &elem : fft_magnitudes_average)
 	  elem /= max_fft;
 
-	Send2Broker(bundle.timestamp());
+	SendToBroker(bundle.timestamp());
 
 	fft_count = 0;
   }
@@ -151,7 +152,7 @@ void HandleSignal(int) {
 int main() {
   unique_lock<mutex> slck(signal_mutex);
 
-  publisher_client = new PublisherClient();
+  pusher_client = new PublisherClient();
 //  request_.mutable_types()->Assign(request.begin(), request.end());
   subscriber_client = new SubscriberClient(&ProcessBundle, vector<int>{DATA_APD_FULL});
 //  subscriber_client = new SubscriberClient(&ProcessBundle, &interests);
@@ -176,7 +177,7 @@ int main() {
   fftw_cleanup_threads();
 
   delete subscriber_client;
-  delete publisher_client;
+  delete pusher_client;
   delete publishing_bundle;
 
   return 0;

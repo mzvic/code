@@ -62,11 +62,12 @@ target_link_libraries(storage_client
 # Targets
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 foreach (_target
-        broker storage fft_full fft_partial publisher subscriber)
+        broker storage fft_full fft_partial publisher subscriber recorder)
     add_executable(${_target} "${_target}.cc")
     target_link_libraries(${_target}
             core_grpc_proto
             broker_client
+            storage_client
             fftw3
             fftw3_threads
             pthread

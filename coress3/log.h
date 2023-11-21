@@ -5,7 +5,7 @@
 
 #if not defined(NDEBUG)
 #define LOG(msg) \
-    cout << boolalpha << __TIME__ << " T:" << this_thread::get_id() << " " << __FILE__ << "(" << __LINE__ << "): " << msg << std::endl
+    cout << boolalpha << " T:" << this_thread::get_id() << " " << __FILE__ << "(" << __LINE__ << "): " << msg << std::endl
 #else
 #define LOG(msg)
 #endif
