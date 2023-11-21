@@ -18,11 +18,12 @@ ClientUpstreamReactor<Outbound>::ClientUpstreamReactor(queue<Outbound> *queue, r
 
 template<class Outbound>
 void ClientUpstreamReactor<Outbound>::OnDone(const Status &status) {
-//  cout << "T:" << this_thread::get_id() << " PublisherClientReactor: OnDone: " << status.ok() << endl;
   LOG("Upstream reactor OnDone: " << status.ok());
 
   if (done_callback_ != nullptr)
 	done_callback_(status.ok());
+
+  delete this;
 }
 
 template<class Outbound>
@@ -30,11 +31,10 @@ void ClientUpstreamReactor<Outbound>::OnWriteDone(bool ok) {
   unique_lock<recursive_mutex> qlck(*queue_mutex_);
   unique_lock<recursive_mutex> slck(state_mutex_);
 
-//  cout << "T:" << this_thread::get_id() << " Publisher Reactor: OnWriteDone" << endl;
-  LOG("Upstream reactor OnWriteDone: " << ok);
+//  LOG("Upstream reactor OnWriteDone: " << ok);
 
   if (ok) {
-	// Erase front message, if any
+	// Erase front message, if any. We can unexpectedly find an empty queue if it was externally flushed
 	if (!queue_->empty())
 	  queue_->pop();
 
@@ -62,17 +62,18 @@ void ClientUpstreamReactor<Outbound>::OnWriteDone(bool ok) {
 	}
   } else {
 //	cout << "T:" << this_thread::get_id() << " PublisherClientReactor: Writing failure" << endl;
-
 	Stop();
   }
 }
 
 template<class Outbound>
 void ClientUpstreamReactor<Outbound>::Start() {
+  unique_lock<recursive_mutex> qlck(*queue_mutex_);
+
   // No OnDone until RemoveHold()
   this->AddHold();
 
-  // If there are message, start sending them now
+  // If there are messages, start sending them now
   if (!queue_->empty())
 	this->StartWrite(&queue_->front());
 
@@ -111,11 +112,11 @@ void ClientUpstreamReactor<Outbound>::BeginStop() {
   unique_lock<recursive_mutex> qlck(*queue_mutex_);
   unique_lock<recursive_mutex> slck(state_mutex_);
 
-//  cout << "T:" << this_thread::get_id() << " PublisherClientReactor: Beginning to stop" << endl;
   LOG("Upstream reactor beginning to stop");
 
   if (state_ == RUNNING) {
 	// If we are empty, stop now
+//	if (queue_->empty() || (channel_->GetState(false) != GRPC_CHANNEL_READY))
 	if (queue_->empty())
 	  Stop();
 	else
@@ -139,7 +140,7 @@ shared_ptr<Channel> &ClientUpstreamReactor<Outbound>::GetChannel() {
 //}
 
 template<class Inbound>
-ClientDownstreamReactor<Inbound>::ClientDownstreamReactor(const function<void(Inbound &)> &enqueue_callback, const function<void(bool)> &done_callback) {
+ClientDownstreamReactor<Inbound>::ClientDownstreamReactor(const function<void(const Inbound &)> &enqueue_callback, const function<void(bool)> &done_callback) {
   enqueue_callback_ = enqueue_callback;
 
   done_callback_ = done_callback;
@@ -158,18 +159,19 @@ ClientDownstreamReactor<Inbound>::ClientDownstreamReactor(const function<void(In
 
 template<class Inbound>
 void ClientDownstreamReactor<Inbound>::OnDone(const Status &status) {
-//  cout << "T:" << this_thread::get_id() << " ClientDownstreamReactor: OnDone: " << status.ok() << endl;
   LOG("Downstream reactor OnDone: " << status.ok());
 
   if (done_callback_ != nullptr)
 	done_callback_(status.ok());
+
+  delete this;
 }
 
 template<class Inbound>
 void ClientDownstreamReactor<Inbound>::OnReadDone(bool ok) {
   unique_lock<recursive_mutex> slck(state_mutex_);
 
-  LOG("Downstream reactor OnReadDone: " << ok);
+//  LOG("Downstream reactor OnReadDone: " << ok);
 
   if (ok) {
 	if (state_ == RUNNING) {
@@ -179,7 +181,6 @@ void ClientDownstreamReactor<Inbound>::OnReadDone(bool ok) {
 	}
   } else {
 //	cout << "T:" << this_thread::get_id() << " ClientDownstreamReactor: Reading failure" << endl;
-
 	Stop();
   }
 }
@@ -202,7 +203,6 @@ void ClientDownstreamReactor<Inbound>::Stop() {
   unique_lock<recursive_mutex> slck(state_mutex_);
 
   if (state_ != STOPPED) {
-//	cout << "T:" << this_thread::get_id() << " ClientDownstreamReactor: Stopping" << endl;
 	LOG("Downstream reactor stopping");
 
 	this->RemoveHold();

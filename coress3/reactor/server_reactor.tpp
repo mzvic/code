@@ -7,14 +7,16 @@ ServerUpstreamReactor<Inbound, Response>::ServerUpstreamReactor(Response *respon
   // Block until next read op
   this->StartRead(&inbound_);
 
-  done_ = false;
+//  done_ = false;
 
-  finished_ = false;
+//  finished_ = false;
 }
 
 template<class Inbound, class Response>
 void ServerUpstreamReactor<Inbound, Response>::OnDone() {
   unique_lock<mutex> lck(mutex_);
+
+  LOG("Server reactor OnDone");
 
   if (!done_) {
 	done_ = true;
@@ -22,11 +24,15 @@ void ServerUpstreamReactor<Inbound, Response>::OnDone() {
 	if (done_callback_ != nullptr)
 	  done_callback_(this);
   }
+
+  delete this;
 }
 
 template<class Inbound, class Response>
 void ServerUpstreamReactor<Inbound, Response>::OnCancel() {
   unique_lock<mutex> lck(mutex_);
+
+  LOG("Server reactor OnCancel");
 
   if (!finished_) {
 	finished_ = true;
@@ -75,22 +81,37 @@ void ServerUpstreamReactor<Inbound, Response>::SetReadyCallback(const function<v
 }
 
 template<class Inbound, class Response>
-void ServerUpstreamReactor<Inbound, Response>::SetDoneCallback(const function<void(void *)> &done_callback) {
+void ServerUpstreamReactor<Inbound, Response>::
+
+SetDoneCallback(const function<void(void *)> &done_callback) {
   done_callback_ = done_callback;
+}
+
+template<class Inbound, class Response>
+void ServerUpstreamReactor<Inbound, Response>::Terminate() {
+  unique_lock<mutex> lck(mutex_);
+
+  if (!finished_) {
+	finished_ = true;
+
+	this->Finish(Status::CANCELLED);
+  }
 }
 
 template<class Outbound, class Request>
 ServerDownstreamReactor<Outbound, Request>::ServerDownstreamReactor(const Request *request) {
   request_ = request;
 
-  done_ = false;
+//  done_ = false;
 
-  finished_ = false;
+//  finished_ = false;
 }
 
 template<class Outbound, class Request>
 void ServerDownstreamReactor<Outbound, Request>::OnDone() {
   unique_lock<mutex> lck(mutex_);
+
+  LOG("Server reactor OnDone");
 
   if (!done_) {
 	done_ = true;
@@ -98,11 +119,15 @@ void ServerDownstreamReactor<Outbound, Request>::OnDone() {
 	if (done_callback_ != nullptr)
 	  done_callback_(this);
   }
+
+  delete this;
 }
 
 template<class Outbound, class Request>
 void ServerDownstreamReactor<Outbound, Request>::OnCancel() {
   unique_lock<mutex> lck(mutex_);
+
+  LOG("Server reactor OnCancel");
 
   if (!finished_) {
 	finished_ = true;
@@ -145,20 +170,29 @@ template<class Outbound, class Request>
 void ServerDownstreamReactor<Outbound, Request>::EnqueueOutboundMessage(const Outbound &outbound) {
   unique_lock<mutex> lck(mutex_);
 
+  if (finished_) {
+	LOG("Reactor is not running, ignoring message");
+
+	return;
+  }
+
   queue_.push(outbound);
 
-  // If we are not finished and this is the first element, we should send it now
-  if (!finished_ && queue_.size() == 1)
+  // If this is the first element, we should send it now
+  if (queue_.size() == 1)
 	this->StartWrite(&queue_.front());
 }
 
 template<class Outbound, class Request>
-void ServerDownstreamReactor<Outbound, Request>::Terminate() {
+void ServerDownstreamReactor<Outbound, Request>::Terminate(bool ok) {
   unique_lock<mutex> lck(mutex_);
 
   if (!finished_) {
 	finished_ = true;
 
-	this->Finish(Status::OK);
+	if (ok)
+	  this->Finish(Status::OK);
+	else
+	  this->Finish(Status::CANCELLED);
   }
 }

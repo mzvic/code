@@ -1,7 +1,6 @@
 #include <condition_variable>
 #include <grpcpp/grpcpp.h>
 #include <queue>
-//#include <thread>
 
 #include "core.grpc.pb.h"
 #include "../log.h"
@@ -19,7 +18,7 @@ typedef enum {
 } State;
 
 template<class Outbound>
-class ClientUpstreamReactor : public ClientWriteReactor<Outbound> {
+class ClientUpstreamReactor final : public ClientWriteReactor<Outbound> {
  public:
   explicit ClientUpstreamReactor(queue<Outbound> *, recursive_mutex *, const function<void(bool)> &);
   void OnDone(const Status &) override;
@@ -43,9 +42,9 @@ class ClientUpstreamReactor : public ClientWriteReactor<Outbound> {
 };
 
 template<class Inbound>
-class ClientDownstreamReactor : public ClientReadReactor<Inbound> {
+class ClientDownstreamReactor final : public ClientReadReactor<Inbound> {
  public:
-  explicit ClientDownstreamReactor(const function<void(Inbound &)> &, const function<void(bool)> &);
+  explicit ClientDownstreamReactor(const function<void(const Inbound &)> &, const function<void(bool)> &);
   void OnDone(const Status &) override;
   void OnReadDone(bool) override;
   void Start();
@@ -59,7 +58,7 @@ class ClientDownstreamReactor : public ClientReadReactor<Inbound> {
   shared_ptr<Channel> channel_;
   Inbound inbound_;
   recursive_mutex state_mutex_;
-  function<void(Inbound &)> enqueue_callback_;
+  function<void(const Inbound &)> enqueue_callback_;
   function<void(bool)> done_callback_;
   State state_ = RUNNING;
 };
