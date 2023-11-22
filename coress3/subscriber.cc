@@ -2,7 +2,7 @@
 #include "core.grpc.pb.h"
 #include "broker_client.h"
 
-SubscriberClient *subscriber_client;
+//unique_ptr<SubscriberClient> subscriber_client;
 
 bool exit_flag = false;
 mutex signal_mutex;
@@ -39,13 +39,15 @@ int main(int argc, char *argv[]) {
 	interests.push_back(stoi(argv[i]));
   }
 
-  subscriber_client = new SubscriberClient(&ProcessBundle, interests);
+//  subscriber_client = new SubscriberClient(&ProcessBundle, interests);
+//  subscriber_client = make_unique<SubscriberClient>(&ProcessBundle, interests);
+  SubscriberClient subscriber_client(&ProcessBundle, interests);
 
   signal(SIGINT, HandleSignal);
 
   signal_cv.wait(slck, [] { return exit_flag; });
 
-  delete subscriber_client;
+//  delete subscriber_client;
 
   return 0;
 }

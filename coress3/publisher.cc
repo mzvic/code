@@ -4,7 +4,7 @@
 #include "core.grpc.pb.h"
 #include "broker_client.h"
 
-PublisherClient *publisher_client;
+//unique_ptr<PublisherClient> publisher_client;
 
 vector<double> frequencies;
 
@@ -34,7 +34,9 @@ int main(int argc, char *argv[]) {
 	return 1;
   }
 
-  publisher_client = new PublisherClient();
+//  publisher_client = new PublisherClient();
+//  publisher_client = make_unique<PublisherClient>();
+  PublisherClient publisher_client;
 
   for (int i = 1; i < argc; i++)
 	frequencies.push_back(stod(argv[i]));
@@ -52,19 +54,19 @@ int main(int argc, char *argv[]) {
 	  for (const auto &kElem : frequencies)
 		output += (int) (100 * sin(2 * M_PI * (kElem * ((double) sample / 100000))));
 
-	  output += (((float) rand() / RAND_MAX) - 0.5f) * 10;
+	  output += (((float) rand() / RAND_MAX) - 0.5f) * 10;    // Add some noise
 
 	  bundle.add_value(output);
 
 	  sample++;
 	}
 
-	publisher_client->Publish(bundle);
+	publisher_client.Publish(bundle);
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 
-  delete publisher_client;
+//  delete publisher_client;
 
   return 0;
 }

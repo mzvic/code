@@ -7,6 +7,7 @@
 #include "reactor/server_reactor.h"
 
 #define SERVER_ADDRESS "0.0.0.0:50051"
+#define SERVER_SHUTDOWN_TIMEOUT 1000
 
 #define STACK_SIZE (1024 * 1024)
 
@@ -156,8 +157,6 @@ int RunServer(void *) {
   // Start shutdown procedure
   LOG("Shutting down server");
 
-  exit_flag = true;
-
   // Terminate all reactors
   {
 	unique_lock<mutex> plck(publisher_mutex);
@@ -170,8 +169,8 @@ int RunServer(void *) {
 	  kSubscriberReactor->Terminate(false);
   }
 
-  // GRPC server shutdown must be done on a separate thread to avoid hung ups
-  thread shutdown_thread([&server] { server->Shutdown(); });
+  // GRPC server shutdown must be done on a separate thread to avoid hung ups (it does it sometimes anyway so let's add a timeout)
+  thread shutdown_thread([&server] { server->Shutdown(chrono::system_clock::now() + chrono::milliseconds(SERVER_SHUTDOWN_TIMEOUT)); });
   shutdown_thread.join();
   server->Wait();
 

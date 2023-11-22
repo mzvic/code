@@ -17,8 +17,8 @@ using namespace google::protobuf;
 #define BUFFER_SIZE 100000
 #define MAX_BIN_COUNT 100
 
-Bundle *publishing_bundle;
-PublisherClient *publisher_client;
+unique_ptr<Bundle> publishing_bundle;
+unique_ptr<PublisherClient> publisher_client;
 
 fftw_plan plan = nullptr;
 double input[BUFFER_SIZE], output[BUFFER_SIZE], fft_magnitudes[BUFFER_SIZE / 2 + 1], fft_bin_frequencies[MAX_BIN_COUNT], fft_bin_magnitudes[MAX_BIN_COUNT];
@@ -198,8 +198,10 @@ int main(int argc, char *argv[]) {
 
   unique_lock<mutex> slck(signal_mutex);
   SubscriberClient subscriber_client(&ProcessBundle, vector<int>{DATA_APD_FULL});
-  publisher_client = new PublisherClient();
-  publishing_bundle = new Bundle();
+//  publisher_client = new PublisherClient();
+//  publishing_bundle = new Bundle();
+  publisher_client = make_unique<PublisherClient>();
+  publishing_bundle = make_unique<Bundle>();
   publishing_bundle->set_type(DATA_FFT_PARTIAL);
 
   // Register handler
@@ -218,8 +220,8 @@ int main(int argc, char *argv[]) {
 
   fftw_cleanup_threads();
 
-  delete publisher_client;
-  delete publishing_bundle;
+//  delete publisher_client;
+//  delete publishing_bundle;
 
   return 0;
 }

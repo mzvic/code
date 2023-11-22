@@ -10,11 +10,14 @@
 #include "reactor/server_reactor.h"
 
 #define SERVER_ADDRESS "0.0.0.0:50052"
+#define SERVER_SHUTDOWN_TIMEOUT 1000
 
 #define STACK_SIZE (1024 * 1024)
 #define FILENAME "storage.h5"
-#define COMPRESSION_LEVEL 9    // A number between 0 (none, fastest) to 9 (best, slowest)
+#define COMPRESSION_LEVEL 7   // A number between 0 (none, fastest) to 9 (best, slowest)
+#define CHUNK_SIZE 5    // Number of rows per chunk. It impacts progressive compression time
 #define DATASET_NAME "DATA"
+
 #define FFT_FULL_SIZE 5000001
 //#define FFT_FULL_SIZE 500001
 
@@ -280,7 +283,7 @@ int OpenDataStorage() {
 
 	  // Create table
 	  part_t = MakeEntryType();
-	  ptable = H5PTcreate(fid, DATASET_NAME, part_t, (hsize_t) 10, plist_id);
+	  ptable = H5PTcreate(fid, DATASET_NAME, part_t, (hsize_t) CHUNK_SIZE, plist_id);
 	  if (ptable == H5I_BADID) {
 		LOG("Error creating table inside file");
 
@@ -457,7 +460,16 @@ int RunServer(void *) {
   // Start shutdown procedure
   LOG("Shutting down server");
 
+  // Stop InboundQueueProcessing thread. No more writings after this
   exit_flag = true;
+  inbound_queue_cv.notify_one();
+  inbound_queue_thread.join();
+
+  // Close data storage
+  if (CloseDataStorage() < 0)
+	LOG("Error closing data storage");
+  else
+	LOG("Data storage successfully closed");
 
   // Terminate all reactors
   {
@@ -471,25 +483,12 @@ int RunServer(void *) {
 	  kPullerReactor->Terminate(false);
   }
 
-  // GRPC server shutdown must be done on a separate thread to avoid hung ups
-  thread shutdown_thread([&server] { server->Shutdown(); });
+  // GRPC server shutdown must be done on a separate thread to avoid hung ups (it does it sometimes anyway so let's add a timeout)
+  thread shutdown_thread([&server] { server->Shutdown(chrono::system_clock::now() + chrono::milliseconds(SERVER_SHUTDOWN_TIMEOUT)); });
   shutdown_thread.join();
   server->Wait();
 
-  // Stop InboundQueueProcessing thread. It will see the exit_flag
-  inbound_queue_cv.notify_one();
-  inbound_queue_thread.join();
-
-  // Close data storage
-  if (CloseDataStorage() < 0) {
-	LOG("Error closing data storage");
-
-	return 1;
-  } else {
-	LOG("Data storage successfully closed");
-
-	return 0;
-  }
+  return 0;
 }
 
 void HandleSignal(int) {

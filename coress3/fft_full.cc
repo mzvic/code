@@ -12,11 +12,11 @@ using namespace std::chrono;
 using namespace google::protobuf;
 
 #define BUFFER_SIZE 10000000    // 0.01 Hz resolution at a sampling frequency of 100000
-#define AVERAGE_COUNT 1        // Number of FFTs to average and send
+#define AVERAGE_COUNT 5        // Number of FFTs to average and send
 
-Bundle *publishing_bundle;
-PublisherClient *pusher_client;
-SubscriberClient *subscriber_client;
+unique_ptr<Bundle> publishing_bundle;
+unique_ptr<PublisherClient> publisher_client;
+//unique_ptr<SubscriberClient> subscriber_client;
 
 fftw_plan plan = nullptr;
 double input[BUFFER_SIZE], output[BUFFER_SIZE], fft_magnitudes[BUFFER_SIZE / 2 + 1], fft_magnitudes_average[BUFFER_SIZE / 2 + 1];
@@ -36,17 +36,17 @@ void SendToBroker(const Timestamp &timestamp) {
 	publishing_bundle->add_value(kElem);
 
 //  publisher_client->Publish(*publishing_bundle, timestamp);
-  pusher_client->Publish(*publishing_bundle, timestamp);
+  publisher_client->Publish(*publishing_bundle, timestamp);
 }
 
 void ProcessBundle(const Bundle &bundle) {
   auto start = high_resolution_clock::now();
 
-  const auto &value = bundle.value();
+  const auto &kValue = bundle.value();
 
   // Append received data. Note that we will process the last BUFFER_SIZE samples,
   // so if value and BUFFER_SIZE are not aligned, some old data could be lost
-  samples.insert(samples.end(), value.begin(), value.end());
+  samples.insert(samples.end(), kValue.begin(), kValue.end());
 
   cout << "\33[2K\r" << ((float) samples.size() / BUFFER_SIZE) * 100.0 << " % samples" << flush;
 
@@ -71,8 +71,7 @@ void ProcessBundle(const Bundle &bundle) {
 	memcpy(input_backup, input, BUFFER_SIZE * sizeof(double));
 
 	// Create plan
-//	plan = fftw_plan_r2r_1d(BUFFER_SIZE, input, output, FFTW_R2HC, FFTW_MEASURE);
-	plan = fftw_plan_r2r_1d(BUFFER_SIZE, input, output, FFTW_R2HC, FFTW_ESTIMATE);
+	plan = fftw_plan_r2r_1d(BUFFER_SIZE, input, output, FFTW_R2HC, FFTW_ESTIMATE);    // FFTW_MEASURE for a better estimation, but a longer execution time
 
 	// Restore input
 	//	copy(begin(input_backup), end(input_backup), begin(input));
@@ -152,11 +151,15 @@ void HandleSignal(int) {
 int main() {
   unique_lock<mutex> slck(signal_mutex);
 
-  pusher_client = new PublisherClient();
+//  publisher_client = new PublisherClient();
+  publisher_client = make_unique<PublisherClient>();
 //  request_.mutable_types()->Assign(request.begin(), request.end());
-  subscriber_client = new SubscriberClient(&ProcessBundle, vector<int>{DATA_APD_FULL});
+//  subscriber_client = new SubscriberClient(&ProcessBundle, vector<int>{DATA_APD_FULL});
+//  subscriber_client = make_unique<SubscriberClient>(&ProcessBundle, vector<int>{DATA_APD_FULL});
+  SubscriberClient subscriber_client(&ProcessBundle, vector<int>{DATA_APD_FULL});
 //  subscriber_client = new SubscriberClient(&ProcessBundle, &interests);
-  publishing_bundle = new Bundle();
+//  publishing_bundle = new Bundle();
+  publishing_bundle = make_unique<Bundle>();
 
   publishing_bundle->set_type(DATA_FFT_FULL);
 
@@ -176,9 +179,9 @@ int main() {
 
   fftw_cleanup_threads();
 
-  delete subscriber_client;
-  delete pusher_client;
-  delete publishing_bundle;
+//  delete subscriber_client;
+//  delete publisher_client;
+//  delete publishing_bundle;
 
   return 0;
 }

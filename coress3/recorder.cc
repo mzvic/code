@@ -8,9 +8,9 @@ using namespace core;
 using namespace std::chrono;
 using namespace google::protobuf;
 
-Bundle *publishing_bundle;
-PusherClient *pusher_client;
-SubscriberClient *subscriber_client;
+unique_ptr<Bundle> publishing_bundle;
+unique_ptr<PusherClient> pusher_client;
+//unique_ptr<SubscriberClient> subscriber_client;
 
 bool exit_flag = false;
 mutex signal_mutex;
@@ -46,9 +46,13 @@ void HandleSignal(int) {
 int main() {
   unique_lock<mutex> slck(signal_mutex);
 
-  pusher_client = new PusherClient();
-  subscriber_client = new SubscriberClient(&ProcessBundle, vector<int>{DATA_FFT_FULL});
-  publishing_bundle = new Bundle();
+//  pusher_client = new PusherClient();
+//  subscriber_client = new SubscriberClient(&ProcessBundle, vector<int>{DATA_FFT_FULL});
+//  publishing_bundle = new Bundle();
+  pusher_client = make_unique<PusherClient>();
+//  subscriber_client = make_unique<SubscriberClient>(&ProcessBundle, vector<int>{DATA_FFT_FULL});
+  SubscriberClient subscriber_client(&ProcessBundle, vector<int>{DATA_FFT_FULL});
+  publishing_bundle = make_unique<Bundle>();
 
   publishing_bundle->set_type(STORAGE_RECORD);
 
@@ -58,9 +62,9 @@ int main() {
   // Wait fot CTRL-C signal
   signal_cv.wait(slck, [] { return exit_flag; });
 
-  delete subscriber_client;
-  delete pusher_client;
-  delete publishing_bundle;
+//  delete subscriber_client;
+//  delete pusher_client;
+//  delete publishing_bundle;
 
   return 0;
 }
