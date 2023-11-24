@@ -32,7 +32,7 @@ counts = []
 freq = []
 magn = []
 
-# List to store monitoring data from TwistTor
+# List to store monitoring data from TwistTorporsi
 
 monitoring_TT = []
 
