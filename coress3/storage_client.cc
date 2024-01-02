@@ -30,6 +30,23 @@ void PusherClient::Initialize(ClientUpstreamReactor<Bundle> *client_upstream_rea
   LOG("Storage client has initialized an upstream reactor");
 }
 
+void PusherClient::Push(Bundle &bundle) {
+  Timestamp timestamp;
+  struct timeval tv{};
+  gettimeofday(&tv, nullptr);
+
+  timestamp.set_seconds((int64_t) tv.tv_sec);
+  timestamp.set_nanos((int32_t) tv.tv_usec * 1000);
+
+  Push(bundle, timestamp);
+}
+
+void PusherClient::Push(Bundle &bundle, const Timestamp &timestamp) {
+  bundle.mutable_timestamp()->CopyFrom(timestamp);
+
+  EnqueueOutboundMessage(bundle);
+}
+
 PullerClient::PullerClient(const function<void(const Bundle &)> &inbound_callback) : ClientDownstream(true, inbound_callback) {
   Start();
 }

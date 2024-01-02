@@ -24,24 +24,6 @@ void ClientUpstream<Outbound, Response>::SetDoneCallback(const function<void(boo
   done_callback_ = done_callback;
 }
 
-template<class Outbound, class Response>
-void ClientUpstream<Outbound, Response>::EnqueueOutboundMessage(const Outbound &outbound) {
-  unique_lock<recursive_mutex> qlck(queue_mutex_);
-  unique_lock<mutex> slck(state_mutex_);
-
-  if (state_ != RUNNING) {
-	LOG("Upstream client is not running, ignoring message");
-
-	return;
-  }
-
-  queue_.push(outbound);
-
-  // If this is the first element in inbound_queue, we should send it now
-  if (queue_.size() == 1)
-	client_upstream_reactor_->StartWrite(&queue_.front());
-}
-
 //template<class Outbound, class Response>
 //void ClientUpstream<Outbound, Response>::Flush() {
 //  unique_lock<recursive_mutex> qlck(queue_mutex_);
@@ -90,6 +72,24 @@ void ClientUpstream<Outbound, Response>::Stop() {
 	// Now wait for signal
 	wait_cv_.wait(slck, [this] { return (state_ == STOPPED); });
   }
+}
+
+template<class Outbound, class Response>
+void ClientUpstream<Outbound, Response>::EnqueueOutboundMessage(const Outbound &outbound) {
+  unique_lock<recursive_mutex> qlck(queue_mutex_);
+  unique_lock<mutex> slck(state_mutex_);
+
+  if (state_ != RUNNING) {
+	LOG("Upstream client is not running, ignoring message");
+
+	return;
+  }
+
+  queue_.push(outbound);
+
+  // If this is the first element in inbound_queue, we should send it now
+  if (queue_.size() == 1)
+	client_upstream_reactor_->StartWrite(&queue_.front());
 }
 
 //template<class Outbound, class Response>

@@ -31,7 +31,7 @@ bool exit_flag = false;
 mutex signal_mutex;
 condition_variable signal_cv;
 
-void SendToStorage(const Timestamp &timestamp) {
+void SendToBroker(const Timestamp &timestamp) {
   int i;
 
   publishing_bundle->clear_value();
@@ -156,7 +156,7 @@ void ProcessBundle(const Bundle &bundle) {
   }
 
   // Ready to send FFT
-  SendToStorage(bundle.timestamp());
+  SendToBroker(bundle.timestamp());
 
   auto stop = high_resolution_clock::now();
   auto duration = duration_cast<microseconds>(stop - start);

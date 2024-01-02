@@ -29,7 +29,7 @@ class ClientUpstream {
   explicit ClientUpstream(bool);
   ~ClientUpstream();
   void SetDoneCallback(const function<void(bool)> &);
-  void EnqueueOutboundMessage(const Outbound &);
+//  void EnqueueOutboundMessage(const Outbound &);
 //  void EnqueueOutboundMessage(Outbound &, const Timestamp &);
 //  void Flush();
 //  void Terminate();
@@ -39,6 +39,7 @@ class ClientUpstream {
   Response response_;        // Here the server response will be stored
   void Start();
   void Stop();
+  void EnqueueOutboundMessage(const Outbound &);
 
  private:
   ClientUpstreamReactor<Outbound> *client_upstream_reactor_;

@@ -15,11 +15,11 @@
 #define STACK_SIZE (1024 * 1024)
 #define FILENAME "storage.h5"
 #define COMPRESSION_LEVEL 7   // A number between 0 (none, fastest) to 9 (best, slowest)
-#define CHUNK_SIZE 5    // Number of rows per chunk. It impacts progressive compression time
-#define DATASET_NAME "DATA"
+#define CHUNK_SIZE 5    // Number of rows per chunk. It progressively impacts the compression time
+#define DATASET_NAME_FFT "FFT"
+#define DATASET_NAME_MONITOR "Monitor"
 
 #define FFT_FULL_SIZE 5000001
-//#define FFT_FULL_SIZE 500001
 
 using namespace core;
 using namespace google::protobuf;
@@ -28,26 +28,19 @@ using namespace std::chrono;
 typedef struct {
   double timestamp_;
   double fft_full_[FFT_FULL_SIZE];
-//  char name[16];
-//  int lati;
-//  int longi;
-//  float pressure;
-//  double temperature;
-} Entry;
+} FFTEntry;
 
-//static Entry testEntries[8] = {{22, 3212, 1233, 2.5656, 5244.356546464},
-//							   {34, 10, 10, 1.0F, 10.0},
-//							   {324523, 20, 20, 2.0F, 20.0},
-//							   {41212, 30, 30, 3.0F, 30.0},
-//							   {21355, 40, 40, 4.0F, 40.0},
-//							   {345345, 50, 50, 5.0F, 50.0},
-//							   {78978, 60, 60, 6.0F, 60.0},
-//							   {50345, 70, 70, 7.0F, 70.0}};
+typedef struct {
+  double timestamp_;
+  double var1_;
+  int var2_;
+} MonitorEntry;
 
 bool exit_flag = false;
 int pid = 0;
 
-unique_ptr<Entry> entry;
+unique_ptr<FFTEntry> fft_entry;
+unique_ptr<MonitorEntry> monitor_entry;
 
 list<ServerUpstreamReactor<Bundle, Empty> *> pusher_reactors;
 list<ServerDownstreamReactor<Bundle, Query> *> puller_reactors;
@@ -58,19 +51,14 @@ mutex pusher_mutex;
 mutex puller_mutex;
 mutex inbound_queue_mutex;
 condition_variable inbound_queue_cv;
-thread inbound_queue_thread;
 
-hid_t fid, ptable;
+hid_t fid, fft_ptable, monitor_ptable;
 
 void OnServerUpstreamReactorDone(void *pusher_reactor) {
   unique_lock<mutex> plck(pusher_mutex);
 
-//  cout << "Removing Publisher Reactor" << endl;
-//  LOG("Removing Publisher ");
-
   pusher_reactors.remove((ServerUpstreamReactor<Bundle, Empty> *) pusher_reactor);
 
-//  cout << "Publishers count: " << publisher_reactors.size() << endl;
   LOG("Removing pusher reactor. Count: " << pusher_reactors.size());
 }
 
@@ -83,12 +71,8 @@ void OnServerUpstreamReactorDone(void *pusher_reactor) {
 void OnServerDownstreamReactorDone(void *puller_reactor) {
   unique_lock<mutex> plck(puller_mutex);
 
-//  cout << "Removing Subscriber Reactor" << endl;
-//  LOG("Removing Subscriber Reactor");
-
   puller_reactors.remove((ServerDownstreamReactor<Bundle, Query> *) puller_reactor);
 
-//  cout << "Subscribers count: " << subscriber_reactors.size() << endl;
   LOG("Removing puller reactor. Count: " << puller_reactors.size());
 }
 
@@ -108,83 +92,79 @@ class StorageServiceImpl final : public Storage::CallbackService {
  public:
   __attribute__((unused)) ServerReadReactor<Bundle> *Push(CallbackServerContext *context, Empty *empty) override {
 	unique_lock<mutex> plck(pusher_mutex);
-//	ServerUpstreamReactor<Bundle, Empty> *server_upstream_reactor;
 
-//	cout << "Creating new Pusher Reactor" << endl;
-
-//	pusher_reactors.push_back(new PusherReactor(this));
-
-//	cout << "Pushers count: " << pusher_reactors.size() << endl;
-
-//	return pusher_reactors.back();
-
-
-//	server_upstream_reactor = new ServerUpstreamReactor<Bundle, Empty>(empty);
 	pusher_reactors.push_back(new ServerUpstreamReactor<Bundle, Empty>(empty));
 
-//	server_upstream_reactor->SetInboundCallback(&ProcessInboundMessage);
 	pusher_reactors.back()->SetInboundCallback(&ProcessInboundBundle);
 
 	pusher_reactors.back()->SetDoneCallback(&OnServerUpstreamReactorDone);
 
 	LOG("Creating new pusher reactor. Count: " << pusher_reactors.size());
 
-//	return server_upstream_reactor;
 	return pusher_reactors.back();
   }
 
   __attribute__((unused)) ServerWriteReactor<Bundle> *Pull(CallbackServerContext *context, const Query *query) override {
 	unique_lock<mutex> pck(puller_mutex);
-//	unique_lock<mutex> lck(puller_mutex);
 
-//	if (query->types().empty()) {
-//	  cout << "with no interests. Sending all messages" << endl;
-//	} else {
-//	  cout << "with interests:";
-//	  for (const auto &kElem : query->types())
-//		cout << " " << kElem;
-//	  cout << endl;
-//	}
-
-//	puller_reactors.push_back(new PullerReactor(this, query));
 	puller_reactors.push_back(new ServerDownstreamReactor<Bundle, Query>(query));
 
 	puller_reactors.back()->SetDoneCallback(&OnServerDownstreamReactorDone);
-//
-//	cout << "Pullers count: " << puller_reactors.size() << endl;
-//
-//	return puller_reactors.back();
 
 	LOG("Creating new puller reactor. Count: " << puller_reactors.size());
 
-//	return new ServerDownstreamReactor<Bundle, Query>(query);
 	return puller_reactors.back();
   }
 };
 
-void WriteData(Bundle &bundle) {
+void WriteData(const Bundle &bundle) {
   auto start = high_resolution_clock::now();
 
   const auto &kValue = bundle.value();
 
   switch (bundle.type()) {
-	case STORAGE_RECORD:
+	case STORAGE_RECORD_FFT:
 	  // Here we construct the storage entry
-	  LOG("Writing record");
+	  LOG("Writing FFT record");
 
 	  // Create entry
-	  entry->timestamp_ = (double) bundle.timestamp().seconds() + (double) bundle.timestamp().nanos() / 1000000000L;
+	  fft_entry->timestamp_ = (double) bundle.timestamp().seconds() + (double) bundle.timestamp().nanos() / 1000000000L;
 
 	  for (int i = 0; i < FFT_FULL_SIZE; i++)
-		entry->fft_full_[i] = kValue.Get(i);
+		fft_entry->fft_full_[i] = kValue.Get(i);
 
 	  LOG("Parsing done");
 
-	  if (H5PTappend(ptable, 1, entry.get()) < 0) {
+	  if (H5PTappend(fft_ptable, 1, fft_entry.get()) < 0)
 		LOG("Error appending entry");
-	  }
 
-	  LOG("An entry has been written");
+	  if (H5Fflush(fid, H5F_SCOPE_GLOBAL) < 0)
+		LOG("Error flushing data");
+
+	  LOG("An FFT entry has been written");
+
+	  break;
+
+	case STORAGE_RECORD_MONITOR:
+	  // Here we construct the storage entry
+	  LOG("Writing Monitor record");
+
+	  // Create entry
+	  monitor_entry->timestamp_ = (double) bundle.timestamp().seconds() + (double) bundle.timestamp().nanos() / 1000000000L;
+
+	  monitor_entry->var1_ = kValue.Get(0);
+
+	  monitor_entry->var2_ = (int) kValue.Get(1);
+
+	  LOG("Parsing done");
+
+	  if (H5PTappend(monitor_ptable, 1, monitor_entry.get()) < 0)
+		LOG("Error appending entry");
+
+	  if (H5Fflush(fid, H5F_SCOPE_GLOBAL) < 0)
+		LOG("Error flushing data");
+
+	  LOG("A Monitor entry has been written");
 
 	  break;
 
@@ -194,7 +174,7 @@ void WriteData(Bundle &bundle) {
 
   auto stop = high_resolution_clock::now();
   auto duration = duration_cast<microseconds>(stop - start);
-  cout << "Writing Time: " << duration.count() << " us" << endl;
+  LOG("Writing Time: " << duration.count() << " us");
 }
 
 void InboundQueueProcessing() {
@@ -218,29 +198,52 @@ void InboundQueueProcessing() {
   }
 }
 
-static hid_t MakeEntryType() {
+static hid_t MakeFFTEntryType() {
   hid_t type_id, data_id;
 
   // Create the memory data type
-  type_id = H5Tcreate(H5T_COMPOUND, sizeof(Entry));
+  type_id = H5Tcreate(H5T_COMPOUND, sizeof(FFTEntry));
   if (type_id < 0)
 	return H5I_INVALID_HID;
 
   // Insert timestamp in data type
-  if (H5Tinsert(type_id, "Timestamp", HOFFSET(Entry, timestamp_), H5T_NATIVE_DOUBLE) < 0)
+  if (H5Tinsert(type_id, "Timestamp", HOFFSET(FFTEntry, timestamp_), H5T_NATIVE_DOUBLE) < 0)
 	return H5I_INVALID_HID;
 
   // Create and insert data array in data type
   hsize_t size = FFT_FULL_SIZE;
   data_id = H5Tarray_create(H5T_NATIVE_DOUBLE, 1, &size);
-  if (H5Tinsert(type_id, "FFTFull", HOFFSET(Entry, fft_full_), data_id) < 0)
+  if (H5Tinsert(type_id, "FFT Full", HOFFSET(FFTEntry, fft_full_), data_id) < 0)
+	return H5I_INVALID_HID;
+
+  return type_id;
+}
+
+static hid_t MakeMonitorEntryType() {
+  hid_t type_id;
+
+  // Create the memory data type
+  type_id = H5Tcreate(H5T_COMPOUND, sizeof(MonitorEntry));
+  if (type_id < 0)
+	return H5I_INVALID_HID;
+
+  // Insert timestamp in data type
+  if (H5Tinsert(type_id, "Timestamp", HOFFSET(MonitorEntry, timestamp_), H5T_NATIVE_DOUBLE) < 0)
+	return H5I_INVALID_HID;
+
+  // Insert VAR1
+  if (H5Tinsert(type_id, "Var1", HOFFSET(MonitorEntry, var1_), H5T_NATIVE_DOUBLE) < 0)
+	return H5I_INVALID_HID;
+
+  // Insert VAR2
+  if (H5Tinsert(type_id, "Var2", HOFFSET(MonitorEntry, var2_), H5T_NATIVE_INT) < 0)
 	return H5I_INVALID_HID;
 
   return type_id;
 }
 
 int OpenDataStorage() {
-  hid_t plist_id, part_t;
+  hid_t plist_id;
 
   // Test file access
   if (access(FILENAME, W_OK) == 0) {
@@ -253,9 +256,16 @@ int OpenDataStorage() {
 	} else {
 	  LOG("File successfully opened");
 
-	  ptable = H5PTopen(fid, DATASET_NAME);
-	  if (ptable == H5I_BADID) {
-		LOG("Error opening dataset");
+	  fft_ptable = H5PTopen(fid, DATASET_NAME_FFT);
+	  if (fft_ptable == H5I_BADID) {
+		LOG("Error opening fft dataset");
+
+		return -1;
+	  }
+
+	  monitor_ptable = H5PTopen(fid, DATASET_NAME_MONITOR);
+	  if (monitor_ptable == H5I_BADID) {
+		LOG("Error opening monitor dataset");
 
 		return -1;
 	  }
@@ -272,7 +282,7 @@ int OpenDataStorage() {
 		return -1;
 	  }
 
-	  // Create property list of the table
+	  // Create property list
 	  plist_id = H5Pcreate(H5P_DATASET_CREATE);
 	  H5Pset_deflate(plist_id, COMPRESSION_LEVEL); // Compression level
 	  if (plist_id < 0) {
@@ -281,11 +291,17 @@ int OpenDataStorage() {
 		return -1;
 	  }
 
-	  // Create table
-	  part_t = MakeEntryType();
-	  ptable = H5PTcreate(fid, DATASET_NAME, part_t, (hsize_t) CHUNK_SIZE, plist_id);
-	  if (ptable == H5I_BADID) {
-		LOG("Error creating table inside file");
+	  // Create FFT table
+	  fft_ptable = H5PTcreate(fid, DATASET_NAME_FFT, MakeFFTEntryType(), (hsize_t) CHUNK_SIZE, plist_id);
+	  if (fft_ptable == H5I_BADID) {
+		LOG("Error creating FFT dataset inside file");
+
+		return -1;
+	  }
+
+	  monitor_ptable = H5PTcreate(fid, DATASET_NAME_MONITOR, MakeMonitorEntryType(), (hsize_t) CHUNK_SIZE, plist_id);
+	  if (fft_ptable == H5I_BADID) {
+		LOG("Error creating Monitor dataset inside file");
 
 		return -1;
 	  }
@@ -297,96 +313,20 @@ int OpenDataStorage() {
 	}
   }
 
-//  // Open HDF5 file
-//  fid = H5Fopen(FILENAME, H5F_ACC_RDWR, H5P_DEFAULT);
-//  if (fid < 0) {
-//	cout << "File not found, creating a new one" << endl;
-//
-//	fid = H5Fcreate(FILENAME, H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT);
-//	if (fid < 0) {
-//	  cout << "Error creating file" << endl;
-//
-//	  return 1;
-//	}
-//
-//	// Create property list of the table
-//	plist_id = H5Pcreate(H5P_DATASET_CREATE);
-//	H5Pset_deflate(plist_id, COMPRESSION_LEVEL); // Compression level
-//	if (plist_id < 0) {
-//	  cout << "Error setting compression algorithm" << endl;
-//
-//	  return 1;
-//	}
-//
-//	// Create table
-//	part_t = MakeParticleType();
-//	ptable = H5PTcreate(fid, DATASET_NAME, part_t, (hsize_t) 100, plist_id);
-//	if (ptable == H5I_BADID) {
-//	  cout << "Error creating table inside file" << endl;
-//
-//	  return 1;
-//	}
-//  } else {
-//	cout << "File opened successfully" << endl;
-//
-//	ptable = H5PTopen(fid, DATASET_NAME);
-//	if (ptable == H5I_BADID) {
-//	  cout << "Error opening dataset" << endl;
-//
-//	  return 1;
-//	}
-//  }
-
-//  if (H5PTappend(ptable, 1, &(testEntries[0])) < 0) {
-//	cout << "Error appending 1 entry" << endl;
-//
-//	return -1;
-//  }
-//
-//  if (H5PTappend(ptable, 3, &(testEntries[1])) < 0) {
-//	cout << "Error appending 3 entries" << endl;
-//
-//	return -1;
-//  }
-
-//  /* Write one packet to the packet table */
-//  err = H5PTappend(ptable, (hsize_t) 1, &(writeBuffer[0]));
-//  if (err < 0)
-//	goto out;
-//
-//  /* Write several packets to the packet table */
-//  err = H5PTappend(ptable, (hsize_t) 4, &(writeBuffer[1]));
-//  if (err < 0)
-//	goto out;
-//
-  /* Get the number of packets in the packet table.  This should be five. */
-//  hsize_t count;
-//  H5PTget_num_packets(ptable, &count);
-//
-//  printf("Number of packets in packet table after five appends: %d\n", (int) count);
-
-//
-//  /* Initialize packet table's "current record" */
-//  err = H5PTcreate_index(ptable);
-//  if (err < 0)
-//	goto out;
-//
-//  /* Iterate through packets, read each one back */
-//  for (x = 0; x < 5; x++) {
-//	err = H5PTget_next(ptable, (hsize_t) 1, &(readBuffer[x]));
-//	if (err < 0)
-//	  goto out;
-//
-//	printf("Packet %d's value is %d\n", x, readBuffer[x]);
-//  }
-
   return 0;
 }
 
 int CloseDataStorage() {
-  // Close the packet table
-  if (H5PTclose(ptable) < 0) {
-	LOG("Error closing table");
+  // Close the FFT packet table
+  if (H5PTclose(fft_ptable) < 0) {
+	LOG("Error closing FFT dataset");
+
+	return -1;
+  }
+
+  // Close the Monitor packet table
+  if (H5PTclose(monitor_ptable) < 0) {
+	LOG("Error closing Monitor dataset");
 
 	return -1;
   }
@@ -406,9 +346,11 @@ int RunServer(void *) {
   ServerBuilder builder;
   sigset_t set;
   int s;
+  thread inbound_queue_thread;
 
-  // Create this big entry in child memory
-  entry = make_unique<Entry>();
+  // Create these big entries in child memory
+  fft_entry = make_unique<FFTEntry>();
+  monitor_entry = make_unique<MonitorEntry>();
 
   // Open data storage
   if (OpenDataStorage() < 0) {
@@ -420,7 +362,7 @@ int RunServer(void *) {
   }
 
   // Create and start InboundQueueProcessing thread
-  inbound_queue_thread = std::thread(&InboundQueueProcessing);
+  inbound_queue_thread = thread(&InboundQueueProcessing);
 
   // Initialize GRPC Server
   // grpc::EnableDefaultHealthCheckService(true);
