@@ -214,7 +214,7 @@ class MainWindow(QMainWindow):
             self.execute_twistorr_monitor()
         else:
             self.kill_twistorr_monitor()
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
     def execute_twistorr_monitor(self):
         self.processes[11] = subprocess.Popen([self.binary_paths[11]])
  
