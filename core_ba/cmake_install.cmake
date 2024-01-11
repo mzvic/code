@@ -1,4 +1,4 @@
-# Install script for directory: /home/code/Development/core_ba
+# Install script for directory: /home/code/Development1/core_ba
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/code/Development/core_ba/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/code/Development1/core_ba/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

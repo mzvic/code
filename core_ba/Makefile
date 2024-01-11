@@ -67,10 +67,10 @@ RM = /home/code/.local/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/code/Development/core_ba
+CMAKE_SOURCE_DIR = /home/code/Development1/core_ba
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/code/Development/core_ba
+CMAKE_BINARY_DIR = /home/code/Development1/core_ba
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -99,9 +99,9 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles /home/code/Development/core_ba//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles /home/code/Development1/core_ba//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -130,6 +130,58 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named recorder
+
+# Build rule for target.
+recorder: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 recorder
+.PHONY : recorder
+
+# fast build rule for target.
+recorder/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/recorder.dir/build.make CMakeFiles/recorder.dir/build
+.PHONY : recorder/fast
+
+#=============================================================================
+# Target rules for targets named storage
+
+# Build rule for target.
+storage: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 storage
+.PHONY : storage
+
+# fast build rule for target.
+storage/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage.dir/build.make CMakeFiles/storage.dir/build
+.PHONY : storage/fast
+
+#=============================================================================
+# Target rules for targets named TwisTorrMonitor_code_sw
+
+# Build rule for target.
+TwisTorrMonitor_code_sw: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 TwisTorrMonitor_code_sw
+.PHONY : TwisTorrMonitor_code_sw
+
+# fast build rule for target.
+TwisTorrMonitor_code_sw/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrMonitor_code_sw.dir/build.make CMakeFiles/TwisTorrMonitor_code_sw.dir/build
+.PHONY : TwisTorrMonitor_code_sw/fast
+
+#=============================================================================
+# Target rules for targets named TwisTorrSetter_code_sw
+
+# Build rule for target.
+TwisTorrSetter_code_sw: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 TwisTorrSetter_code_sw
+.PHONY : TwisTorrSetter_code_sw
+
+# fast build rule for target.
+TwisTorrSetter_code_sw/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter_code_sw.dir/build.make CMakeFiles/TwisTorrSetter_code_sw.dir/build
+.PHONY : TwisTorrSetter_code_sw/fast
+
+#=============================================================================
 # Target rules for targets named TwisTorrIO_code_sw
 
 # Build rule for target.
@@ -141,32 +193,6 @@ TwisTorrIO_code_sw: cmake_check_build_system
 TwisTorrIO_code_sw/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrIO_code_sw.dir/build.make CMakeFiles/TwisTorrIO_code_sw.dir/build
 .PHONY : TwisTorrIO_code_sw/fast
-
-#=============================================================================
-# Target rules for targets named APD_reg_zero_code_sw
-
-# Build rule for target.
-APD_reg_zero_code_sw: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg_zero_code_sw
-.PHONY : APD_reg_zero_code_sw
-
-# fast build rule for target.
-APD_reg_zero_code_sw/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero_code_sw.dir/build.make CMakeFiles/APD_reg_zero_code_sw.dir/build
-.PHONY : APD_reg_zero_code_sw/fast
-
-#=============================================================================
-# Target rules for targets named APD_reg_fft_1_code_sw
-
-# Build rule for target.
-APD_reg_fft_1_code_sw: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg_fft_1_code_sw
-.PHONY : APD_reg_fft_1_code_sw
-
-# fast build rule for target.
-APD_reg_fft_1_code_sw/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_1_code_sw.dir/build.make CMakeFiles/APD_reg_fft_1_code_sw.dir/build
-.PHONY : APD_reg_fft_1_code_sw/fast
 
 #=============================================================================
 # Target rules for targets named APD_broker2_code_sw
@@ -182,30 +208,30 @@ APD_broker2_code_sw/fast:
 .PHONY : APD_broker2_code_sw/fast
 
 #=============================================================================
-# Target rules for targets named APD_fft_full_code_sw
+# Target rules for targets named APD_reg_zero_code_sw
 
 # Build rule for target.
-APD_fft_full_code_sw: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_fft_full_code_sw
-.PHONY : APD_fft_full_code_sw
+APD_reg_zero_code_sw: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg_zero_code_sw
+.PHONY : APD_reg_zero_code_sw
 
 # fast build rule for target.
-APD_fft_full_code_sw/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft_full_code_sw.dir/build.make CMakeFiles/APD_fft_full_code_sw.dir/build
-.PHONY : APD_fft_full_code_sw/fast
+APD_reg_zero_code_sw/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero_code_sw.dir/build.make CMakeFiles/APD_reg_zero_code_sw.dir/build
+.PHONY : APD_reg_zero_code_sw/fast
 
 #=============================================================================
-# Target rules for targets named reactor
+# Target rules for targets named broker_client
 
 # Build rule for target.
-reactor: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 reactor
-.PHONY : reactor
+broker_client: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 broker_client
+.PHONY : broker_client
 
 # fast build rule for target.
-reactor/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/reactor.dir/build.make CMakeFiles/reactor.dir/build
-.PHONY : reactor/fast
+broker_client/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/broker_client.dir/build.make CMakeFiles/broker_client.dir/build
+.PHONY : broker_client/fast
 
 #=============================================================================
 # Target rules for targets named APD_reg_proc_code_sw
@@ -234,17 +260,30 @@ core_grpc_proto/fast:
 .PHONY : core_grpc_proto/fast
 
 #=============================================================================
-# Target rules for targets named APD_reg_fft_01_code_sw
+# Target rules for targets named APD_fft_full_code_sw
 
 # Build rule for target.
-APD_reg_fft_01_code_sw: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg_fft_01_code_sw
-.PHONY : APD_reg_fft_01_code_sw
+APD_fft_full_code_sw: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_fft_full_code_sw
+.PHONY : APD_fft_full_code_sw
 
 # fast build rule for target.
-APD_reg_fft_01_code_sw/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_01_code_sw.dir/build.make CMakeFiles/APD_reg_fft_01_code_sw.dir/build
-.PHONY : APD_reg_fft_01_code_sw/fast
+APD_fft_full_code_sw/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft_full_code_sw.dir/build.make CMakeFiles/APD_fft_full_code_sw.dir/build
+.PHONY : APD_fft_full_code_sw/fast
+
+#=============================================================================
+# Target rules for targets named storage_client
+
+# Build rule for target.
+storage_client: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 storage_client
+.PHONY : storage_client
+
+# fast build rule for target.
+storage_client/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_client.dir/build.make CMakeFiles/storage_client.dir/build
+.PHONY : storage_client/fast
 
 #=============================================================================
 # Target rules for targets named APD_fft_partial_code_sw
@@ -260,17 +299,17 @@ APD_fft_partial_code_sw/fast:
 .PHONY : APD_fft_partial_code_sw/fast
 
 #=============================================================================
-# Target rules for targets named client
+# Target rules for targets named APD_reg_fft_01_code_sw
 
 # Build rule for target.
-client: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 client
-.PHONY : client
+APD_reg_fft_01_code_sw: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg_fft_01_code_sw
+.PHONY : APD_reg_fft_01_code_sw
 
 # fast build rule for target.
-client/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/build
-.PHONY : client/fast
+APD_reg_fft_01_code_sw/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_01_code_sw.dir/build.make CMakeFiles/APD_reg_fft_01_code_sw.dir/build
+.PHONY : APD_reg_fft_01_code_sw/fast
 
 #=============================================================================
 # Target rules for targets named APD_plot_cvt_code_sw
@@ -299,43 +338,17 @@ APD_publisher_code_sw/fast:
 .PHONY : APD_publisher_code_sw/fast
 
 #=============================================================================
-# Target rules for targets named TwisTorrSetter_code_sw
+# Target rules for targets named APD_reg_fft_1_code_sw
 
 # Build rule for target.
-TwisTorrSetter_code_sw: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 TwisTorrSetter_code_sw
-.PHONY : TwisTorrSetter_code_sw
+APD_reg_fft_1_code_sw: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg_fft_1_code_sw
+.PHONY : APD_reg_fft_1_code_sw
 
 # fast build rule for target.
-TwisTorrSetter_code_sw/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter_code_sw.dir/build.make CMakeFiles/TwisTorrSetter_code_sw.dir/build
-.PHONY : TwisTorrSetter_code_sw/fast
-
-#=============================================================================
-# Target rules for targets named publisher6
-
-# Build rule for target.
-publisher6: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 publisher6
-.PHONY : publisher6
-
-# fast build rule for target.
-publisher6/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/publisher6.dir/build.make CMakeFiles/publisher6.dir/build
-.PHONY : publisher6/fast
-
-#=============================================================================
-# Target rules for targets named subscriber6
-
-# Build rule for target.
-subscriber6: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 subscriber6
-.PHONY : subscriber6
-
-# fast build rule for target.
-subscriber6/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/subscriber6.dir/build.make CMakeFiles/subscriber6.dir/build
-.PHONY : subscriber6/fast
+APD_reg_fft_1_code_sw/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_1_code_sw.dir/build.make CMakeFiles/APD_reg_fft_1_code_sw.dir/build
+.PHONY : APD_reg_fft_1_code_sw/fast
 
 APD_broker2_code_sw.o: APD_broker2_code_sw.cc.o
 
@@ -607,6 +620,33 @@ TwisTorrIO_code_sw.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrIO_code_sw.dir/build.make CMakeFiles/TwisTorrIO_code_sw.dir/TwisTorrIO_code_sw.cc.s
 .PHONY : TwisTorrIO_code_sw.cc.s
 
+TwisTorrMonitor_code_sw.o: TwisTorrMonitor_code_sw.cc.o
+
+.PHONY : TwisTorrMonitor_code_sw.o
+
+# target to build an object file
+TwisTorrMonitor_code_sw.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrMonitor_code_sw.dir/build.make CMakeFiles/TwisTorrMonitor_code_sw.dir/TwisTorrMonitor_code_sw.cc.o
+.PHONY : TwisTorrMonitor_code_sw.cc.o
+
+TwisTorrMonitor_code_sw.i: TwisTorrMonitor_code_sw.cc.i
+
+.PHONY : TwisTorrMonitor_code_sw.i
+
+# target to preprocess a source file
+TwisTorrMonitor_code_sw.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrMonitor_code_sw.dir/build.make CMakeFiles/TwisTorrMonitor_code_sw.dir/TwisTorrMonitor_code_sw.cc.i
+.PHONY : TwisTorrMonitor_code_sw.cc.i
+
+TwisTorrMonitor_code_sw.s: TwisTorrMonitor_code_sw.cc.s
+
+.PHONY : TwisTorrMonitor_code_sw.s
+
+# target to generate assembly for a file
+TwisTorrMonitor_code_sw.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrMonitor_code_sw.dir/build.make CMakeFiles/TwisTorrMonitor_code_sw.dir/TwisTorrMonitor_code_sw.cc.s
+.PHONY : TwisTorrMonitor_code_sw.cc.s
+
 TwisTorrSetter_code_sw.o: TwisTorrSetter_code_sw.cc.o
 
 .PHONY : TwisTorrSetter_code_sw.o
@@ -633,6 +673,33 @@ TwisTorrSetter_code_sw.s: TwisTorrSetter_code_sw.cc.s
 TwisTorrSetter_code_sw.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter_code_sw.dir/build.make CMakeFiles/TwisTorrSetter_code_sw.dir/TwisTorrSetter_code_sw.cc.s
 .PHONY : TwisTorrSetter_code_sw.cc.s
+
+broker_client.o: broker_client.cc.o
+
+.PHONY : broker_client.o
+
+# target to build an object file
+broker_client.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/broker_client.dir/build.make CMakeFiles/broker_client.dir/broker_client.cc.o
+.PHONY : broker_client.cc.o
+
+broker_client.i: broker_client.cc.i
+
+.PHONY : broker_client.i
+
+# target to preprocess a source file
+broker_client.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/broker_client.dir/build.make CMakeFiles/broker_client.dir/broker_client.cc.i
+.PHONY : broker_client.cc.i
+
+broker_client.s: broker_client.cc.s
+
+.PHONY : broker_client.s
+
+# target to generate assembly for a file
+broker_client.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/broker_client.dir/build.make CMakeFiles/broker_client.dir/broker_client.cc.s
+.PHONY : broker_client.cc.s
 
 core.grpc.pb.o: core.grpc.pb.cc.o
 
@@ -688,167 +755,86 @@ core.pb.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/core_grpc_proto.dir/build.make CMakeFiles/core_grpc_proto.dir/core.pb.cc.s
 .PHONY : core.pb.cc.s
 
-publisher6.o: publisher6.cc.o
+recorder.o: recorder.cc.o
 
-.PHONY : publisher6.o
-
-# target to build an object file
-publisher6.cc.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/publisher6.dir/build.make CMakeFiles/publisher6.dir/publisher6.cc.o
-.PHONY : publisher6.cc.o
-
-publisher6.i: publisher6.cc.i
-
-.PHONY : publisher6.i
-
-# target to preprocess a source file
-publisher6.cc.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/publisher6.dir/build.make CMakeFiles/publisher6.dir/publisher6.cc.i
-.PHONY : publisher6.cc.i
-
-publisher6.s: publisher6.cc.s
-
-.PHONY : publisher6.s
-
-# target to generate assembly for a file
-publisher6.cc.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/publisher6.dir/build.make CMakeFiles/publisher6.dir/publisher6.cc.s
-.PHONY : publisher6.cc.s
-
-publisher_client.o: publisher_client.cc.o
-
-.PHONY : publisher_client.o
+.PHONY : recorder.o
 
 # target to build an object file
-publisher_client.cc.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/publisher_client.cc.o
-.PHONY : publisher_client.cc.o
+recorder.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/recorder.dir/build.make CMakeFiles/recorder.dir/recorder.cc.o
+.PHONY : recorder.cc.o
 
-publisher_client.i: publisher_client.cc.i
+recorder.i: recorder.cc.i
 
-.PHONY : publisher_client.i
+.PHONY : recorder.i
 
 # target to preprocess a source file
-publisher_client.cc.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/publisher_client.cc.i
-.PHONY : publisher_client.cc.i
+recorder.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/recorder.dir/build.make CMakeFiles/recorder.dir/recorder.cc.i
+.PHONY : recorder.cc.i
 
-publisher_client.s: publisher_client.cc.s
+recorder.s: recorder.cc.s
 
-.PHONY : publisher_client.s
+.PHONY : recorder.s
 
 # target to generate assembly for a file
-publisher_client.cc.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/publisher_client.cc.s
-.PHONY : publisher_client.cc.s
+recorder.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/recorder.dir/build.make CMakeFiles/recorder.dir/recorder.cc.s
+.PHONY : recorder.cc.s
 
-reactor/publisher_server_reactor.o: reactor/publisher_server_reactor.cc.o
+storage.o: storage.cc.o
 
-.PHONY : reactor/publisher_server_reactor.o
+.PHONY : storage.o
 
 # target to build an object file
-reactor/publisher_server_reactor.cc.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/reactor.dir/build.make CMakeFiles/reactor.dir/reactor/publisher_server_reactor.cc.o
-.PHONY : reactor/publisher_server_reactor.cc.o
+storage.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage.dir/build.make CMakeFiles/storage.dir/storage.cc.o
+.PHONY : storage.cc.o
 
-reactor/publisher_server_reactor.i: reactor/publisher_server_reactor.cc.i
+storage.i: storage.cc.i
 
-.PHONY : reactor/publisher_server_reactor.i
+.PHONY : storage.i
 
 # target to preprocess a source file
-reactor/publisher_server_reactor.cc.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/reactor.dir/build.make CMakeFiles/reactor.dir/reactor/publisher_server_reactor.cc.i
-.PHONY : reactor/publisher_server_reactor.cc.i
+storage.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage.dir/build.make CMakeFiles/storage.dir/storage.cc.i
+.PHONY : storage.cc.i
 
-reactor/publisher_server_reactor.s: reactor/publisher_server_reactor.cc.s
+storage.s: storage.cc.s
 
-.PHONY : reactor/publisher_server_reactor.s
+.PHONY : storage.s
 
 # target to generate assembly for a file
-reactor/publisher_server_reactor.cc.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/reactor.dir/build.make CMakeFiles/reactor.dir/reactor/publisher_server_reactor.cc.s
-.PHONY : reactor/publisher_server_reactor.cc.s
+storage.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage.dir/build.make CMakeFiles/storage.dir/storage.cc.s
+.PHONY : storage.cc.s
 
-reactor/subscriber_server_reactor.o: reactor/subscriber_server_reactor.cc.o
+storage_client.o: storage_client.cc.o
 
-.PHONY : reactor/subscriber_server_reactor.o
+.PHONY : storage_client.o
 
 # target to build an object file
-reactor/subscriber_server_reactor.cc.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/reactor.dir/build.make CMakeFiles/reactor.dir/reactor/subscriber_server_reactor.cc.o
-.PHONY : reactor/subscriber_server_reactor.cc.o
+storage_client.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_client.dir/build.make CMakeFiles/storage_client.dir/storage_client.cc.o
+.PHONY : storage_client.cc.o
 
-reactor/subscriber_server_reactor.i: reactor/subscriber_server_reactor.cc.i
+storage_client.i: storage_client.cc.i
 
-.PHONY : reactor/subscriber_server_reactor.i
-
-# target to preprocess a source file
-reactor/subscriber_server_reactor.cc.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/reactor.dir/build.make CMakeFiles/reactor.dir/reactor/subscriber_server_reactor.cc.i
-.PHONY : reactor/subscriber_server_reactor.cc.i
-
-reactor/subscriber_server_reactor.s: reactor/subscriber_server_reactor.cc.s
-
-.PHONY : reactor/subscriber_server_reactor.s
-
-# target to generate assembly for a file
-reactor/subscriber_server_reactor.cc.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/reactor.dir/build.make CMakeFiles/reactor.dir/reactor/subscriber_server_reactor.cc.s
-.PHONY : reactor/subscriber_server_reactor.cc.s
-
-subscriber6.o: subscriber6.cc.o
-
-.PHONY : subscriber6.o
-
-# target to build an object file
-subscriber6.cc.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/subscriber6.dir/build.make CMakeFiles/subscriber6.dir/subscriber6.cc.o
-.PHONY : subscriber6.cc.o
-
-subscriber6.i: subscriber6.cc.i
-
-.PHONY : subscriber6.i
+.PHONY : storage_client.i
 
 # target to preprocess a source file
-subscriber6.cc.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/subscriber6.dir/build.make CMakeFiles/subscriber6.dir/subscriber6.cc.i
-.PHONY : subscriber6.cc.i
+storage_client.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_client.dir/build.make CMakeFiles/storage_client.dir/storage_client.cc.i
+.PHONY : storage_client.cc.i
 
-subscriber6.s: subscriber6.cc.s
+storage_client.s: storage_client.cc.s
 
-.PHONY : subscriber6.s
-
-# target to generate assembly for a file
-subscriber6.cc.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/subscriber6.dir/build.make CMakeFiles/subscriber6.dir/subscriber6.cc.s
-.PHONY : subscriber6.cc.s
-
-subscriber_client.o: subscriber_client.cc.o
-
-.PHONY : subscriber_client.o
-
-# target to build an object file
-subscriber_client.cc.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/subscriber_client.cc.o
-.PHONY : subscriber_client.cc.o
-
-subscriber_client.i: subscriber_client.cc.i
-
-.PHONY : subscriber_client.i
-
-# target to preprocess a source file
-subscriber_client.cc.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/subscriber_client.cc.i
-.PHONY : subscriber_client.cc.i
-
-subscriber_client.s: subscriber_client.cc.s
-
-.PHONY : subscriber_client.s
+.PHONY : storage_client.s
 
 # target to generate assembly for a file
-subscriber_client.cc.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/subscriber_client.cc.s
-.PHONY : subscriber_client.cc.s
+storage_client.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_client.dir/build.make CMakeFiles/storage_client.dir/storage_client.cc.s
+.PHONY : storage_client.cc.s
 
 # Help Target
 help:
@@ -868,12 +854,13 @@ help:
 	@echo "... APD_reg_proc_code_sw"
 	@echo "... APD_reg_zero_code_sw"
 	@echo "... TwisTorrIO_code_sw"
+	@echo "... TwisTorrMonitor_code_sw"
 	@echo "... TwisTorrSetter_code_sw"
-	@echo "... client"
+	@echo "... broker_client"
 	@echo "... core_grpc_proto"
-	@echo "... publisher6"
-	@echo "... reactor"
-	@echo "... subscriber6"
+	@echo "... recorder"
+	@echo "... storage"
+	@echo "... storage_client"
 	@echo "... APD_broker2_code_sw.o"
 	@echo "... APD_broker2_code_sw.i"
 	@echo "... APD_broker2_code_sw.s"
@@ -904,33 +891,30 @@ help:
 	@echo "... TwisTorrIO_code_sw.o"
 	@echo "... TwisTorrIO_code_sw.i"
 	@echo "... TwisTorrIO_code_sw.s"
+	@echo "... TwisTorrMonitor_code_sw.o"
+	@echo "... TwisTorrMonitor_code_sw.i"
+	@echo "... TwisTorrMonitor_code_sw.s"
 	@echo "... TwisTorrSetter_code_sw.o"
 	@echo "... TwisTorrSetter_code_sw.i"
 	@echo "... TwisTorrSetter_code_sw.s"
+	@echo "... broker_client.o"
+	@echo "... broker_client.i"
+	@echo "... broker_client.s"
 	@echo "... core.grpc.pb.o"
 	@echo "... core.grpc.pb.i"
 	@echo "... core.grpc.pb.s"
 	@echo "... core.pb.o"
 	@echo "... core.pb.i"
 	@echo "... core.pb.s"
-	@echo "... publisher6.o"
-	@echo "... publisher6.i"
-	@echo "... publisher6.s"
-	@echo "... publisher_client.o"
-	@echo "... publisher_client.i"
-	@echo "... publisher_client.s"
-	@echo "... reactor/publisher_server_reactor.o"
-	@echo "... reactor/publisher_server_reactor.i"
-	@echo "... reactor/publisher_server_reactor.s"
-	@echo "... reactor/subscriber_server_reactor.o"
-	@echo "... reactor/subscriber_server_reactor.i"
-	@echo "... reactor/subscriber_server_reactor.s"
-	@echo "... subscriber6.o"
-	@echo "... subscriber6.i"
-	@echo "... subscriber6.s"
-	@echo "... subscriber_client.o"
-	@echo "... subscriber_client.i"
-	@echo "... subscriber_client.s"
+	@echo "... recorder.o"
+	@echo "... recorder.i"
+	@echo "... recorder.s"
+	@echo "... storage.o"
+	@echo "... storage.i"
+	@echo "... storage.s"
+	@echo "... storage_client.o"
+	@echo "... storage_client.i"
+	@echo "... storage_client.s"
 .PHONY : help
 
 

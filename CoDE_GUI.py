@@ -168,7 +168,7 @@ class UpdateGraph2Thread(QThread):
 
             
 
-# Definition of a custom thread class for updating TwistTorr monitoring data
+# Definition of a custom thread class for updating TwisTorr monitoring data
 
 class UpdateTTThread(QThread):
     bundle3 = None
@@ -321,11 +321,14 @@ class RigolDataThread(QThread):
             time.sleep(0.1)
     
 class MainWindow(QMainWindow):
+    showWarningSignal = pyqtSignal(str)
     def __init__(self):
         super(MainWindow, self).__init__()
 
+        self.showWarningSignal.connect(self.show_warning_message)
+
         #path = os.getcwd()
-        path = '/home/code/Development'
+        path = '/home/code/Development1'
         
         # Paths to c++ processes
         self.binary_paths = [
@@ -339,7 +342,10 @@ class MainWindow(QMainWindow):
             path + '/core_ba/bin/APD_reg_fft_01_code_sw',
             path + '/core_ba/bin/APD_fft_full_code_sw',
             path + '/core_ba/bin/TwisTorrIO_code_sw',
-            path + '/core_ba/bin/TwisTorrSetter_code_sw'        
+            path + '/core_ba/bin/TwisTorrSetter_code_sw',
+            path + '/core_ba/bin/TwisTorrMonitor_code_sw',            
+            path + '/core_ba/bin/storage',
+            path + '/core_ba/bin/recorder'         
         ]
 
         # Title of the window
@@ -356,7 +362,7 @@ class MainWindow(QMainWindow):
         self.tab2 = QWidget()
         self.tab3 = QWidget()
         self.tab4 = QWidget()
-        self.tab5 = QWidget()
+#        self.tab5 = QWidget()
         self.tab6 = QWidget()
         self.tab7 = QWidget()
 
@@ -369,11 +375,28 @@ class MainWindow(QMainWindow):
         # Create grid layout for the dock widget
         self.dock_grid = QtWidgets.QGridLayout()
 
+        # ---- Datalogger ----
+        self.logging_frame = QtWidgets.QFrame()
+        self.logging_frame.setFrameShape(QtWidgets.QFrame.Box)
+
+        self.dock_grid.addWidget(self.logging_frame, 1, 0, 1, 2)
+
+        logging_layout = QtWidgets.QVBoxLayout(self.logging_frame)
+        self.logging_frame.setLayout(logging_layout)
+
+        self.logging_button = QtWidgets.QPushButton()
+        #self.logging_button.setCheckable(True)
+        self.logging_button.setStyleSheet("background-color: 53, 53, 53;")
+        self.logging_button.setText("Data logging")
+        self.logging_button.setFixedWidth(180)
+        #self.logging_button.clicked.connect(self.logging_connect)
+        logging_layout.addWidget(self.logging_button, alignment=Qt.AlignTop | Qt.AlignHCenter)
+
         # ---- TRAP SYSTEM ----
         self.trap_frame = QtWidgets.QFrame()
         self.trap_frame.setFrameShape(QtWidgets.QFrame.Box)
 
-        self.dock_grid.addWidget(self.trap_frame, 1, 0, 4, 2)
+        self.dock_grid.addWidget(self.trap_frame, 2, 0, 4, 2)
 
         trap_layout = QtWidgets.QVBoxLayout(self.trap_frame)
         self.trap_frame.setLayout(trap_layout)
@@ -384,15 +407,15 @@ class MainWindow(QMainWindow):
         self.trap_button.setText("Trap")
         self.trap_button.setFixedWidth(180)
         self.trap_button.clicked.connect(self.toggle_trap_connect)
-        self.dock_grid.addWidget(QLabel("       Voltage:"), 2, 0)
-        self.voltage_monitor = QtWidgets.QLabel("N/A")
-        self.dock_grid.addWidget(self.voltage_monitor, 2, 1)
-        self.dock_grid.addWidget(QLabel("       Offset voltage:"), 3, 0)
-        self.offset_monitor = QtWidgets.QLabel("N/A")
-        self.dock_grid.addWidget(self.offset_monitor, 3, 1)
-        self.dock_grid.addWidget(QLabel("       Frequency:"), 4, 0)
-        self.frequency_monitor = QtWidgets.QLabel("N/A")
-        self.dock_grid.addWidget(self.frequency_monitor, 4, 1)
+        self.dock_grid.addWidget(QLabel("       Voltage:"), 3, 0)
+        self.voltage_monitor = QtWidgets.QLabel("N/C")
+        self.dock_grid.addWidget(self.voltage_monitor, 3, 1)
+        self.dock_grid.addWidget(QLabel("       Offset voltage:"), 4, 0)
+        self.offset_monitor = QtWidgets.QLabel("N/C")
+        self.dock_grid.addWidget(self.offset_monitor, 4, 1)
+        self.dock_grid.addWidget(QLabel("       Frequency:"), 5, 0)
+        self.frequency_monitor = QtWidgets.QLabel("N/C")
+        self.dock_grid.addWidget(self.frequency_monitor, 5, 1)
         trap_layout.addWidget(self.trap_button, alignment=Qt.AlignTop | Qt.AlignHCenter)
         # ---------------------------------------------
 
@@ -400,7 +423,7 @@ class MainWindow(QMainWindow):
         self.pressure_frame = QtWidgets.QFrame()
         self.pressure_frame.setFrameShape(QtWidgets.QFrame.Box)
 
-        self.dock_grid.addWidget(self.pressure_frame, 5, 0, 2, 2)
+        self.dock_grid.addWidget(self.pressure_frame, 6, 0, 2, 2)
 
         pressure_layout = QtWidgets.QVBoxLayout(self.pressure_frame)
         self.pressure_frame.setLayout(pressure_layout)
@@ -408,21 +431,21 @@ class MainWindow(QMainWindow):
         self.pressure_button = QtWidgets.QPushButton()
         self.pressure_button.setCheckable(True)
         self.pressure_button.setStyleSheet("background-color: 53, 53, 53;")
-        self.pressure_button.setText("Pressure system")
+        self.pressure_button.setText("Vacuum pump")
         self.pressure_button.setFixedWidth(180)
-
+        self.pressure_button.clicked.connect(self.execute_twistorr_bar_btn)
         pressure_layout.addWidget(self.pressure_button, alignment=Qt.AlignTop | Qt.AlignHCenter)
 
-        self.dock_grid.addWidget(QLabel("       Pressure:"), 6, 0)
-        self.pressure_monitor = QtWidgets.QLabel("N/A")
-        self.dock_grid.addWidget(self.pressure_monitor, 6, 1)
+        self.dock_grid.addWidget(QLabel("       Pump frequency:"), 7, 0)
+        self.vacuum_frequency = QtWidgets.QLabel("N/C")
+        self.dock_grid.addWidget(self.vacuum_frequency, 7, 1)
         # ---------------------------------------------
 
         self.laser_frame = QtWidgets.QFrame()
         self.laser_frame.setFrameShape(QtWidgets.QFrame.Box)
         self.laser_frame.setGeometry(0, 0, 250, 100)  # Establecer posición y tamaño del frame
 
-        self.dock_grid.addWidget(self.laser_frame, 8, 0, 3, 2)
+        self.dock_grid.addWidget(self.laser_frame, 9, 0, 3, 2)
 
         self.laser_button = QtWidgets.QPushButton(self.laser_frame)
         self.laser_button.setCheckable(True)
@@ -443,9 +466,9 @@ class MainWindow(QMainWindow):
         self.laser_set_button.setFixedWidth(70)
         self.laser_set_button.move(130, 85)  
 
-        self.dock_grid.addWidget(QLabel("       Laser voltage:"), 10, 0)
-        self.laser_voltage_monitor = QtWidgets.QLabel("N/A")
-        self.dock_grid.addWidget(self.laser_voltage_monitor, 10, 1)
+        self.dock_grid.addWidget(QLabel("       Laser voltage:"), 11, 0)
+        self.laser_voltage_monitor = QtWidgets.QLabel("N/C")
+        self.dock_grid.addWidget(self.laser_voltage_monitor, 11, 1)
 
         # ---------------------------------------------
 
@@ -453,7 +476,7 @@ class MainWindow(QMainWindow):
         self.apd_frame = QtWidgets.QFrame()
         self.apd_frame.setFrameShape(QtWidgets.QFrame.Box)
 
-        self.dock_grid.addWidget(self.apd_frame, 14, 0, 1, 2)
+        self.dock_grid.addWidget(self.apd_frame, 15, 0, 1, 2)
 
         apd_layout = QtWidgets.QVBoxLayout(self.apd_frame)
         self.apd_frame.setLayout(apd_layout)
@@ -479,12 +502,12 @@ class MainWindow(QMainWindow):
         self.tab_widget.addTab(self.tab2, "Vacuum")
         self.tab_widget.addTab(self.tab3, "ESI")
         self.tab_widget.addTab(self.tab4, "Particle trap")
-        self.tab_widget.addTab(self.tab5, "Temperature")
+#        self.tab_widget.addTab(self.tab5, "Temperature")
         self.tab_widget.addTab(self.tab6, "Data processing")
-        self.tab_widget.addTab(self.tab7, "Registers")                
+        self.tab_widget.addTab(self.tab7, "Data logging")                
 
         # Amont of processes depends on amount of c++ processes indicated earlier
-        self.processes = [None] * 11
+        self.processes = [None] * 14
         self.threads = []
         self.processes[9] = subprocess.Popen([self.binary_paths[9]])
 
@@ -591,7 +614,7 @@ class MainWindow(QMainWindow):
         serialPortsLabel.setFixedWidth(100)
         self.serialPortsCombobox = QComboBox(self)
         self.update_serial_ports()
-        index_p = self.serialPortsCombobox.findText('/dev/ttyUSB1', QtCore.Qt.MatchFixedString) # Default value
+        index_p = self.serialPortsCombobox.findText('usb-Digilent_Digilent_USB_Device_210319B58455-if01-port0', QtCore.Qt.MatchFixedString) # Default value
         if index_p >= 0:
              self.serialPortsCombobox.setCurrentIndex(index_p)        
         self.serialPortsCombobox.setMaximumWidth(120)
@@ -733,7 +756,7 @@ class MainWindow(QMainWindow):
         # ------------------------------------------------------------------------------------------- #
         self.layout2 = QGridLayout(self.tab2)
 
-        # Connect UpdateTTThread() to a thread (receives TwistTorr data [Vacuum])
+        # Connect UpdateTTThread() to a thread (receives TwisTorr data [Vacuum])
         self.update_TT_thread = UpdateTTThread()
         self.update_TT_thread.update_signal3.connect(self.update_vacuum_values)
         self.update_TT_thread.start()        
@@ -741,71 +764,77 @@ class MainWindow(QMainWindow):
         # Labels for the column titles
         label_parameter = QLabel("Parameter")
         label_monitor = QLabel("Monitor")
-        label_setpoint = QLabel("Setpoint")
+        #label_setpoint = QLabel("Setpoint")
         label_parameter.setStyleSheet("text-decoration: underline; font-weight: bold;")
         label_monitor.setStyleSheet("text-decoration: underline; font-weight: bold;")
-        label_setpoint.setStyleSheet("text-decoration: underline; font-weight: bold;")
+        #label_setpoint.setStyleSheet("text-decoration: underline; font-weight: bold;")
 
         # Set row index order for the titles
         self.layout2.addWidget(label_parameter, 0, 0)
         self.layout2.addWidget(label_monitor, 0, 1)
-        self.layout2.addWidget(label_setpoint, 0, 2)
+        #self.layout2.addWidget(label_setpoint, 0, 2)
         
         # Setpoint field for vacuum pressure
-        self.monitor_vacuum_pressure = QLabel("N/A")
-        self.set_vacuum_pressure = QLineEdit()
-        self.set_vacuum_pressure.setText("1002") # Default value
-        self.set_vacuum_pressure.setFixedWidth(100)
-        btn_vacuum_pressure = QPushButton("Set")
-        self.layout2.addWidget(QLabel("Vacuum Presure:"), 1, 0)
-        self.layout2.addWidget(self.monitor_vacuum_pressure, 1, 1)
-        self.layout2.addWidget(self.set_vacuum_pressure, 1, 2)
-        self.layout2.addWidget(btn_vacuum_pressure, 1, 3)
+        self.monitor_vacuum_current = QLabel("N/C")
+        #self.set_vacuum_pressure = QLineEdit()
+        #self.set_vacuum_pressure.setText("1002") # Default value
+        #self.set_vacuum_pressure.setFixedWidth(100)
+        #btn_vacuum_pressure = QPushButton("Set")
+        self.layout2.addWidget(QLabel("Pump current:"), 1, 0)
+        self.layout2.addWidget(self.monitor_vacuum_current, 1, 1)
+        #self.layout2.addWidget(self.set_vacuum_pressure, 1, 2)
+        #self.layout2.addWidget(btn_vacuum_pressure, 1, 3)
 
         # Setpoint field for motor speed
-        self.monitor_speed_motor = QLabel("N/A")
-        self.set_speed_motor = QLineEdit()
-        self.set_speed_motor.setText("5000") # Default value
-        self.set_speed_motor.setFixedWidth(100)
-        btn_speed_motor = QPushButton("Set")
-        self.layout2.addWidget(QLabel("Speed Motor:"), 2, 0)
-        self.layout2.addWidget(self.monitor_speed_motor, 2, 1)
-        self.layout2.addWidget(self.set_speed_motor, 2, 2)
-        self.layout2.addWidget(btn_speed_motor, 2, 3)
+        self.monitor_vacuum_voltage = QLabel("N/C")
+        #self.set_speed_motor = QLineEdit()
+        #self.set_speed_motor.setText("5000") # Default value
+        #self.set_speed_motor.setFixedWidth(100)
+        #btn_speed_motor = QPushButton("Set")
+        self.layout2.addWidget(QLabel("Pump voltage:"), 2, 0)
+        self.layout2.addWidget(self.monitor_vacuum_voltage, 2, 1)
+        #self.layout2.addWidget(self.set_speed_motor, 2, 2)
+        #self.layout2.addWidget(btn_speed_motor, 2, 3)
 
         # Setpoint field for valve state
-        self.monitor_valve_state = QLabel("N/A")
-        self.set_valve_state = QLineEdit()
-        self.set_valve_state.setText("1") # Default value
-        self.set_valve_state.setFixedWidth(100)
-        btn_valve_state = QPushButton("Set")
-        self.layout2.addWidget(QLabel("Valve State:"), 3, 0)
-        self.layout2.addWidget(self.monitor_valve_state, 3, 1)
-        self.layout2.addWidget(self.set_valve_state, 3, 2)
-        self.layout2.addWidget(btn_valve_state, 3, 3)
+        self.monitor_vacuum_power = QLabel("N/C")
+        #self.set_valve_state = QLineEdit()
+        #self.set_valve_state.setText("1") # Default value
+        #self.set_valve_state.setFixedWidth(100)
+        #btn_valve_state = QPushButton("Set")
+        self.layout2.addWidget(QLabel("Pump power:"), 3, 0)
+        self.layout2.addWidget(self.monitor_vacuum_power, 3, 1)
+        #self.layout2.addWidget(self.set_valve_state, 3, 2)
+        #self.layout2.addWidget(btn_valve_state, 3, 3)
 
         # For monitoring bomb power variable
-        self.monitor_bomb_power = QLabel("N/A")
-        self.layout2.addWidget(QLabel("Bomb Power:"), 4, 0)
-        self.layout2.addWidget(self.monitor_bomb_power, 4, 1)
+        self.monitor_vacuum_frequency = QLabel("N/C")
+        self.layout2.addWidget(QLabel("Pump frequency:"), 4, 0)
+        self.layout2.addWidget(self.monitor_vacuum_frequency, 4, 1)
 
         # For monitoring temperature variable
-        self.monitor_temperature = QLabel("N/A")
-        self.layout2.addWidget(QLabel("Temperature:"), 5, 0)
-        self.layout2.addWidget(self.monitor_temperature, 5, 1)
+        self.monitor_vacuum_temperature = QLabel("N/C")
+        self.layout2.addWidget(QLabel("Pump temperature:"), 5, 0)
+        self.layout2.addWidget(self.monitor_vacuum_temperature, 5, 1)
 
         self.graph_pressure_vacuum = pg.PlotWidget(axisItems={'left': DateAxis(orientation='left')})
-        self.layout2.addWidget(self.graph_pressure_vacuum, 6, 0, 1, 4)
+        self.layout2.addWidget(self.graph_pressure_vacuum, 6, 0, 1, 3)
         self.graph_pressure_vacuum.invertY()
         
         self.graph_pressure_vacuum.showGrid(x=True, y=True, alpha=1)           
         self.graph_pressure_vacuum.setLabel('left', 'Time', units='hh:mm:ss.µµµµµµ')
         self.graph_pressure_vacuum.setLabel('bottom', 'Pressure [Torr]')
         
+        self.btn_vacuum_monitor = QPushButton("Start reading from TwisTorr")
+        self.btn_vacuum_monitor.setCheckable(True)  
+        self.btn_vacuum_monitor.setStyleSheet("background-color: 53, 53, 53;")  
+        self.btn_vacuum_monitor.clicked.connect(self.execute_twistorr_btn) 
+        self.layout2.addWidget(self.btn_vacuum_monitor, 0, 2)
+
         # Connect any set button with execute_twistorr_set() function
-        btn_vacuum_pressure.clicked.connect(lambda: self.execute_twistorr_set_pressure())
-        btn_speed_motor.clicked.connect(lambda: self.execute_twistorr_set_motor_speed())
-        btn_valve_state.clicked.connect(lambda: self.execute_twistorr_set_valve_state())
+        #btn_vacuum_pressure.clicked.connect(lambda: self.execute_twistorr_set_pressure())
+        #btn_speed_motor.clicked.connect(lambda: self.execute_twistorr_set_motor_speed())
+        #btn_valve_state.clicked.connect(lambda: self.execute_twistorr_set_valve_state())
         
         self.layout2.setRowStretch(6, 1)
 
@@ -854,7 +883,7 @@ class MainWindow(QMainWindow):
         btn_calculate = QPushButton("Calculate")
         self.layout4.addWidget(btn_calculate, 8, 4, 1, 2)
 
-        q_calculated = QLabel("N/A")
+        q_calculated = QLabel("N/C")
         self.layout4.addWidget(QLabel("q:"), 7, 4)
         self.layout4.addWidget(q_calculated, 7, 5)
 
@@ -1033,13 +1062,388 @@ class MainWindow(QMainWindow):
         # ------------------------------------------------------------------------------------------- #
         # Registers TAB
         # ------------------------------------------------------------------------------------------- #
- 
+        self.layout7 = QGridLayout(self.tab7)
+        
+        # -------------------------------------------------------------------- #
+        # Laser #        
+        laser_data_group = QtWidgets.QGroupBox("Laser data:")
+        laser_data_grid_layout = QGridLayout()
+
+        self.laser_1_checkbox = QCheckBox("Laser voltage")
+        self.laser_1_checkbox.setChecked(False)
+        laser_data_grid_layout.addWidget(self.laser_1_checkbox, 1, 0)
+
+        self.laser_2_checkbox = QCheckBox("Laser state")
+        self.laser_2_checkbox.setChecked(False)
+        laser_data_grid_layout.addWidget(self.laser_2_checkbox, 2, 0)
+
+        mark_all_laser_button = QPushButton("Check all")
+        mark_all_laser_button.clicked.connect(self.mark_all_laser_checkboxes)
+
+        unmark_all_laser_button = QPushButton("Uncheck all")
+        unmark_all_laser_button.clicked.connect(self.unmark_all_laser_checkboxes)
+  
+        laser_data_grid_layout.addWidget(mark_all_laser_button, 3, 0)
+        laser_data_grid_layout.addWidget(unmark_all_laser_button, 3, 1)
+
+        # -------------------------------------------------------------------- #
+        # APD #
+        apd_data_group = QtWidgets.QGroupBox("APD data:")
+        apd_data_grid_layout = QGridLayout()
+        
+        self.apd_1_checkbox = QCheckBox("APD Counts @1kHz")
+        self.apd_1_checkbox.setChecked(False)
+        apd_data_grid_layout.addWidget(self.apd_1_checkbox, 1, 0)
+
+        self.apd_2_checkbox = QCheckBox("APD Counts @100kHz")
+        self.apd_2_checkbox.setChecked(False)
+        apd_data_grid_layout.addWidget(self.apd_2_checkbox, 2, 0)
+
+        self.apd_3_checkbox = QCheckBox("APD FFT @0.1Hz resolution")
+        self.apd_3_checkbox.setChecked(False)
+        apd_data_grid_layout.addWidget(self.apd_3_checkbox, 3, 0)
+
+        self.apd_4_checkbox = QCheckBox("APD FFT @0.01Hz resolution")
+        self.apd_4_checkbox.setChecked(False)
+        apd_data_grid_layout.addWidget(self.apd_4_checkbox, 4, 0)
+
+        mark_all_apd_button = QPushButton("Check all")
+        mark_all_apd_button.clicked.connect(self.mark_all_apd_checkboxes)
+
+        unmark_all_apd_button = QPushButton("Uncheck all")
+        unmark_all_apd_button.clicked.connect(self.unmark_all_apd_checkboxes)
+  
+        apd_data_grid_layout.addWidget(mark_all_apd_button, 5, 0)
+        apd_data_grid_layout.addWidget(unmark_all_apd_button, 5, 1)
+
+        # -------------------------------------------------------------------- #
+        # Twistor #
+        twistor_data_group = QtWidgets.QGroupBox("Twistor 305 FS data:")
+        twistor_data_grid_layout = QGridLayout()   
+
+        self.twistor_1_checkbox = QCheckBox("Vacuum chamber pressure")
+        self.twistor_1_checkbox.setChecked(False)
+        twistor_data_grid_layout.addWidget(self.twistor_1_checkbox, 1, 0)
+
+        self.twistor_2_checkbox = QCheckBox("Pump status")
+        self.twistor_2_checkbox.setChecked(False)
+        twistor_data_grid_layout.addWidget(self.twistor_2_checkbox, 2, 0)
+
+        self.twistor_3_checkbox = QCheckBox("Pump temperature")
+        self.twistor_3_checkbox.setChecked(False)
+        twistor_data_grid_layout.addWidget(self.twistor_3_checkbox, 3, 0)
+
+        self.twistor_4_checkbox = QCheckBox("Pump driving frequency")
+        self.twistor_4_checkbox.setChecked(False)
+        twistor_data_grid_layout.addWidget(self.twistor_4_checkbox, 4, 0)
+
+        self.twistor_5_checkbox = QCheckBox("Pump power")
+        self.twistor_5_checkbox.setChecked(False)
+        twistor_data_grid_layout.addWidget(self.twistor_5_checkbox, 5, 0)     
+
+        self.twistor_6_checkbox = QCheckBox("TwisTorr 305 FS error code")
+        self.twistor_6_checkbox.setChecked(False)
+        twistor_data_grid_layout.addWidget(self.twistor_6_checkbox, 6, 0)                
+
+        mark_all_twistor_button = QPushButton("Check all")
+        mark_all_twistor_button.clicked.connect(self.mark_all_twistor_checkboxes)
+
+        unmark_all_twistor_button = QPushButton("Uncheck all")
+        unmark_all_twistor_button.clicked.connect(self.unmark_all_twistor_checkboxes)
+  
+        twistor_data_grid_layout.addWidget(mark_all_twistor_button, 7, 0)
+        twistor_data_grid_layout.addWidget(unmark_all_twistor_button, 7, 1)
+
+        # -------------------------------------------------------------------- #
+        # Rigol #
+        rigol_data_group = QtWidgets.QGroupBox("Rigol MSO 5074 data:")
+        rigol_data_grid_layout = QGridLayout()           
+
+        self.rigol_1_checkbox = QCheckBox("Particle trap voltage")
+        self.rigol_1_checkbox.setChecked(False)
+        rigol_data_grid_layout.addWidget(self.rigol_1_checkbox, 1, 0)
+
+        self.rigol_2_checkbox = QCheckBox("Particle trap offset voltage")
+        self.rigol_2_checkbox.setChecked(False)
+        rigol_data_grid_layout.addWidget(self.rigol_2_checkbox, 2, 0)
+
+        self.rigol_3_checkbox = QCheckBox("Particle trap frequency")
+        self.rigol_3_checkbox.setChecked(False)
+        rigol_data_grid_layout.addWidget(self.rigol_3_checkbox, 3, 0)
+
+        self.rigol_4_checkbox = QCheckBox("Particle trap function")
+        self.rigol_4_checkbox.setChecked(False)
+        rigol_data_grid_layout.addWidget(self.rigol_4_checkbox, 4, 0)
+
+        mark_all_rigol_button = QPushButton("Check all")
+        mark_all_rigol_button.clicked.connect(self.mark_all_rigol_checkboxes)
+
+        unmark_all_rigol_button = QPushButton("Uncheck all")
+        unmark_all_rigol_button.clicked.connect(self.unmark_all_rigol_checkboxes)
+  
+        rigol_data_grid_layout.addWidget(mark_all_rigol_button, 5, 0)
+        rigol_data_grid_layout.addWidget(unmark_all_rigol_button, 5, 1)
+
+        # -------------------------------------------------------------------- #
+        # Electron gun #
+        eg_data_group = QtWidgets.QGroupBox("Electron gun data:")
+        eg_data_grid_layout = QGridLayout()      
+
+        self.eg_1_checkbox = QCheckBox("Electron gun variable 1")
+        self.eg_1_checkbox.setChecked(False)
+        eg_data_grid_layout.addWidget(self.eg_1_checkbox, 1, 0)
+
+        self.eg_2_checkbox = QCheckBox("Electron gun variable 2")
+        self.eg_2_checkbox.setChecked(False)
+        eg_data_grid_layout.addWidget(self.eg_2_checkbox, 2, 0)
+
+        self.eg_3_checkbox = QCheckBox("Electron gun variable 3")
+        self.eg_3_checkbox.setChecked(False)
+        eg_data_grid_layout.addWidget(self.eg_3_checkbox, 3, 0)
+
+        self.eg_4_checkbox = QCheckBox("Electron gun variable 4")
+        self.eg_4_checkbox.setChecked(False)
+        eg_data_grid_layout.addWidget(self.eg_4_checkbox, 4, 0)
+
+        mark_all_eg_button = QPushButton("Check all")
+        mark_all_eg_button.clicked.connect(self.mark_all_eg_checkboxes)
+
+        unmark_all_eg_button = QPushButton("Uncheck all")
+        unmark_all_eg_button.clicked.connect(self.unmark_all_eg_checkboxes)
+  
+        eg_data_grid_layout.addWidget(mark_all_eg_button, 5, 0)
+        eg_data_grid_layout.addWidget(unmark_all_eg_button, 5, 1)
+
+                        
+        laser_data_group.setLayout(laser_data_grid_layout)
+        apd_data_group.setLayout(apd_data_grid_layout)
+        twistor_data_group.setLayout(twistor_data_grid_layout)
+        rigol_data_group.setLayout(rigol_data_grid_layout)    
+        eg_data_group.setLayout(eg_data_grid_layout)
+
+        self.layout7.addWidget(laser_data_group, 0, 0)
+        self.layout7.addWidget(apd_data_group, 0, 1)
+        self.layout7.addWidget(twistor_data_group, 1, 0)
+        self.layout7.addWidget(rigol_data_group, 1, 1)
+        self.layout7.addWidget(eg_data_group, 2, 0)
+
+
+        self.storage_filename_group = QtWidgets.QGroupBox("Storage filename:")
+        self.storage_filename_grid_layout = QGridLayout()                 
+
+        self.storage_line_edit = QLineEdit()
+        self.storage_line_edit.setFixedWidth(1150)
+        self.storage_line_edit.setPlaceholderText("Enter a file name or press the 'Set datetime as filename' button...")
+        self.storage_line_edit.setAlignment(QtCore.Qt.AlignRight)
+        self.storage_filename_grid_layout.addWidget(self.storage_line_edit, 9, 0)
+        
+        h5_label = QLabel(".h5")
+        h5_label.setFixedWidth(200)
+        h5_label.setAlignment(QtCore.Qt.AlignLeft)
+        self.storage_filename_grid_layout.addWidget(h5_label, 9, 1)
+
+        self.auto_store_name_button = QPushButton("Set datetime as filename")
+        self.auto_store_name_button.clicked.connect(self.set_datetime_as_filename)
+        self.storage_filename_grid_layout.addWidget(self.auto_store_name_button, 10, 0, 1, 2)  
+
+        self.storage_filename_group.setLayout(self.storage_filename_grid_layout)
+        self.layout7.addWidget(self.storage_filename_group, 9, 0, 1, 2)
+
+
+
+        storage_button_group = QtWidgets.QGroupBox("Data logging:")
+        storage_button_grid_layout = QGridLayout()      
+
+        self.begin_logging_button = QPushButton("Begin data logging")
+        self.begin_logging_button.setCheckable(True) 
+        self.begin_logging_button.clicked.connect(self.logging_connect)
+        storage_button_grid_layout.addWidget(self.begin_logging_button, 10, 0)  
+
+        self.stop_logging_button = QPushButton("Stop data logging") 
+        self.stop_logging_button.setCheckable(True) 
+        self.stop_logging_button.clicked.connect(self.logging_disconnect)
+        storage_button_grid_layout.addWidget(self.stop_logging_button, 10, 1)     
+
+        storage_button_group.setLayout(storage_button_grid_layout)
+        self.layout7.addWidget(storage_button_group, 10, 0, 1, 2)        
+        
+        #image_label = QLabel()
+        #pixmap = QPixmap("hdf.png") 
+        #image_label.setPixmap(pixmap)
+        #image_label.setAlignment(Qt.AlignCenter)  
+        #self.layout7.addWidget(image_label, 4, 8, 1, 3)        
+        
 
 
 
         # ------------------------------------------------------------------------------------------------------------------ #
         #----------------------- FUNCTIONS --------------------------------------------------------------------------------- #
         # ------------------------------------------------------------------------------------------------------------------ #
+    def logging_connect(self):
+        # --------------------------#
+        # Filename and checkbox verification #
+        if not (self.laser_1_checkbox.isChecked() or self.laser_2_checkbox.isChecked() or
+                self.apd_1_checkbox.isChecked() or self.apd_2_checkbox.isChecked() or
+                self.apd_3_checkbox.isChecked() or self.apd_4_checkbox.isChecked() or
+                self.twistor_1_checkbox.isChecked() or self.twistor_2_checkbox.isChecked() or
+                self.twistor_3_checkbox.isChecked() or self.twistor_4_checkbox.isChecked() or
+                self.twistor_5_checkbox.isChecked() or self.twistor_6_checkbox.isChecked() or
+                self.rigol_1_checkbox.isChecked() or self.rigol_2_checkbox.isChecked() or
+                self.rigol_3_checkbox.isChecked() or self.rigol_4_checkbox.isChecked() or
+                self.eg_1_checkbox.isChecked() or self.eg_2_checkbox.isChecked() or
+                self.eg_3_checkbox.isChecked() or self.eg_4_checkbox.isChecked()):
+            self.showWarningSignal.emit("Select the variables to record before begin data logging...")
+            self.begin_logging_button.setChecked(False)
+        if not self.storage_line_edit.text():
+            self.showWarningSignal.emit("Give the file a name or press the 'Set datetime as filename' button before starting data logging....")
+            self.begin_logging_button.setChecked(False)
+
+        if (self.laser_1_checkbox.isChecked() or self.laser_2_checkbox.isChecked() or
+                self.apd_1_checkbox.isChecked() or self.apd_2_checkbox.isChecked() or
+                self.apd_3_checkbox.isChecked() or self.apd_4_checkbox.isChecked() or
+                self.twistor_1_checkbox.isChecked() or self.twistor_2_checkbox.isChecked() or
+                self.twistor_3_checkbox.isChecked() or self.twistor_4_checkbox.isChecked() or
+                self.twistor_5_checkbox.isChecked() or self.twistor_6_checkbox.isChecked() or
+                self.rigol_1_checkbox.isChecked() or self.rigol_2_checkbox.isChecked() or
+                self.rigol_3_checkbox.isChecked() or self.rigol_4_checkbox.isChecked() or
+                self.eg_1_checkbox.isChecked() or self.eg_2_checkbox.isChecked() or
+                self.eg_3_checkbox.isChecked() or self.eg_4_checkbox.isChecked()) and (self.storage_line_edit.text()):   
+
+            if self.begin_logging_button.isChecked():
+                self.begin_logging_button.setStyleSheet("background-color: darkblue;")
+                self.begin_logging_button.setText("Begin data logging")
+                self.logging_button.setStyleSheet("background-color: darkblue;")# color: black;")
+                self.logging_button.setText("Data logging")
+                self.begin_logging_button.setChecked(True)
+                ### EXECUTE STORAGE  
+                # --------------------------#
+                # Laser #
+                if self.laser_1_checkbox.isChecked():
+                    print("Ejecutando recorder 'Laser voltage'")
+                if self.laser_2_checkbox.isChecked():
+                    print("Ejecutando recorder 'Laser state'")
+                # --------------------------#
+                # APD #
+                if self.apd_1_checkbox.isChecked():
+                    print("Ejecutando recorder 'APD Counts @1kHz'")
+                if self.apd_2_checkbox.isChecked():
+                    print("Ejecutando recorder 'APD Counts @100kHz'")
+                if self.apd_3_checkbox.isChecked():
+                    print("Ejecutando recorder 'APD FFT @0.1Hz resolution'")
+                if self.apd_4_checkbox.isChecked():
+                    print("Ejecutando recorder 'APD FFT @0.01Hz resolution'")       
+                # --------------------------#
+                # Twistor #
+                if self.twistor_1_checkbox.isChecked():
+                    print("Ejecutando recorder 'Vacuum chamber pressure'")
+                if self.twistor_2_checkbox.isChecked():
+                    print("Ejecutando recorder 'Pump status'")
+                if self.twistor_3_checkbox.isChecked():
+                    print("Ejecutando recorder 'Pump temperature'")
+                if self.twistor_4_checkbox.isChecked():
+                    print("Ejecutando recorder 'Pump driving frequency'") 
+                if self.twistor_5_checkbox.isChecked():
+                    print("Ejecutando recorder 'Pump power'")
+                if self.twistor_6_checkbox.isChecked():
+                    print("Ejecutando recorder 'TwisTorr 305 FS error code'")                                                
+                # --------------------------#
+                # Rigol #
+                if self.rigol_1_checkbox.isChecked():
+                    print("Ejecutando recorder 'Particle trap voltage'")
+                if self.rigol_2_checkbox.isChecked():
+                    print("Ejecutando recorder 'Particle trap offset voltage'")
+                if self.rigol_3_checkbox.isChecked():
+                    print("Ejecutando recorder 'Particle trap frequency'")
+                if self.rigol_4_checkbox.isChecked():
+                    print("Ejecutando recorder 'Particle trap function'") 
+                # --------------------------#
+                # Electron gun #
+                if self.eg_1_checkbox.isChecked():
+                    print("Ejecutando recorder 'Electron gun variable 1'")
+                if self.eg_2_checkbox.isChecked():
+                    print("Ejecutando recorder 'Electron gun variable 2'")
+                if self.eg_3_checkbox.isChecked():
+                    print("Ejecutando recorder 'Electron gun variable 3'")
+                if self.eg_4_checkbox.isChecked():
+                    print("Ejecutando recorder 'Electron gun variable 4'")   
+            else:
+                self.begin_logging_button.setChecked(True)
+
+    def mark_all_laser_checkboxes(self):
+        self.laser_1_checkbox.setChecked(True)
+        self.laser_2_checkbox.setChecked(True)
+
+    def unmark_all_laser_checkboxes(self):
+        self.laser_1_checkbox.setChecked(False)
+        self.laser_2_checkbox.setChecked(False)
+
+    def mark_all_apd_checkboxes(self):
+        self.apd_1_checkbox.setChecked(True)
+        self.apd_2_checkbox.setChecked(True)
+        self.apd_3_checkbox.setChecked(True)
+        self.apd_4_checkbox.setChecked(True)
+
+    def unmark_all_apd_checkboxes(self):
+        self.apd_1_checkbox.setChecked(False)
+        self.apd_2_checkbox.setChecked(False)
+        self.apd_3_checkbox.setChecked(False)
+        self.apd_4_checkbox.setChecked(False)    
+
+    def mark_all_twistor_checkboxes(self):
+        self.twistor_1_checkbox.setChecked(True)
+        self.twistor_2_checkbox.setChecked(True)
+        self.twistor_3_checkbox.setChecked(True)
+        self.twistor_4_checkbox.setChecked(True)
+        self.twistor_5_checkbox.setChecked(True)
+        self.twistor_6_checkbox.setChecked(True)        
+
+    def unmark_all_twistor_checkboxes(self):
+        self.twistor_1_checkbox.setChecked(False)
+        self.twistor_2_checkbox.setChecked(False)
+        self.twistor_3_checkbox.setChecked(False)
+        self.twistor_4_checkbox.setChecked(False)
+        self.twistor_5_checkbox.setChecked(False)
+        self.twistor_6_checkbox.setChecked(False)     
+
+    def mark_all_rigol_checkboxes(self):
+        self.rigol_1_checkbox.setChecked(True)
+        self.rigol_2_checkbox.setChecked(True)
+        self.rigol_3_checkbox.setChecked(True)
+        self.rigol_4_checkbox.setChecked(True)
+
+    def unmark_all_rigol_checkboxes(self):
+        self.rigol_1_checkbox.setChecked(False)
+        self.rigol_2_checkbox.setChecked(False)
+        self.rigol_3_checkbox.setChecked(False)
+        self.rigol_4_checkbox.setChecked(False) 
+
+    def mark_all_eg_checkboxes(self):
+        self.eg_1_checkbox.setChecked(True)
+        self.eg_2_checkbox.setChecked(True)
+        self.eg_3_checkbox.setChecked(True)
+        self.eg_4_checkbox.setChecked(True)
+
+    def unmark_all_eg_checkboxes(self):
+        self.eg_1_checkbox.setChecked(False)
+        self.eg_2_checkbox.setChecked(False)
+        self.eg_3_checkbox.setChecked(False)
+        self.eg_4_checkbox.setChecked(False)                              
+
+    def logging_disconnect(self):
+        if self.stop_logging_button.isChecked():
+            self.begin_logging_button.setChecked(False)
+            self.begin_logging_button.setStyleSheet("background-color: 53, 53, 53;")
+            self.begin_logging_button.setText("Begin data logging")
+            self.logging_button.setStyleSheet("background-color: 53, 53, 53;")# color: black;")
+            self.logging_button.setText("Data logging")
+            self.stop_logging_button.setChecked(False)
+            ### KIL STORAGE
+
+    def set_datetime_as_filename(self):
+        date_time = datetime.now()
+        formatted_datetime = date_time.strftime("CoDE_dataset_%d-%m-%Y_%H:%M:%S")
+        self.storage_line_edit.setText(formatted_datetime)
+
     def toggle_apd_connect(self):    
         if self.apd_button.isChecked():
             self.apd_button.setStyleSheet("background-color: darkblue;")
@@ -1187,6 +1591,37 @@ class MainWindow(QMainWindow):
         laser_voltage = float(self.rigol_laser_voltage.text())
         self.rigol_thread.set_rigol_laser_voltage(1, laser_voltage)
 
+    def execute_twistorr_bar_btn(self):
+        if self.pressure_button.isChecked():
+            self.pressure_button.setStyleSheet("background-color: darkblue;")
+            self.btn_vacuum_monitor.setChecked(True)
+            self.btn_vacuum_monitor.setStyleSheet("background-color: darkblue;")
+            self.execute_twistorr_monitor()
+        else:
+            self.pressure_button.setStyleSheet("background-color: 53, 53, 53;")
+            self.btn_vacuum_monitor.setChecked(False)
+            self.btn_vacuum_monitor.setStyleSheet("background-color: 53, 53, 53;")
+            self.kill_twistorr_monitor()
+
+    def execute_twistorr_btn(self):
+        if self.btn_vacuum_monitor.isChecked():
+            self.btn_vacuum_monitor.setStyleSheet("background-color: darkblue;")
+            self.pressure_button.setChecked(True)
+            self.pressure_button.setStyleSheet("background-color: darkblue;")
+            self.execute_twistorr_monitor()
+        else:
+            self.btn_vacuum_monitor.setStyleSheet("background-color: 53, 53, 53;")
+            self.pressure_button.setChecked(False)
+            self.pressure_button.setStyleSheet("background-color: 53, 53, 53;")
+            self.kill_twistorr_monitor()
+
+    def execute_twistorr_monitor(self):
+        self.processes[11] = subprocess.Popen([self.binary_paths[11]])
+ 
+    def kill_twistorr_monitor(self):
+        subprocess.run(['pkill', '-f', self.processes[11].args[0]], check=True)
+
+
     def execute_twistorr_set_pressure(self):
         # Execute the TwisTorr Setter binary with pressure, motor, and valve parameters
         self.processes[10] = subprocess.Popen([self.binary_paths[10], str(self.pressure), str("0")])
@@ -1207,24 +1642,31 @@ class MainWindow(QMainWindow):
 
     def update_vacuum_values(self):
         # Update the vacuum-related values from monitoring_TT
-        self.pressure = self.set_vacuum_pressure.text()
-        self.motor = self.set_speed_motor.text()
-        self.valve = self.set_valve_state.text()
+        #self.pressure = self.set_vacuum_pressure.text()
+        #self.motor = self.set_speed_motor.text()
+        #self.valve = self.set_valve_state.text()
+        if self.btn_vacuum_monitor.isChecked():
+            if len(monitoring_TT) >= 5:
+                vacuum_current = str(int(monitoring_TT[0]))
+                vacuum_voltage = str(int(monitoring_TT[1]))
+                vacuum_power = str(int(monitoring_TT[2]))
+                vacuum_frequency = str(int(monitoring_TT[3]))
+                vacuum_temperature = str(int(monitoring_TT[4]))
 
-        if len(monitoring_TT) >= 5:
-            vacuum_pressure = str(round(monitoring_TT[0], 2))
-            speed_motor = str(round(monitoring_TT[1], 2))
-            valve_state = "Open" if monitoring_TT[2] >= 1 else "Closed"
-            bomb_power = str(round(monitoring_TT[3], 2))
-            temperature = str(round(monitoring_TT[4], 2))
-
-            # Update the labels with the vacuum-related values
-            self.monitor_vacuum_pressure.setText(vacuum_pressure)
-            self.monitor_speed_motor.setText(speed_motor)
-            self.monitor_valve_state.setText(valve_state)
-            self.monitor_bomb_power.setText(bomb_power)
-            self.monitor_temperature.setText(temperature)
-
+                # Update the labels with the vacuum-related values
+                self.monitor_vacuum_current.setText(vacuum_current+" [mA]")
+                self.monitor_vacuum_voltage.setText(vacuum_voltage+" [Vdc]")
+                self.monitor_vacuum_power.setText(vacuum_power+" [W]")
+                self.monitor_vacuum_frequency.setText(vacuum_frequency+" [Hz]")
+                self.monitor_vacuum_temperature.setText(vacuum_temperature+" [°C]")
+                self.vacuum_frequency.setText(vacuum_frequency+" [Hz]")
+        else:        
+            self.monitor_vacuum_current.setText("N/C")
+            self.monitor_vacuum_voltage.setText("N/C")
+            self.monitor_vacuum_power.setText("N/C")
+            self.monitor_vacuum_frequency.setText("N/C")
+            self.monitor_vacuum_temperature.setText("N/C")
+            self.vacuum_frequency.setText("N/C")            
         # Sleep briefly to avoid excessive updates
         time.sleep(0.001)
 
@@ -1250,10 +1692,18 @@ class MainWindow(QMainWindow):
     def update_serial_ports(self):
         # Update the available serial ports in the ComboBox
         self.serialPortsCombobox.clear()
-        ports = list_ports.comports()
-        for port in ports:
-            self.serialPortsCombobox.addItem(port.device)
 
+        # Use 'ls /dev/serial/by-id/' to get the ports by ID
+        try:
+            result = subprocess.run(['ls', '/dev/serial/by-id/'], capture_output=True, text=True)
+            if result.returncode == 0:
+                ports_by_id = result.stdout.split('\n')
+                for port_by_id in ports_by_id:
+                    self.serialPortsCombobox.addItem(port_by_id)
+            else:
+                print(f"Error: {result.stderr}")
+        except Exception as e:
+            print(f"Error: {e}")
 
     def toggle_process(self, i, checked):
         # Get the sender of the signal and the corresponding button names
@@ -1613,45 +2063,50 @@ class MainWindow(QMainWindow):
         self.pm = np.zeros((1, self.fft_magnitudes))
         self.color_map.setImage(self.pm)
 
-# Reset Rigol USB
-os.system('usbreset 1ab1:0515')
-rm1 = pyvisa.ResourceManager('@py')
-scope_usb = rm1.open_resource('USB0::6833::1301::MS5A242205632::0::INSTR', timeout = 5000)
-scope_usb.write(":RUN")
-scope_usb.write(":TIM:MODE MAIN")
-scope_usb.write(":CHAN1:DISP 1")
-scope_usb.write(":CHAN2:DISP 1")
-scope_usb.write(":CHAN1:PROB 1")
-scope_usb.write(":CHAN2:PROB 1")
-scope_usb.write(":TRIG:COUP AC")
-scope_usb.write(":LAN:AUT 0")
-scope_usb.write(":LAN:MAN 1")
-scope_usb.write(":LAN:DHCP 1")
-scope_usb.write(":LAN:SMAS 225.225.225.0")
-scope_usb.write(":LAN:GAT 152.74.216.1")
-scope_usb.write(":LAN:IPAD 152.74.216.91")
-scope_usb.write(":LAN:APPL")
-rigol_ip = scope_usb.query(':LAN:VISA?').strip()
-scope_usb.close()
-
-def show_warning_message(message):
-    try:
+    def show_warning_message(self, message):
         msg = QMessageBox()
         msg.setWindowTitle("CoDE Warning")
         msg.setText(message)
         msg.setIcon(QMessageBox.Critical)
         msg.exec_()
-    except:
-        pass
+
+try:
+    os.system('usbreset 1ab1:0515')
+    rm1 = pyvisa.ResourceManager('@py')
+    scope_usb = rm1.open_resource('USB0::6833::1301::MS5A242205632::0::INSTR', timeout = 5000)
+    scope_usb.write(":RUN")
+    scope_usb.write(":TIM:MODE MAIN")
+    scope_usb.write(":CHAN1:DISP 1")
+    scope_usb.write(":CHAN2:DISP 1")
+    scope_usb.write(":CHAN1:PROB 1")
+    scope_usb.write(":CHAN2:PROB 1")
+    scope_usb.write(":TRIG:COUP AC")
+    scope_usb.write(":LAN:AUT 0")
+    scope_usb.write(":LAN:MAN 1")
+    scope_usb.write(":LAN:DHCP 1")
+    scope_usb.write(":LAN:SMAS 225.225.225.0")
+    scope_usb.write(":LAN:GAT 152.74.216.1")
+    scope_usb.write(":LAN:IPAD 152.74.216.91")
+    scope_usb.write(":LAN:DNS 152.74.16.14")
+    #scope_usb.write(":LAN:APPL")
+    rigol_ip = scope_usb.query(':LAN:VISA?').strip()
+    print(rigol_ip)
+    scope_usb.close()
+except ValueError as ve:
+    print("Rigol MSO5074:", ve)
+    rigol_ip = "no"
+    scope_usb = None
 
 # Get traces from rigol
 rigol_prev_stat = 0
 def get_rigol_data(status, channel, auto, voltage, frequency, function, tscale, voltage_offset, attenuation, coupling, vscale, g1, g2, laser_voltage, voltage_V, frequency_V, function_V, tscale_V, voltage_offset_V, attenuation_V, coupling_V, vscale_V, g1_V, g2_V, laser_voltage_V):
     global rigol_prev_stat
+    if rigol_ip == "no":
+        mainWindow.showWarningSignal.emit("Rigol MSO5074 not found. Please check the USB and network connections, restart the GUI and try again.")
     try:    
         if (status == 1 or g2_V == 1):
             rm = pyvisa.ResourceManager('@py')
-            #print(rigol_ip,datetime.now())
+            print(rigol_ip,datetime.now())
             scope = rm.open_resource(rigol_ip, timeout=15000)
             #rigol_g2 = g2_V  
             rigol_g2 = float(scope.query(":OUTP2?"))                     
@@ -1690,17 +2145,17 @@ def get_rigol_data(status, channel, auto, voltage, frequency, function, tscale, 
                         time.sleep(0.5)
                         if (rigol_timescale < tscale_V):
                             time.sleep(0.6)
-                            threading.Thread(target=show_warning_message, args=("Requesting data, please press 'OK' when the graph updates",)).start()
+                            mainWindow.showWarningSignal.emit("Requesting data, please press 'OK' when the graph updates")
                     else:
                         rigol_instance.set_rigol_tscale(0, 0.001) 
-                        threading.Thread(target=show_warning_message, args=("The 'Time scale' range is between 200 ns and 0.5 s",)).start()
+                        mainWindow.showWarningSignal.emit("The 'Time scale' range is between 200 ns and 0.5 s")
                 if (voltage == 1):
                     if (-5 <= voltage_V <= 5):
                         scope.write(f":VOLT {voltage_V}") 
                         rigol_instance.set_rigol_voltage(0, voltage_V) 
                     else:
                         rigol_instance.set_rigol_voltage(0, 0) 
-                        threading.Thread(target=show_warning_message, args=("The 'Voltage' range is between -5 and 5 V",)).start()
+                        mainWindow.showWarningSignal.emit("The 'Voltage' range is between -5 and 5 V")
                 elif (frequency == 1):
                     scope.write(f":FREQ {frequency_V}")
                     rigol_instance.set_rigol_frequency(0, frequency_V)  
@@ -1708,8 +2163,10 @@ def get_rigol_data(status, channel, auto, voltage, frequency, function, tscale, 
                     scope.write(f":FUNC {function_V}")
                     rigol_instance.set_rigol_function(0, function_V)  
                 elif (voltage_offset == 1):
-                    scope.write(":OFFS 0")
-                    scope.write(f":SOUR1:VOLT:OFFS {voltage_offset_V}")
+                    #scope.write(":OFFS 0")
+                    #scope.write(f":SOUR1:VOLT:OFFS {voltage_offset_V}")
+                    scope.write(":CHAN1:OFFS 0")
+                    scope.write(f":OFFS {voltage_offset_V}")                     
                     rigol_instance.set_rigol_voltage_offset(0, voltage_offset_V)   
                 elif (attenuation == 1):
                     scope.write(f":CHAN{channel}:PROB {attenuation_V}")
@@ -1735,7 +2192,7 @@ def get_rigol_data(status, channel, auto, voltage, frequency, function, tscale, 
                         rigol_instance.set_rigol_laser_voltage(0, laser_voltage_V)    
                     else:
                         rigol_instance.set_rigol_laser_voltage(0, 0)
-                        threading.Thread(target=show_warning_message, args=("'Laser voltage' range is between 0 and 5 V",)).start()
+                        mainWindow.showWarningSignal.emit("'Laser voltage' range is between 0 and 5 V")
                 elif (auto == 1):
                     scope.write(":AUT")  
                     time.sleep(0.2)
@@ -1809,7 +2266,7 @@ if __name__ == "__main__":
     except Exception as e:
         # Handle unexpected exceptions by displaying an error message
         error_message = "An unexpected error has occurred: {}".format(str(e))
-        QtWidgets.QMessageBox.critical(None, "Error", error_message)
+        #QtWidgets.QMessageBox.critical(None, "Error", error_message)
         # Append the error message to an error log file
         with open("error.log", "a") as log_file:
             log_file.write(error_message)

@@ -297,7 +297,12 @@ CMakeFiles/TwisTorrIO_code_sw.dir/TwisTorrIO_code_sw.cc.o: /home/code/.local/inc
 CMakeFiles/TwisTorrIO_code_sw.dir/TwisTorrIO_code_sw.cc.o: /home/code/.local/include/grpcpp/support/time.h
 CMakeFiles/TwisTorrIO_code_sw.dir/TwisTorrIO_code_sw.cc.o: /home/code/.local/include/grpcpp/version_info.h
 CMakeFiles/TwisTorrIO_code_sw.dir/TwisTorrIO_code_sw.cc.o: TwisTorrIO_code_sw.cc
+CMakeFiles/TwisTorrIO_code_sw.dir/TwisTorrIO_code_sw.cc.o: broker_client.h
 CMakeFiles/TwisTorrIO_code_sw.dir/TwisTorrIO_code_sw.cc.o: client.h
+CMakeFiles/TwisTorrIO_code_sw.dir/TwisTorrIO_code_sw.cc.o: client.tpp
 CMakeFiles/TwisTorrIO_code_sw.dir/TwisTorrIO_code_sw.cc.o: core.grpc.pb.h
 CMakeFiles/TwisTorrIO_code_sw.dir/TwisTorrIO_code_sw.cc.o: core.pb.h
+CMakeFiles/TwisTorrIO_code_sw.dir/TwisTorrIO_code_sw.cc.o: log.h
+CMakeFiles/TwisTorrIO_code_sw.dir/TwisTorrIO_code_sw.cc.o: reactor/client_reactor.h
+CMakeFiles/TwisTorrIO_code_sw.dir/TwisTorrIO_code_sw.cc.o: reactor/client_reactor.tpp
 

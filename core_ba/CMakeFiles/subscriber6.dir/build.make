@@ -53,19 +53,19 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /home/code/.local/bin/cmake
+CMAKE_COMMAND = /home/asus/.local/bin/cmake
 
 # The command to remove a file.
-RM = /home/code/.local/bin/cmake -E rm -f
+RM = /home/asus/.local/bin/cmake -E rm -f
 
 # Escaping for special characters.
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/code/Development/core_ba
+CMAKE_SOURCE_DIR = /home/asus/Escritorio/code-main/core_ba
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/code/Development/core_ba
+CMAKE_BINARY_DIR = /home/asus/Escritorio/code-main/core_ba
 
 # Include any dependencies generated for this target.
 include CMakeFiles/subscriber6.dir/depend.make
@@ -78,16 +78,16 @@ include CMakeFiles/subscriber6.dir/flags.make
 
 CMakeFiles/subscriber6.dir/subscriber6.cc.o: CMakeFiles/subscriber6.dir/flags.make
 CMakeFiles/subscriber6.dir/subscriber6.cc.o: subscriber6.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/subscriber6.dir/subscriber6.cc.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/subscriber6.dir/subscriber6.cc.o -c /home/code/Development/core_ba/subscriber6.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/asus/Escritorio/code-main/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/subscriber6.dir/subscriber6.cc.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/subscriber6.dir/subscriber6.cc.o -c /home/asus/Escritorio/code-main/core_ba/subscriber6.cc
 
 CMakeFiles/subscriber6.dir/subscriber6.cc.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/subscriber6.dir/subscriber6.cc.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/code/Development/core_ba/subscriber6.cc > CMakeFiles/subscriber6.dir/subscriber6.cc.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/asus/Escritorio/code-main/core_ba/subscriber6.cc > CMakeFiles/subscriber6.dir/subscriber6.cc.i
 
 CMakeFiles/subscriber6.dir/subscriber6.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/subscriber6.dir/subscriber6.cc.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/code/Development/core_ba/subscriber6.cc -o CMakeFiles/subscriber6.dir/subscriber6.cc.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/asus/Escritorio/code-main/core_ba/subscriber6.cc -o CMakeFiles/subscriber6.dir/subscriber6.cc.s
 
 # Object files for target subscriber6
 subscriber6_OBJECTS = \
@@ -99,103 +99,80 @@ subscriber6_EXTERNAL_OBJECTS =
 bin/subscriber6: CMakeFiles/subscriber6.dir/subscriber6.cc.o
 bin/subscriber6: CMakeFiles/subscriber6.dir/build.make
 bin/subscriber6: libcore_grpc_proto.a
-bin/subscriber6: libreactor.a
-bin/subscriber6: libclient.a
-bin/subscriber6: /home/code/.local/lib/libgrpc++_reflection.a
-bin/subscriber6: /home/code/.local/lib/libgrpc++.a
-bin/subscriber6: /home/code/.local/lib/libprotobuf.a
+bin/subscriber6: libbroker_client.a
+bin/subscriber6: libstorage_client.a
+bin/subscriber6: /usr/local/lib/libhdf5.so
+bin/subscriber6: /usr/lib/x86_64-linux-gnu/libz.so
+bin/subscriber6: /usr/lib/x86_64-linux-gnu/libdl.a
+bin/subscriber6: /usr/lib/x86_64-linux-gnu/libm.so
+bin/subscriber6: /usr/local/lib/libhdf5_hl.so
+bin/subscriber6: /home/asus/.local/lib/libgrpc++_reflection.a
+bin/subscriber6: /home/asus/.local/lib/libgrpc++.a
+bin/subscriber6: /home/asus/.local/lib/libprotobuf.a
 bin/subscriber6: /usr/lib/x86_64-linux-gnu/libboost_system.so.1.74.0
 bin/subscriber6: /usr/lib/x86_64-linux-gnu/libboost_iostreams.so.1.74.0
 bin/subscriber6: /usr/lib/x86_64-linux-gnu/libz.so
 bin/subscriber6: libcore_grpc_proto.a
-bin/subscriber6: /home/code/.local/lib/libgrpc++_reflection.a
-bin/subscriber6: /home/code/.local/lib/libgrpc++.a
-bin/subscriber6: /home/code/.local/lib/libgrpc.a
-bin/subscriber6: /home/code/.local/lib/libcares.a
-bin/subscriber6: /home/code/.local/lib/libaddress_sorting.a
-bin/subscriber6: /home/code/.local/lib/libre2.a
-bin/subscriber6: /home/code/.local/lib/libupb.a
-bin/subscriber6: /home/code/.local/lib/libgpr.a
-bin/subscriber6: /home/code/.local/lib/libabsl_random_distributions.a
-bin/subscriber6: /home/code/.local/lib/libabsl_random_seed_sequences.a
-bin/subscriber6: /home/code/.local/lib/libabsl_random_internal_pool_urbg.a
-bin/subscriber6: /home/code/.local/lib/libabsl_random_internal_randen.a
-bin/subscriber6: /home/code/.local/lib/libabsl_random_internal_randen_hwaes.a
-bin/subscriber6: /home/code/.local/lib/libabsl_random_internal_randen_hwaes_impl.a
-bin/subscriber6: /home/code/.local/lib/libabsl_random_internal_randen_slow.a
-bin/subscriber6: /home/code/.local/lib/libabsl_random_internal_platform.a
-bin/subscriber6: /home/code/.local/lib/libabsl_random_internal_seed_material.a
-bin/subscriber6: /home/code/.local/lib/libabsl_random_seed_gen_exception.a
-bin/subscriber6: /home/code/.local/lib/libssl.a
-bin/subscriber6: /home/code/.local/lib/libcrypto.a
-bin/subscriber6: /home/code/.local/lib/libprotobuf.a
-bin/subscriber6: /home/code/.local/lib/libabsl_log_internal_check_op.a
-bin/subscriber6: /home/code/.local/lib/libabsl_leak_check.a
-bin/subscriber6: /home/code/.local/lib/libabsl_die_if_null.a
-bin/subscriber6: /home/code/.local/lib/libabsl_log_internal_conditions.a
-bin/subscriber6: /home/code/.local/lib/libabsl_log_internal_message.a
-bin/subscriber6: /home/code/.local/lib/libabsl_log_internal_nullguard.a
-bin/subscriber6: /home/code/.local/lib/libabsl_examine_stack.a
-bin/subscriber6: /home/code/.local/lib/libabsl_log_internal_format.a
-bin/subscriber6: /home/code/.local/lib/libabsl_log_internal_proto.a
-bin/subscriber6: /home/code/.local/lib/libabsl_log_internal_log_sink_set.a
-bin/subscriber6: /home/code/.local/lib/libabsl_log_sink.a
-bin/subscriber6: /home/code/.local/lib/libabsl_log_entry.a
-bin/subscriber6: /home/code/.local/lib/libabsl_flags.a
-bin/subscriber6: /home/code/.local/lib/libabsl_flags_internal.a
-bin/subscriber6: /home/code/.local/lib/libabsl_flags_marshalling.a
-bin/subscriber6: /home/code/.local/lib/libabsl_flags_reflection.a
-bin/subscriber6: /home/code/.local/lib/libabsl_flags_config.a
-bin/subscriber6: /home/code/.local/lib/libabsl_flags_program_name.a
-bin/subscriber6: /home/code/.local/lib/libabsl_flags_private_handle_accessor.a
-bin/subscriber6: /home/code/.local/lib/libabsl_flags_commandlineflag.a
-bin/subscriber6: /home/code/.local/lib/libabsl_flags_commandlineflag_internal.a
-bin/subscriber6: /home/code/.local/lib/libabsl_log_initialize.a
-bin/subscriber6: /home/code/.local/lib/libabsl_log_globals.a
-bin/subscriber6: /home/code/.local/lib/libabsl_log_internal_globals.a
-bin/subscriber6: /home/code/.local/lib/libabsl_hash.a
-bin/subscriber6: /home/code/.local/lib/libabsl_city.a
-bin/subscriber6: /home/code/.local/lib/libabsl_low_level_hash.a
-bin/subscriber6: /home/code/.local/lib/libabsl_raw_hash_set.a
-bin/subscriber6: /home/code/.local/lib/libabsl_hashtablez_sampler.a
-bin/subscriber6: /home/code/.local/lib/libabsl_statusor.a
-bin/subscriber6: /home/code/.local/lib/libabsl_status.a
-bin/subscriber6: /home/code/.local/lib/libabsl_cord.a
-bin/subscriber6: /home/code/.local/lib/libabsl_cordz_info.a
-bin/subscriber6: /home/code/.local/lib/libabsl_cord_internal.a
-bin/subscriber6: /home/code/.local/lib/libabsl_cordz_functions.a
-bin/subscriber6: /home/code/.local/lib/libabsl_exponential_biased.a
-bin/subscriber6: /home/code/.local/lib/libabsl_cordz_handle.a
-bin/subscriber6: /home/code/.local/lib/libabsl_crc_cord_state.a
-bin/subscriber6: /home/code/.local/lib/libabsl_crc32c.a
-bin/subscriber6: /home/code/.local/lib/libabsl_crc_internal.a
-bin/subscriber6: /home/code/.local/lib/libabsl_crc_cpu_detect.a
-bin/subscriber6: /home/code/.local/lib/libabsl_bad_optional_access.a
-bin/subscriber6: /home/code/.local/lib/libabsl_str_format_internal.a
-bin/subscriber6: /home/code/.local/lib/libabsl_strerror.a
-bin/subscriber6: /home/code/.local/lib/libabsl_synchronization.a
-bin/subscriber6: /home/code/.local/lib/libabsl_stacktrace.a
-bin/subscriber6: /home/code/.local/lib/libabsl_symbolize.a
-bin/subscriber6: /home/code/.local/lib/libabsl_debugging_internal.a
-bin/subscriber6: /home/code/.local/lib/libabsl_demangle_internal.a
-bin/subscriber6: /home/code/.local/lib/libabsl_graphcycles_internal.a
-bin/subscriber6: /home/code/.local/lib/libabsl_malloc_internal.a
-bin/subscriber6: /home/code/.local/lib/libabsl_time.a
-bin/subscriber6: /home/code/.local/lib/libabsl_civil_time.a
-bin/subscriber6: /home/code/.local/lib/libabsl_time_zone.a
-bin/subscriber6: /home/code/.local/lib/libabsl_bad_variant_access.a
-bin/subscriber6: /home/code/.local/lib/libutf8_validity.a
-bin/subscriber6: /home/code/.local/lib/libabsl_strings.a
-bin/subscriber6: /home/code/.local/lib/libabsl_throw_delegate.a
-bin/subscriber6: /home/code/.local/lib/libabsl_int128.a
-bin/subscriber6: /home/code/.local/lib/libabsl_strings_internal.a
-bin/subscriber6: /home/code/.local/lib/libabsl_base.a
-bin/subscriber6: /home/code/.local/lib/libabsl_raw_logging_internal.a
-bin/subscriber6: /home/code/.local/lib/libabsl_log_severity.a
-bin/subscriber6: /home/code/.local/lib/libabsl_spinlock_wait.a
+bin/subscriber6: /home/asus/.local/lib/libgrpc++_reflection.a
+bin/subscriber6: /home/asus/.local/lib/libgrpc++.a
+bin/subscriber6: /home/asus/.local/lib/libgrpc.a
+bin/subscriber6: /home/asus/.local/lib/libz.a
+bin/subscriber6: /home/asus/.local/lib/libcares.a
+bin/subscriber6: /home/asus/.local/lib/libaddress_sorting.a
+bin/subscriber6: /home/asus/.local/lib/libre2.a
+bin/subscriber6: /home/asus/.local/lib/libupb.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_raw_hash_set.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_hashtablez_sampler.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_hash.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_city.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_low_level_hash.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_statusor.a
+bin/subscriber6: /home/asus/.local/lib/libgpr.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_bad_variant_access.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_status.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_strerror.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_random_distributions.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_random_seed_sequences.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_random_internal_pool_urbg.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_random_internal_randen.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_random_internal_randen_hwaes.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_random_internal_randen_hwaes_impl.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_random_internal_randen_slow.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_random_internal_platform.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_random_internal_seed_material.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_random_seed_gen_exception.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_cord.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_bad_optional_access.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_cordz_info.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_cord_internal.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_cordz_functions.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_exponential_biased.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_cordz_handle.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_str_format_internal.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_synchronization.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_stacktrace.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_symbolize.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_debugging_internal.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_demangle_internal.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_graphcycles_internal.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_malloc_internal.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_time.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_strings.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_throw_delegate.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_int128.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_strings_internal.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_base.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_spinlock_wait.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_raw_logging_internal.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_log_severity.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_civil_time.a
+bin/subscriber6: /home/asus/.local/lib/libabsl_time_zone.a
+bin/subscriber6: /home/asus/.local/lib/libssl.a
+bin/subscriber6: /home/asus/.local/lib/libcrypto.a
+bin/subscriber6: /home/asus/.local/lib/libprotobuf.a
 bin/subscriber6: /usr/lib/x86_64-linux-gnu/libz.so
 bin/subscriber6: CMakeFiles/subscriber6.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable bin/subscriber6"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/asus/Escritorio/code-main/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable bin/subscriber6"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/subscriber6.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -208,6 +185,6 @@ CMakeFiles/subscriber6.dir/clean:
 .PHONY : CMakeFiles/subscriber6.dir/clean
 
 CMakeFiles/subscriber6.dir/depend:
-	cd /home/code/Development/core_ba && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/code/Development/core_ba /home/code/Development/core_ba /home/code/Development/core_ba /home/code/Development/core_ba /home/code/Development/core_ba/CMakeFiles/subscriber6.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/asus/Escritorio/code-main/core_ba && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/asus/Escritorio/code-main/core_ba /home/asus/Escritorio/code-main/core_ba /home/asus/Escritorio/code-main/core_ba /home/asus/Escritorio/code-main/core_ba /home/asus/Escritorio/code-main/core_ba/CMakeFiles/subscriber6.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/subscriber6.dir/depend
 

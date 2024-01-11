@@ -365,6 +365,341 @@ class Broker final {
   typedef WithSplitStreamingMethod_Subscribe<Service > StreamedService;
 };
 
+class Storage final {
+ public:
+  static constexpr char const* service_full_name() {
+    return "core.Storage";
+  }
+  class StubInterface {
+   public:
+    virtual ~StubInterface() {}
+    std::unique_ptr< ::grpc::ClientWriterInterface< ::core::Bundle>> Push(::grpc::ClientContext* context, ::google::protobuf::Empty* response) {
+      return std::unique_ptr< ::grpc::ClientWriterInterface< ::core::Bundle>>(PushRaw(context, response));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::core::Bundle>> AsyncPush(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::core::Bundle>>(AsyncPushRaw(context, response, cq, tag));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::core::Bundle>> PrepareAsyncPush(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::core::Bundle>>(PrepareAsyncPushRaw(context, response, cq));
+    }
+    std::unique_ptr< ::grpc::ClientReaderInterface< ::core::Bundle>> Pull(::grpc::ClientContext* context, const ::core::Query& request) {
+      return std::unique_ptr< ::grpc::ClientReaderInterface< ::core::Bundle>>(PullRaw(context, request));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::core::Bundle>> AsyncPull(::grpc::ClientContext* context, const ::core::Query& request, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::core::Bundle>>(AsyncPullRaw(context, request, cq, tag));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::core::Bundle>> PrepareAsyncPull(::grpc::ClientContext* context, const ::core::Query& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::core::Bundle>>(PrepareAsyncPullRaw(context, request, cq));
+    }
+    class async_interface {
+     public:
+      virtual ~async_interface() {}
+      virtual void Push(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::ClientWriteReactor< ::core::Bundle>* reactor) = 0;
+      virtual void Pull(::grpc::ClientContext* context, const ::core::Query* request, ::grpc::ClientReadReactor< ::core::Bundle>* reactor) = 0;
+    };
+    typedef class async_interface experimental_async_interface;
+    virtual class async_interface* async() { return nullptr; }
+    class async_interface* experimental_async() { return async(); }
+   private:
+    virtual ::grpc::ClientWriterInterface< ::core::Bundle>* PushRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response) = 0;
+    virtual ::grpc::ClientAsyncWriterInterface< ::core::Bundle>* AsyncPushRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq, void* tag) = 0;
+    virtual ::grpc::ClientAsyncWriterInterface< ::core::Bundle>* PrepareAsyncPushRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientReaderInterface< ::core::Bundle>* PullRaw(::grpc::ClientContext* context, const ::core::Query& request) = 0;
+    virtual ::grpc::ClientAsyncReaderInterface< ::core::Bundle>* AsyncPullRaw(::grpc::ClientContext* context, const ::core::Query& request, ::grpc::CompletionQueue* cq, void* tag) = 0;
+    virtual ::grpc::ClientAsyncReaderInterface< ::core::Bundle>* PrepareAsyncPullRaw(::grpc::ClientContext* context, const ::core::Query& request, ::grpc::CompletionQueue* cq) = 0;
+  };
+  class Stub final : public StubInterface {
+   public:
+    Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
+    std::unique_ptr< ::grpc::ClientWriter< ::core::Bundle>> Push(::grpc::ClientContext* context, ::google::protobuf::Empty* response) {
+      return std::unique_ptr< ::grpc::ClientWriter< ::core::Bundle>>(PushRaw(context, response));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncWriter< ::core::Bundle>> AsyncPush(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncWriter< ::core::Bundle>>(AsyncPushRaw(context, response, cq, tag));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncWriter< ::core::Bundle>> PrepareAsyncPush(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncWriter< ::core::Bundle>>(PrepareAsyncPushRaw(context, response, cq));
+    }
+    std::unique_ptr< ::grpc::ClientReader< ::core::Bundle>> Pull(::grpc::ClientContext* context, const ::core::Query& request) {
+      return std::unique_ptr< ::grpc::ClientReader< ::core::Bundle>>(PullRaw(context, request));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncReader< ::core::Bundle>> AsyncPull(::grpc::ClientContext* context, const ::core::Query& request, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReader< ::core::Bundle>>(AsyncPullRaw(context, request, cq, tag));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncReader< ::core::Bundle>> PrepareAsyncPull(::grpc::ClientContext* context, const ::core::Query& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReader< ::core::Bundle>>(PrepareAsyncPullRaw(context, request, cq));
+    }
+    class async final :
+      public StubInterface::async_interface {
+     public:
+      void Push(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::ClientWriteReactor< ::core::Bundle>* reactor) override;
+      void Pull(::grpc::ClientContext* context, const ::core::Query* request, ::grpc::ClientReadReactor< ::core::Bundle>* reactor) override;
+     private:
+      friend class Stub;
+      explicit async(Stub* stub): stub_(stub) { }
+      Stub* stub() { return stub_; }
+      Stub* stub_;
+    };
+    class async* async() override { return &async_stub_; }
+
+   private:
+    std::shared_ptr< ::grpc::ChannelInterface> channel_;
+    class async async_stub_{this};
+    ::grpc::ClientWriter< ::core::Bundle>* PushRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response) override;
+    ::grpc::ClientAsyncWriter< ::core::Bundle>* AsyncPushRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq, void* tag) override;
+    ::grpc::ClientAsyncWriter< ::core::Bundle>* PrepareAsyncPushRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientReader< ::core::Bundle>* PullRaw(::grpc::ClientContext* context, const ::core::Query& request) override;
+    ::grpc::ClientAsyncReader< ::core::Bundle>* AsyncPullRaw(::grpc::ClientContext* context, const ::core::Query& request, ::grpc::CompletionQueue* cq, void* tag) override;
+    ::grpc::ClientAsyncReader< ::core::Bundle>* PrepareAsyncPullRaw(::grpc::ClientContext* context, const ::core::Query& request, ::grpc::CompletionQueue* cq) override;
+    const ::grpc::internal::RpcMethod rpcmethod_Push_;
+    const ::grpc::internal::RpcMethod rpcmethod_Pull_;
+  };
+  static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
+
+  class Service : public ::grpc::Service {
+   public:
+    Service();
+    virtual ~Service();
+    virtual ::grpc::Status Push(::grpc::ServerContext* context, ::grpc::ServerReader< ::core::Bundle>* reader, ::google::protobuf::Empty* response);
+    virtual ::grpc::Status Pull(::grpc::ServerContext* context, const ::core::Query* request, ::grpc::ServerWriter< ::core::Bundle>* writer);
+  };
+  template <class BaseClass>
+  class WithAsyncMethod_Push : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_Push() {
+      ::grpc::Service::MarkMethodAsync(0);
+    }
+    ~WithAsyncMethod_Push() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Push(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::core::Bundle>* /*reader*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestPush(::grpc::ServerContext* context, ::grpc::ServerAsyncReader< ::google::protobuf::Empty, ::core::Bundle>* reader, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncClientStreaming(0, context, reader, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithAsyncMethod_Pull : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_Pull() {
+      ::grpc::Service::MarkMethodAsync(1);
+    }
+    ~WithAsyncMethod_Pull() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Pull(::grpc::ServerContext* /*context*/, const ::core::Query* /*request*/, ::grpc::ServerWriter< ::core::Bundle>* /*writer*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestPull(::grpc::ServerContext* context, ::core::Query* request, ::grpc::ServerAsyncWriter< ::core::Bundle>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncServerStreaming(1, context, request, writer, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_Push<WithAsyncMethod_Pull<Service > > AsyncService;
+  template <class BaseClass>
+  class WithCallbackMethod_Push : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_Push() {
+      ::grpc::Service::MarkMethodCallback(0,
+          new ::grpc::internal::CallbackClientStreamingHandler< ::core::Bundle, ::google::protobuf::Empty>(
+            [this](
+                   ::grpc::CallbackServerContext* context, ::google::protobuf::Empty* response) { return this->Push(context, response); }));
+    }
+    ~WithCallbackMethod_Push() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Push(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::core::Bundle>* /*reader*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerReadReactor< ::core::Bundle>* Push(
+      ::grpc::CallbackServerContext* /*context*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithCallbackMethod_Pull : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_Pull() {
+      ::grpc::Service::MarkMethodCallback(1,
+          new ::grpc::internal::CallbackServerStreamingHandler< ::core::Query, ::core::Bundle>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::core::Query* request) { return this->Pull(context, request); }));
+    }
+    ~WithCallbackMethod_Pull() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Pull(::grpc::ServerContext* /*context*/, const ::core::Query* /*request*/, ::grpc::ServerWriter< ::core::Bundle>* /*writer*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerWriteReactor< ::core::Bundle>* Pull(
+      ::grpc::CallbackServerContext* /*context*/, const ::core::Query* /*request*/)  { return nullptr; }
+  };
+  typedef WithCallbackMethod_Push<WithCallbackMethod_Pull<Service > > CallbackService;
+  typedef CallbackService ExperimentalCallbackService;
+  template <class BaseClass>
+  class WithGenericMethod_Push : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_Push() {
+      ::grpc::Service::MarkMethodGeneric(0);
+    }
+    ~WithGenericMethod_Push() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Push(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::core::Bundle>* /*reader*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_Pull : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_Pull() {
+      ::grpc::Service::MarkMethodGeneric(1);
+    }
+    ~WithGenericMethod_Pull() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Pull(::grpc::ServerContext* /*context*/, const ::core::Query* /*request*/, ::grpc::ServerWriter< ::core::Bundle>* /*writer*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_Push : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_Push() {
+      ::grpc::Service::MarkMethodRaw(0);
+    }
+    ~WithRawMethod_Push() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Push(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::core::Bundle>* /*reader*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestPush(::grpc::ServerContext* context, ::grpc::ServerAsyncReader< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* reader, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncClientStreaming(0, context, reader, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_Pull : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_Pull() {
+      ::grpc::Service::MarkMethodRaw(1);
+    }
+    ~WithRawMethod_Pull() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Pull(::grpc::ServerContext* /*context*/, const ::core::Query* /*request*/, ::grpc::ServerWriter< ::core::Bundle>* /*writer*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestPull(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncWriter< ::grpc::ByteBuffer>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncServerStreaming(1, context, request, writer, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_Push : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_Push() {
+      ::grpc::Service::MarkMethodRawCallback(0,
+          new ::grpc::internal::CallbackClientStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, ::grpc::ByteBuffer* response) { return this->Push(context, response); }));
+    }
+    ~WithRawCallbackMethod_Push() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Push(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::core::Bundle>* /*reader*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerReadReactor< ::grpc::ByteBuffer>* Push(
+      ::grpc::CallbackServerContext* /*context*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_Pull : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_Pull() {
+      ::grpc::Service::MarkMethodRawCallback(1,
+          new ::grpc::internal::CallbackServerStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const::grpc::ByteBuffer* request) { return this->Pull(context, request); }));
+    }
+    ~WithRawCallbackMethod_Pull() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Pull(::grpc::ServerContext* /*context*/, const ::core::Query* /*request*/, ::grpc::ServerWriter< ::core::Bundle>* /*writer*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerWriteReactor< ::grpc::ByteBuffer>* Pull(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/)  { return nullptr; }
+  };
+  typedef Service StreamedUnaryService;
+  template <class BaseClass>
+  class WithSplitStreamingMethod_Pull : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithSplitStreamingMethod_Pull() {
+      ::grpc::Service::MarkMethodStreamed(1,
+        new ::grpc::internal::SplitServerStreamingHandler<
+          ::core::Query, ::core::Bundle>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerSplitStreamer<
+                     ::core::Query, ::core::Bundle>* streamer) {
+                       return this->StreamedPull(context,
+                         streamer);
+                  }));
+    }
+    ~WithSplitStreamingMethod_Pull() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status Pull(::grpc::ServerContext* /*context*/, const ::core::Query* /*request*/, ::grpc::ServerWriter< ::core::Bundle>* /*writer*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with split streamed
+    virtual ::grpc::Status StreamedPull(::grpc::ServerContext* context, ::grpc::ServerSplitStreamer< ::core::Query,::core::Bundle>* server_split_streamer) = 0;
+  };
+  typedef WithSplitStreamingMethod_Pull<Service > SplitStreamedService;
+  typedef WithSplitStreamingMethod_Pull<Service > StreamedService;
+};
+
 }  // namespace core
 
 

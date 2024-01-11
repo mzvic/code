@@ -10,7 +10,7 @@
 #include <csignal>
 #include <vector>
 #include "core.grpc.pb.h"
-#include "client.h"
+#include "broker_client.h"
 #include <sstream>
 #include <iomanip> 
 #include <algorithm>
@@ -18,7 +18,6 @@
 #include <boost/asio/serial_port.hpp>
 #include <boost/asio/serial_port_base.hpp>
 
-using namespace core;
 using namespace std::chrono;
 using namespace google::protobuf;
 
@@ -78,28 +77,41 @@ void ProcessSub(const Bundle &bundle) {
         std::unique_lock<std::mutex> slck(signal_mutex);
         exit_reading = true;
         slck.unlock();
-    
+
         for (int i = 0; i < bundle.value().size(); i++) {
             subs_values[i] = bundle.value(i);
         }
-        
+
         std::string xor_WIN;
-        char xor_OnOff = '1';
         char xor_WR = '1';
         char xor_checksum;
-        if (subs_values[1] == 0){ // para pressure, 162 para setear
+
+        if (subs_values[1] == 0) { // para pressure, 162 para setear
             xor_WIN = "162";
-        }else if (subs_values[1] == 1){ // para motor 117/120 (low/high)
+        } else if (subs_values[1] == 1) { // para motor 117/120 (low/high)
             xor_WIN = "117";
-        }else if (subs_values[1] == 2){ // para valve 122
+        } else if (subs_values[1] == 2) { // para vent valve 122
             xor_WIN = "122";  
         }
-        
+
+        std::string Xor_onoff = std::to_string(subs_values[0]);
+
+        size_t decimalPos = Xor_onoff.find('.');
+        if (decimalPos != std::string::npos) {
+            Xor_onoff.erase(decimalPos);
+        }
+
+        std::string xor_OnOff_combined;
+        for (char xor_OnOff : Xor_onoff) {
+            xor_OnOff_combined += xor_OnOff;
+        }
+
         char xor_WIN1 = xor_WIN[0];
         char xor_WIN2 = xor_WIN[1];
         char xor_WIN3 = xor_WIN[2];
-        
-        xor_checksum = xor_ADDR ^ xor_WIN1 ^ xor_WIN2 ^ xor_WIN3 ^ xor_WR ^ xor_OnOff ^ xor_ETX;
+
+        xor_checksum = xor_ADDR ^ xor_WIN1 ^ xor_WIN2 ^ xor_WIN3 ^ xor_WR ^ xor_OnOff_combined.back() ^ xor_ETX;
+
         char crc_1 = ((xor_checksum >> 4) & 0XF);
         char crc_2 = (xor_checksum & 0xF);
         char ascii_crc_1[3];
@@ -113,13 +125,13 @@ void ProcessSub(const Bundle &bundle) {
         std::cout << xor_WIN2 << "\n";
         std::cout << xor_WIN3 << "\n";
         std::cout << xor_WR << "\n";
-        std::cout << xor_OnOff << "\n";           
+        std::cout << xor_OnOff_combined << "\n";           
         std::cout << xor_ETX << "\n";        
         std::cout << ascii_crc_1 << "\n";
         std::cout << ascii_crc_2 << "\n";
-        std::ifstream serial("/dev/ttyACM0", std::ios::binary);                
+        
+        std::ifstream serial("/dev/ttyACM0", std::ios::binary);
         if (xor_checksum){
-
             std::ofstream serial_out("/dev/ttyACM0", std::ios::binary);
             serial_out.write(&xor_STX, 1);
             serial_out.write(&xor_ADDR, 1);
@@ -127,22 +139,22 @@ void ProcessSub(const Bundle &bundle) {
             serial_out.write(&xor_WIN2, 1);
             serial_out.write(&xor_WIN3, 1);
             serial_out.write(&xor_WR, 1);
-            serial_out.write(&xor_OnOff, 1);
+            serial_out.write(xor_OnOff_combined.c_str(), xor_OnOff_combined.size());
             serial_out.write(&xor_ETX, 1);
             serial_out.write(ascii_crc_1, 1);
             serial_out.write(ascii_crc_2, 1);
         }
-        
+
         // lectura temperatura de la bomba: 204
         // lectura estado valvula: 122
         // lectura presión: 224
         // lectura potencia bomba: 202 
         // lectura rpm motor bomba: 226
         
-        char ANS;
-        while (serial.read(&ANS, 1)) {
-            std::cout << ANS;
-        }
+        //char ANS;
+        //while (serial.read(&ANS, 1)) {
+            //std::cout << ANS;
+        //}
         
         slck.lock();
         exit_reading = false;

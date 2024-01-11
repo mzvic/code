@@ -299,5 +299,7 @@ CMakeFiles/APD_broker2_code_sw.dir/APD_broker2_code_sw.cc.o: /home/code/.local/i
 CMakeFiles/APD_broker2_code_sw.dir/APD_broker2_code_sw.cc.o: APD_broker2_code_sw.cc
 CMakeFiles/APD_broker2_code_sw.dir/APD_broker2_code_sw.cc.o: core.grpc.pb.h
 CMakeFiles/APD_broker2_code_sw.dir/APD_broker2_code_sw.cc.o: core.pb.h
-CMakeFiles/APD_broker2_code_sw.dir/APD_broker2_code_sw.cc.o: reactor/reactor.h
+CMakeFiles/APD_broker2_code_sw.dir/APD_broker2_code_sw.cc.o: log.h
+CMakeFiles/APD_broker2_code_sw.dir/APD_broker2_code_sw.cc.o: reactor/server_reactor.h
+CMakeFiles/APD_broker2_code_sw.dir/APD_broker2_code_sw.cc.o: reactor/server_reactor.tpp
 

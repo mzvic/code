@@ -1,226 +1,187 @@
 #include <algorithm>
 #include <csignal>
 #include <fftw3.h>
-#include <memory>
-#include <boost/asio.hpp>
+//#include <boost/asio.hpp>
 #include <boost/circular_buffer.hpp>
 
 #include "core.grpc.pb.h"
-#include "client.h"
+#include "broker_client.h"
 
 using namespace core;
 using namespace std::chrono;
 using namespace google::protobuf;
-int samples_count = 0;
-#define SAMPLING_FREQUENCY 100000
-#define BUFFER_SIZE 10000000
-#define MAX_BIN_COUNT 100
 
-Bundle *publishing_bundle;
-PublisherClient *publisher_client;
+#define BUFFER_SIZE 10000000    // 0.01 Hz resolution at a sampling frequency of 100000
+#define AVERAGE_COUNT 5        // Number of FFTs to average and send
 
-int window_type = 0;
-#define PI 3.14159265358979323846
-std::vector<float> window;
+unique_ptr<Bundle> publishing_bundle;
+unique_ptr<PublisherClient> publisher_client;
+//unique_ptr<SubscriberClient> subscriber_client;
 
 fftw_plan plan = nullptr;
-double input[BUFFER_SIZE], output[BUFFER_SIZE], fft_magnitudes[BUFFER_SIZE / 2 + 1], fft_bin_frequencies[MAX_BIN_COUNT], fft_bin_magnitudes[MAX_BIN_COUNT];
+double input[BUFFER_SIZE], output[BUFFER_SIZE], fft_magnitudes[BUFFER_SIZE / 2 + 1], fft_magnitudes_average[BUFFER_SIZE / 2 + 1];
 boost::circular_buffer<double> samples(BUFFER_SIZE);
-int bin_size, bin_count;
-int start_idx, stop_idx;
-double frequency_resolution;
+int fft_count = 0;
 
 bool exit_flag = false;
-std::mutex signal_mutex;
-std::condition_variable signal_cv;
+mutex signal_mutex;
+condition_variable signal_cv;
 
-void Send2Broker(const Timestamp &timestamp) { // Function that sends the values to the broker
-  int i;
-  publishing_bundle->clear_value(); // Cleans the DATA_FFT_PARTIAL variable of the bundle
-  for (i = 0; i < bin_count; i++) {
-	publishing_bundle->add_value(fft_bin_frequencies[i]);  // Add frequency values to be sended to the broker 
-  }
-  for (i = 0; i < bin_count; i++) {
-	publishing_bundle->add_value(fft_bin_magnitudes[i]);  // Add magnitude values to be sended to the broker 
-  }
-  publisher_client->Publish(*publishing_bundle, timestamp); // Sends values to the broker (freq and magn)
+void SendToBroker(const Timestamp &timestamp) {
+  cout << "Publishing data" << endl;
+
+  publishing_bundle->clear_value();
+
+  for (const double &kElem : fft_magnitudes_average)
+	publishing_bundle->add_value(kElem);
+
+//  publisher_client->Publish(*publishing_bundle, timestamp);
+  publisher_client->Publish(*publishing_bundle, timestamp);
 }
 
-void GenerateWindow(int N, int window_type) { // Function that generates the window to apply to the FFT (only once at the beggining of the process)
-    window.clear(); // Cleans the window
-    window.resize(N); // Assign the size of the window
-    switch (window_type) { // Switch case depending on the window selected in the GUI (window_type)
-        case 4: {  // If window_type = 4, generates the Blackman Harris 7 parameters window (in vector 'window')
-            const double a0 = 0.27105140069342;
-            const double a1 = 0.43329793923448;
-            const double a2 = 0.21812299954311;
-            const double a3 = 0.06592544638803;
-            const double a4 = 0.01081174209837;
-            const double a5 = 0.00077658482522;
-            const double a6 = 0.00001388721735;
-            for (int n = 0; n < N; ++n) {
-                window[n] = static_cast<float>(a0 - a1 * cos(2.0 * PI * n / (N - 1)) +
-                                               a2 * cos(4.0 * PI * n / (N - 1)) -
-                                               a3 * cos(6.0 * PI * n / (N - 1)) +
-                                               a4 * cos(8.0 * PI * n / (N - 1)) -
-                                               a5 * cos(10.0 * PI * n / (N - 1)) +
-                                               a6 * cos(12.0 * PI * n / (N - 1)));
-            }
-            break;
-        }
-        case 3: {  // If window_type = 3, generates the Blackman Harris 4 parameters window (in vector 'window')
-            const double b0 = 0.35875;
-            const double b1 = 0.48829;
-            const double b2 = 0.14128;
-            const double b3 = 0.01168;
-            for (int n = 0; n < N; ++n) {
-                window[n] = static_cast<float>(b0 - b1 * cos(2.0 * PI * n / (N - 1)) +
-                                               b2 * cos(4.0 * PI * n / (N - 1)) -
-                                               b3 * cos(6.0 * PI * n / (N - 1)));
-            }
-            break;
-        }
-        case 1: {  // If window_type = 1, generates the Hamming window (in vector 'window')
-            for (int n = 0; n < N; ++n) {
-                window[n] = static_cast<float>(0.54 - 0.46 * cos(2.0 * PI * n / (N - 1)));
-            }
-            break;
-        }
-        case 2: {  // If window_type = 2, generates the Hann window (in vector 'window')
-            for (int n = 0; n < N; ++n) {
-                window[n] = static_cast<float>(0.5 * (1 - cos(2.0 * PI * n / (N - 1))));
-            }
-            break;
-        }
-        case 5: {  // If window_type = 5, generates a '1' window (in vector 'window')
-            for (int n = 0; n < N; ++n) {
-                window[n] = 1.0f;
-            }
-            break;
-        }
-        default: {  // By default, generates a '1' window (in vector 'window')
-            for (int n = 0; n < N; ++n) {
-                window[n] = 1.0f;
-            }
-            break;
-        }
-    }
-}
+void ProcessBundle(const Bundle &bundle) {
+  auto start = high_resolution_clock::now();
 
-void ProcessBundle(const Bundle &bundle) { // Function that receives the values from the broker and process the data to obtain the FFT
-  double max_fft;
-  int i, j, k;
-  // Assigns the incoming data to the 'kValue' variable
   const auto &kValue = bundle.value();
+
   // Append received data. Note that we will process the last BUFFER_SIZE samples,
-  // so if kValue and BUFFER_SIZE are not aligned, some old data could be lost
+  // so if value and BUFFER_SIZE are not aligned, some old data could be lost
   samples.insert(samples.end(), kValue.begin(), kValue.end());
-  // Only proceed if we have 1000*5 = 5.000 values on 'samples', e.i. once each 50 milliseconds
-  if (samples_count < 100){
-	samples_count++;
-	return;  
-	}
+
+  cout << "\33[2K\r" << ((float) samples.size() / BUFFER_SIZE) * 100.0 << " % samples" << flush;
+
   // Check if we have enough data to proceed
   if (samples.size() < BUFFER_SIZE)
-    return;
-  // Create input and apply window
+	return;
+
+  cout << endl;
+
+  // Create input
   for (int i = 0; i < BUFFER_SIZE; i++)
-	input[i] = samples.at(i) * window[i];
-  // If the vector size that contains the samples is bigger than the buffer, we erase the last 'BUFFER_SIZE' values of 'samples'
-  if (samples.size() > BUFFER_SIZE) {
-    samples.erase(samples.begin(), samples.begin() + (samples.size() - BUFFER_SIZE));
-  }
+	input[i] = samples.at(i);
+
   // Create plan if needed
   if (plan == nullptr) {
-    // Save input data since a new plan erases the input
-    double* input_backup = new double[BUFFER_SIZE];
-    std::copy(std::begin(input), std::end(input), input_backup);
-    // Create plan
-    plan = fftw_plan_r2r_1d(BUFFER_SIZE, input, output, FFTW_R2HC, FFTW_MEASURE);
-    // Restore input
-    std::copy(input_backup, input_backup + BUFFER_SIZE, input);
-    // Delete input_backup to release the memory
-    delete[] input_backup;
+	cout << "Creating plan" << endl;
+	// Save input data since a new plan erases the input
+	//	double input_backup[BUFFER_SIZE];
+	auto *input_backup = new double[BUFFER_SIZE];
+
+	//	copy(begin(input), end(input), begin(input_backup));
+	memcpy(input_backup, input, BUFFER_SIZE * sizeof(double));
+
+	// Create plan
+	plan = fftw_plan_r2r_1d(BUFFER_SIZE, input, output, FFTW_R2HC, FFTW_ESTIMATE);    // FFTW_MEASURE for a better estimation, but a longer execution time
+
+	// Restore input
+	//	copy(begin(input_backup), end(input_backup), begin(input));
+	memcpy(input, input_backup, BUFFER_SIZE * sizeof(double));
+
+	// Delete backup
+	delete[] input_backup;
   }
+
+  cout << "Executing plan" << endl;
+
   // Execute FFTW plan
   fftw_execute(plan);
+
   // Remove DC component
   fft_magnitudes[0] = 0;
+
   // Calculate magnitudes
-  for (i = 1; i < (BUFFER_SIZE + 1) / 2; i++)  // (i < N/2 rounded up)
-    fft_magnitudes[i] = sqrt(output[i] * output[i] + output[BUFFER_SIZE - i] * output[BUFFER_SIZE - i]);
+  for (int i = 1; i < (BUFFER_SIZE + 1) / 2; i++)  // (i < N/2 rounded up)
+	fft_magnitudes[i] = sqrt(output[i] * output[i] + output[BUFFER_SIZE - i] * output[BUFFER_SIZE - i]);
+
   if (BUFFER_SIZE % 2 == 0) // Only if N is even. NOLINT: BUFFER_SIZE could be odd too
-    fft_magnitudes[BUFFER_SIZE / 2] = abs(output[BUFFER_SIZE / 2]);  // Nyquist frequency
-  // Find max magnitude
-  max_fft = 0;
-  for (const auto &kElem : fft_magnitudes) {
-    if (kElem > max_fft)
-      max_fft = kElem;
+	fft_magnitudes[BUFFER_SIZE / 2] = abs(output[BUFFER_SIZE / 2]);  // Nyquist frequency
+
+  // Aggregate fft_magnitudes_average
+  if (fft_count == 0) {
+	memcpy(fft_magnitudes_average, fft_magnitudes, sizeof(fft_magnitudes));
+  } else {
+	for (int i = 0; i < (BUFFER_SIZE / 2 + 1); i++)
+	  fft_magnitudes_average[i] += fft_magnitudes[i];
   }
-  // Normalize magnitudes vector
-  for (auto &elem : fft_magnitudes)
-    elem /= max_fft;
-  // Fill bins
-  std::vector<std::pair<double, double>> magnitudes_frecuencias;
-  for (i = start_idx; i <= stop_idx; i++) {
-    double frecuencia = i * frequency_resolution;
-    double magnitud = fft_magnitudes[i];
-    magnitudes_frecuencias.emplace_back(magnitud, frecuencia);
-  }
-  // Sort the data from greater to smaller
-  std::partial_sort(magnitudes_frecuencias.begin(), magnitudes_frecuencias.begin() + bin_count, magnitudes_frecuencias.end(), std::greater<std::pair<double, double>>());
-  // Assign the 'MAX_BIN_COUNT' (100) greater magnitudes and it's frequencies to the 'fft_bin_freq/magn' vectors
-  bin_count = std::min(static_cast<int>(magnitudes_frecuencias.size()), MAX_BIN_COUNT);
-  for (i = 0; i < bin_count; i++) {
-    fft_bin_frequencies[i] = magnitudes_frecuencias[i].second;
-    fft_bin_magnitudes[i] = magnitudes_frecuencias[i].first;
-  }
+
+  fft_count++;
+
   // Ready to send FFT
-  Send2Broker(bundle.timestamp());
-  // Cleans the count started in line 119
-  samples_count = 0; 
+  if (fft_count == AVERAGE_COUNT) {
+	double max_fft;
+
+	// Calculate average
+	for (auto &elem : fft_magnitudes_average)
+	  elem /= AVERAGE_COUNT;
+
+	// Find max magnitude
+	max_fft = 0;
+	for (const auto &kElem : fft_magnitudes_average) {
+	  if (kElem > max_fft)
+		max_fft = kElem;
+	}
+
+	// Normalize magnitudes vector
+	for (auto &elem : fft_magnitudes_average)
+	  elem /= max_fft;
+
+	SendToBroker(bundle.timestamp());
+
+	fft_count = 0;
+  }
+
+  // Clear samples. This is a fixed (no sliding) window approach
+  samples.clear();
+
+  auto stop = high_resolution_clock::now();
+  auto duration = duration_cast<microseconds>(stop - start);
+  cout << "FFT Calculation Time: " << duration.count() << " us" << endl;
 }
 
-void HandleSignal(int) { // Function to exit process
-  std::unique_lock<std::mutex> slck(signal_mutex);
-  std::cout << "Exiting..." << std::endl;
+void HandleSignal(int) {
+  unique_lock<mutex> slck(signal_mutex);
+
+  cout << "Exiting..." << endl;
+
   exit_flag = true;
+
   signal_cv.notify_one();
 }
 
-int main(int argc, char *argv[]) {
-  int start_frequency, stop_frequency;
-  start_frequency = std::max(0, std::stoi(argv[1])); // Argument that sets the start of the frequency of interest
-  stop_frequency = std::min(std::stoi(argv[2]), SAMPLING_FREQUENCY / 2) + 1; // Argument that sets the end of the frequency of interest
-  window_type = stoi(argv[3]); // Argument that sets the FFT window
-  // If 'window' is empty, generates the window, if not, it goes ahead with the existing window
-  if (window.empty()) {
-    GenerateWindow(BUFFER_SIZE, window_type);
-    cout << "Creating window..." << endl;
-  }  
-  // Calculate bin info
-  frequency_resolution = (double) SAMPLING_FREQUENCY / BUFFER_SIZE;
-  // Check if we can fill all bins
-  bin_count = std::min((int) ((stop_frequency - start_frequency) / frequency_resolution), MAX_BIN_COUNT);
-  bin_size = std::floor(((stop_frequency - start_frequency) / frequency_resolution) / bin_count);
-  start_idx = std::floor(start_frequency / frequency_resolution); // Start of the frequency of interest
-  stop_idx = std::min(start_idx + bin_count * bin_size, BUFFER_SIZE / 2 + 1 - bin_size); // End of the frequency of interest
-  // Locks the thread
-  std::unique_lock<std::mutex> slck(signal_mutex);
-  // Indicates the interest variable for the susbscribe method (to get the data from the broker)
-  SubscriberClient subscriber_client(&ProcessBundle, std::vector<int>{DATA_APD_FULL});
-  // Indicates the broker publishing variable
-  publisher_client = new PublisherClient();
-  publishing_bundle = new Bundle();
+int main() {
+  unique_lock<mutex> slck(signal_mutex);
+
+//  publisher_client = new PublisherClient();
+  publisher_client = make_unique<PublisherClient>();
+//  request_.mutable_types()->Assign(request.begin(), request.end());
+//  subscriber_client = new SubscriberClient(&ProcessBundle, vector<int>{DATA_APD_FULL});
+//  subscriber_client = make_unique<SubscriberClient>(&ProcessBundle, vector<int>{DATA_APD_FULL});
+  SubscriberClient subscriber_client(&ProcessBundle, vector<int>{DATA_APD_FULL});
+//  subscriber_client = new SubscriberClient(&ProcessBundle, &interests);
+//  publishing_bundle = new Bundle();
+  publishing_bundle = make_unique<Bundle>();
+
   publishing_bundle->set_type(DATA_FFT_FULL);
+
   // Register handler
   std::signal(SIGINT, HandleSignal);
-  // Wait for CTRL-C signal
+
+  // Initialize FFT threads
+  fftw_init_threads();
+  fftw_plan_with_nthreads(8);
+
+  // Wait fot CTRL-C signal
   signal_cv.wait(slck, [] { return exit_flag; });
+
   // Destroy FFTW plan
   if (plan != nullptr)
-    fftw_destroy_plan(plan);
-  delete publisher_client;
-  delete publishing_bundle;
+	fftw_destroy_plan(plan);
+
+  fftw_cleanup_threads();
+
+//  delete subscriber_client;
+//  delete publisher_client;
+//  delete publishing_bundle;
+
   return 0;
 }

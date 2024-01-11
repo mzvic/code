@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = -DBOOST_ALL_NO_LIB -DBOOST_IOSTREAMS_DYN_LINK -DBOOST_SYSTEM_DYN_LINK -DCARES_STATICLIB
 
-CXX_INCLUDES = -I/home/code/Development/core_ba -isystem /home/code/.local/include
+CXX_INCLUDES = -I/home/asus/Escritorio/code-main/core_ba -isystem /home/asus/.local/include
 
 CXX_FLAGS = -std=gnu++17
 

@@ -5,7 +5,7 @@
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <cstdio>
 #include <vector>
-#include "client.h"
+#include "broker_client.h"
 #include <csignal>
 #include "core.grpc.pb.h"
 #include <thread>

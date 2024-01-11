@@ -297,7 +297,12 @@ CMakeFiles/TwisTorrSetter_code_sw.dir/TwisTorrSetter_code_sw.cc.o: /home/code/.l
 CMakeFiles/TwisTorrSetter_code_sw.dir/TwisTorrSetter_code_sw.cc.o: /home/code/.local/include/grpcpp/support/time.h
 CMakeFiles/TwisTorrSetter_code_sw.dir/TwisTorrSetter_code_sw.cc.o: /home/code/.local/include/grpcpp/version_info.h
 CMakeFiles/TwisTorrSetter_code_sw.dir/TwisTorrSetter_code_sw.cc.o: TwisTorrSetter_code_sw.cc
+CMakeFiles/TwisTorrSetter_code_sw.dir/TwisTorrSetter_code_sw.cc.o: broker_client.h
 CMakeFiles/TwisTorrSetter_code_sw.dir/TwisTorrSetter_code_sw.cc.o: client.h
+CMakeFiles/TwisTorrSetter_code_sw.dir/TwisTorrSetter_code_sw.cc.o: client.tpp
 CMakeFiles/TwisTorrSetter_code_sw.dir/TwisTorrSetter_code_sw.cc.o: core.grpc.pb.h
 CMakeFiles/TwisTorrSetter_code_sw.dir/TwisTorrSetter_code_sw.cc.o: core.pb.h
+CMakeFiles/TwisTorrSetter_code_sw.dir/TwisTorrSetter_code_sw.cc.o: log.h
+CMakeFiles/TwisTorrSetter_code_sw.dir/TwisTorrSetter_code_sw.cc.o: reactor/client_reactor.h
+CMakeFiles/TwisTorrSetter_code_sw.dir/TwisTorrSetter_code_sw.cc.o: reactor/client_reactor.tpp
 

@@ -1,10 +1,10 @@
 #include <iostream>
 #include <mutex>
 #include <string>
-#include "client.h"
+#include "broker_client.h"
 #include "core.grpc.pb.h"
 
-using namespace core;
+
 using google::protobuf::Timestamp;
 using std::string;
 
