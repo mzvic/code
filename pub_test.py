@@ -84,33 +84,6 @@ class Publish2Broker(QThread):
         print("Bundle: \n", bundle, "\n\n\n\n\n")
         yield bundle
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class MainWindow(QMainWindow):
     showWarningSignal = pyqtSignal(str)
     def __init__(self):
