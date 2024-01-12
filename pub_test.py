@@ -84,33 +84,6 @@ class Publish2Broker(QThread):
         print("Bundle: \n", bundle, "\n\n\n\n\n")
         yield bundle
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class MainWindow(QMainWindow):
     showWarningSignal = pyqtSignal(str)
     def __init__(self):
@@ -214,7 +187,7 @@ class MainWindow(QMainWindow):
             self.execute_twistorr_monitor()
         else:
             self.kill_twistorr_monitor()
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
     def execute_twistorr_monitor(self):
         self.processes[11] = subprocess.Popen([self.binary_paths[11]])
  

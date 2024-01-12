@@ -34,9 +34,12 @@ freq = []
 magn = []
 
 # List to store monitoring data from TwistTorporsi
-
-monitoring_TT = []
+twistorr_subscribing_values = []
 rigol_publishing_values = []
+laser_publishing_values = []
+
+rigol_pub_size = 4
+laser_pub_size = 2  
 
 # Custom Axis class to display timestamps as dates
 class DateAxis(pg.AxisItem):
@@ -50,7 +53,7 @@ class CustomImageAxis(pg.AxisItem):
 
 class UpdateGraph1Thread(QThread):
     bundle = None
-    update_signal1 = pyqtSignal()
+    update_signal = pyqtSignal()
     # Thread run method for updating graph 1 data
     def run(self):
         # Check if the thread has been requested to stop
@@ -111,7 +114,7 @@ class UpdateGraph1Thread(QThread):
 
 
                     # Emit a signal to indicate an update in graph 1
-                    self.update_signal1.emit()
+                    self.update_signal.emit()
 
 
 # Definition of a custom thread class for updating plot 1 data
@@ -143,84 +146,85 @@ class UpdatePlot1Thread(QThread):
                   
 # Definition of a custom thread class for updating graph 2 data
 class UpdateGraph2Thread(QThread):
-    bundle2 = None
-    update_signal2 = pyqtSignal()
+    bundle = None
+    update_signal = pyqtSignal()
     
     # Run method for the thread
     def run(self):
-        bundle2 = core.Bundle()  # Create an empty Bundle object
-        channel2 = grpc.insecure_channel('localhost:50051')  # Create an insecure channel
-        stub2 = core_grpc.BrokerStub(channel2)  # Create a stub for the Broker service
-        request2 = core.Interests()  # Create a request object
-        request2.types.append(core.DATA_FFT_PARTIAL)  # Add DATA_FFT_PARTIAL type to the request
-        response_stream2 = stub2.Subscribe(request2)  # Subscribe to the response stream
-        thread2 = threading.Thread(target=self.receive_bundles2, args=(response_stream2,))
-        thread2.start()  # Start the thread
-        thread2.join()  # Wait for the thread to finish
+        bundle = core.Bundle()  # Create an empty Bundle object
+        channel = grpc.insecure_channel('localhost:50051')  # Create an insecure channel
+        stub = core_grpc.BrokerStub(channel)  # Create a stub for the Broker service
+        request = core.Interests()  # Create a request object
+        request.types.append(core.DATA_FFT_PARTIAL)  # Add DATA_FFT_PARTIAL type to the request
+        response_stream = stub.Subscribe(request)  # Subscribe to the response stream
+        thread = threading.Thread(target=self.receive_bundles, args=(response_stream,))
+        thread.start()  # Start the thread
+        thread.join()  # Wait for the thread to finish
         
     # Method to receive bundles from the response stream
-    def receive_bundles2(self, response_stream):
-        for bundle2 in response_stream:
+    def receive_bundles(self, response_stream):
+        for bundle in response_stream:
             fft = []
             fft[:] = bundle2.value  # Copy the bundle value to the fft list
             half_length = len(fft) // 2  # Calculate half length of the fft data
             freq[:] = fft[:half_length]  # Copy first half of fft data to freq list
             magn[:] = fft[half_length:]  # Copy second half of fft data to magn list
-            self.update_signal2.emit()  # Emit a signal to indicate updated data
+            self.update_signal.emit()  # Emit a signal to indicate updated data
 
             
 
 # Definition of a custom thread class for updating TwisTorr monitoring data
 
-class UpdateTTThread(QThread):
-    bundle3 = None
-    update_signal3 = pyqtSignal()
+class TwisTorrSubscribe2Broker(QThread):
+    bundle = None
+    update_signal = pyqtSignal()
     
     # Run method for the thread
     def run(self):
-        bundle3 = core.Bundle()  # Create an empty Bundle object
-        channel3 = grpc.insecure_channel('localhost:50051')  # Create an insecure channel
-        stub3 = core_grpc.BrokerStub(channel3)  # Create a stub for the Broker service
-        request3 = core.Interests()  # Create a request object
-        request3.types.append(core.DATA_TT_MON)  # Add DATA_TT_MON type to the request
-        response_stream3 = stub3.Subscribe(request3)  # Subscribe to the response stream
-        thread3 = threading.Thread(target=self.receive_bundles3, args=(response_stream3,))
-        thread3.start()  # Start the thread
-        thread3.join()  # Wait for the thread to finish
+        bundle = core.Bundle()  # Create an empty Bundle object
+        channel = grpc.insecure_channel('localhost:50051')  # Create an insecure channel
+        stub = core_grpc.BrokerStub(channel)  # Create a stub for the Broker service
+        request = core.Interests()  # Create a request object
+        request.types.append(core.DATA_TT_MON)  # Add DATA_TT_MON type to the request
+        response_stream = stub.Subscribe(request)  # Subscribe to the response stream
+        thread = threading.Thread(target=self.receive_bundles, args=(response_stream,))
+        thread.start()  # Start the thread
+        thread.join()  # Wait for the thread to finish
         
     # Method to receive bundles from the response stream
-    def receive_bundles3(self, response_stream):
-        for bundle3 in response_stream:
-            if len(bundle3.value) > 0:  # Check if the bundle value is not empty
-                global monitoring_TT  # Use the global variable for monitoring data
-                monitoring_TT = []
-                monitoring_TT[:] = bundle3.value  # Copy the bundle value to the monitoring_TT list
-                self.update_signal3.emit()  # Emit a signal to indicate updated data
+    def receive_bundles(self, response_stream):
+        for bundle in response_stream:
+            if len(bundle.value) > 0:  # Check if the bundle value is not empty
+                global twistorr_subscribing_values  # Use the global variable for monitoring data
+                twistorr_subscribing_values = []
+                twistorr_subscribing_values[:] = bundle.value  # Copy the bundle value to the twistorr_subscribing_values list
+                self.update_signal.emit()  # Emit a signal to indicate updated data
 
 class RigolPublish2Broker(QThread):
     send_signal = pyqtSignal()
     
     def run(self):
+        global rigol_publishing_values
         while(True):
-            channel = grpc.insecure_channel('localhost:50051')
-            stub = core_grpc.BrokerStub(channel)
-            stub.Publish(self.generate_bundles())
-            channel.close()
-            time.sleep(1) # Revisar si es necesario que esto vaya en otro hilo 
+            rigol_values = rigol_publishing_values
+            if rigol_values is not None and any(value != 0 for value in rigol_values):
+                channel = grpc.insecure_channel('localhost:50051')
+                stub = core_grpc.BrokerStub(channel)
+                stub.Publish(self.generate_bundles())
+                channel.close()
+                time.sleep(0.5) # Revisar si es necesario que esto vaya en otro hilo 
         
     def generate_bundles(self):
         global rigol_publishing_values
-
+        rigol_values = rigol_publishing_values
         bundle = core.Bundle()
         bundle.timestamp.GetCurrentTime()
         bundle.type = core.DATA_RIGOL_MON
         self.send_signal.emit()
-        if rigol_publishing_values is not None and len(rigol_publishing_values) == 4:
-            bundle.value.extend(rigol_publishing_values)
-        else:
-            bundle.value.extend([10, 12, 14, 16])
-        print("Publishing values: ", rigol_publishing_values)
-        print("Bundle: \n", bundle, "\n\n\n\n\n")
+        if rigol_values is not None and len(rigol_values) == rigol_pub_size:
+            bundle.value.extend(rigol_values)
+            #print("Publishing values: ", rigol_values)    
+        #print("Bundle: \n", bundle, "\n\n\n\n\n")
         yield bundle
 
 
@@ -228,26 +232,27 @@ class LaserPublish2Broker(QThread):
     send_signal = pyqtSignal()
     
     def run(self):
+        global laser_publishing_values
         while(True):
-            channel = grpc.insecure_channel('localhost:50051')
-            stub = core_grpc.BrokerStub(channel)
-            stub.Publish(self.generate_bundles())
-            channel.close()
-            time.sleep(1) # Revisar si es necesario que esto vaya en otro hilo 
+            laser_values = laser_publishing_values
+            if laser_values is not None and any(value != 0 for value in laser_values):
+                channel = grpc.insecure_channel('localhost:50051')
+                stub = core_grpc.BrokerStub(channel)
+                stub.Publish(self.generate_bundles())
+                channel.close()
+                time.sleep(0.5) # Revisar si es necesario que esto vaya en otro hilo 
         
     def generate_bundles(self):
         global laser_publishing_values
-
+        laser_values = laser_publishing_values
         bundle = core.Bundle()
         bundle.timestamp.GetCurrentTime()
         bundle.type = core.DATA_LASER_MON
         self.send_signal.emit()
-        if laser_publishing_values is not None and len(laser_publishing_values) == 2:
-            bundle.value.extend(laser_publishing_values)
-        else:
-            bundle.value.extend([0, 0])
-        print("Publishing values: ", laser_publishing_values)
-        print("Bundle: \n", bundle, "\n\n\n\n\n")
+        if laser_values is not None and len(laser_values) == laser_pub_size:
+            bundle.value.extend(laser_values)
+            #print("Publishing values: ", laser_values)
+        #print("Bundle: \n", bundle, "\n\n\n\n\n")
         yield bundle
 
 
@@ -649,7 +654,7 @@ class MainWindow(QMainWindow):
 
         # Connect UpdateGraph1Thread() to a thread (receives data for counts vs. time [APD])
         self.update_graph1_thread = UpdateGraph1Thread()
-        self.update_graph1_thread.update_signal1.connect(self.update_graph1)
+        self.update_graph1_thread.update_signal.connect(self.update_graph1)
 
         # Connect UpdatePlot1Thread() to a thread (display the counts vs. data in plot 1 [APD])
         self.update_plot1_thread = UpdatePlot1Thread()
@@ -658,15 +663,15 @@ class MainWindow(QMainWindow):
         
         # Connect UpdateGraph2Thread() to a thread (receives and display fft data in plot 2 [APD])
         self.update_graph2_thread = UpdateGraph2Thread()
-        self.update_graph2_thread.update_signal2.connect(self.update_graph2)
+        self.update_graph2_thread.update_signal.connect(self.update_graph2)
 
         self.rigolpublish2broker = RigolPublish2Broker()
-        self.rigolpublish2broker.send_signal.connect(self.update_rigol)
-        self.rigolpublish2broker.start()  
+        self.rigolpublish2broker.send_signal.connect(self.send_rigol_publishing_values)
+        self.rigol_values = []
 
         self.laserpublish2broker = LaserPublish2Broker()
-        self.laserpublish2broker.send_signal.connect(self.update_rigol)
-        self.laserpublish2broker.start()         
+        self.laserpublish2broker.send_signal.connect(self.send_laser_publishing_values)
+        self.laser_values = []
 
         # Buttons in APD tab
         button_names_1a = ["Server", "Counts plot"] 
@@ -825,10 +830,10 @@ class MainWindow(QMainWindow):
         # ------------------------------------------------------------------------------------------- #
         self.layout2 = QGridLayout(self.tab2)
 
-        # Connect UpdateTTThread() to a thread (receives TwisTorr data [Vacuum])
-        self.update_TT_thread = UpdateTTThread()
-        self.update_TT_thread.update_signal3.connect(self.update_vacuum_values)
-        self.update_TT_thread.start()        
+        # Connect TwisTorrSubscribe2Broker() to a thread (receives TwisTorr data [Vacuum])
+        self.twistorrSubs2Broker = TwisTorrSubscribe2Broker()
+        self.twistorrSubs2Broker.update_signal.connect(self.update_vacuum_values)
+        self.twistorrSubs2Broker.start()        
 
         # Labels for the column titles
         label_305FS = QLabel("TwisTorr 305 FS")
@@ -1079,7 +1084,7 @@ class MainWindow(QMainWindow):
         self.layout4.addWidget(self.rigol_time_scale, 6, 1)
         self.layout4.addWidget(self.rigol_time_scale_btn, 6, 2) 
 
-        # Time scale
+        # Voltage scale
         self.rigol_vscale = QLineEdit()
         self.rigol_vscale.setText("1") 
         self.rigol_vscale.setFixedWidth(220)
@@ -1916,22 +1921,22 @@ class MainWindow(QMainWindow):
         # subprocess.run(['pkill', '-f', self.processes[10].args[0]], check=True)                
 
     def update_vacuum_values(self):
-        # Update the vacuum-related values from monitoring_TT
+        # Update the vacuum-related values from twistorr_subscribing_values
         #self.pressure = self.set_vacuum_pressure.text()
         #self.motor = self.set_speed_motor.text()
         #self.valve = self.set_valve_state.text()
         if self.btn_vacuum_monitor.isChecked():
-            if len(monitoring_TT) >= 5:
-                vacuum_current = str(int(monitoring_TT[0]))
-                vacuum_voltage = str(int(monitoring_TT[1]))
-                vacuum_power = str(int(monitoring_TT[2]))
-                vacuum_frequency = str(int(monitoring_TT[3]))
-                vacuum_temperature = str(int(monitoring_TT[4]))
-                vacuum_current2 = str(int(monitoring_TT[5]))
-                vacuum_voltage2 = str(int(monitoring_TT[6]))
-                vacuum_power2 = str(int(monitoring_TT[7]))
-                vacuum_frequency2 = str(int(monitoring_TT[8]))
-                vacuum_temperature2 = str(int(monitoring_TT[9]))                
+            if len(twistorr_subscribing_values) >= 5:
+                vacuum_current = str(int(twistorr_subscribing_values[0]))
+                vacuum_voltage = str(int(twistorr_subscribing_values[1]))
+                vacuum_power = str(int(twistorr_subscribing_values[2]))
+                vacuum_frequency = str(int(twistorr_subscribing_values[3]))
+                vacuum_temperature = str(int(twistorr_subscribing_values[4]))
+                vacuum_current2 = str(int(twistorr_subscribing_values[5]))
+                vacuum_voltage2 = str(int(twistorr_subscribing_values[6]))
+                vacuum_power2 = str(int(twistorr_subscribing_values[7]))
+                vacuum_frequency2 = str(int(twistorr_subscribing_values[8]))
+                vacuum_temperature2 = str(int(twistorr_subscribing_values[9]))                
 
                 # Update the labels with the vacuum-related values
                 self.monitor_vacuum_current.setText(vacuum_current+" [mA]")
@@ -2201,11 +2206,22 @@ class MainWindow(QMainWindow):
             self.color_map.setImage(self.pm)
             self.color_map.getView().setRange(xRange=(self.f_i * 10, self.f_f * 10))
             self.t_fft = int(time.time())
-     
+
+    def send_rigol_publishing_values(self):#, values):
+        global rigol_publishing_values
+        self.rigolpublish2broker.start()  
+        rigol_publishing_values = self.rigol_values
+        #print(rigol_publishing_values)
+        
+    def send_laser_publishing_values(self):#, values):
+        global laser_publishing_values
+        self.laserpublish2broker.start()         
+        laser_publishing_values = self.laser_values
+        #print(laser_publishing_values)
+
     # Updating data grom rigol
     def update_rigol(self, rigol_x_data, rigol_y_data, rigol_attenuation, rigol_voltscale, rigol_voltoffset, rigol_coupling, rigol_voltage, rigol_frequency, rigol_function, rigol_g1, rigol_g2, g2_V, rigol_laser_voltage):
-        global rigol_publishing_values
-        global laser_publishing_values
+
         #print(g2_V,rigol_laser_voltage)
         if g2_V:
             self.laser_voltage_monitor.setText(str(rigol_laser_voltage)+" [V]")
@@ -2268,9 +2284,28 @@ class MainWindow(QMainWindow):
             self.graph_voltage_trap.clear()  
 
 
-        rigol_publishing_values = [rigol_voltage, rigol_voltoffset, rigol_frequency, rigol_function]
-        laser_publishing_values = [self.laser_voltage_monitor, rigol_g2]
-        #if self.laser_button.isChecked():                    
+        if rigol_function == "SIN\n":
+            function_number = 1
+        elif rigol_function == "SQU\n":
+            function_number = 2
+        elif rigol_function == "RAMP\n":
+            function_number = 3
+        elif rigol_function == "PULS\n":
+            function_number = 4
+        elif rigol_function == "DC\n":
+            function_number = 5
+        else:
+            function_number = 0
+            
+        self.rigol_values = [rigol_voltage, rigol_voltoffset, rigol_frequency, function_number]
+        self.laser_values = [rigol_laser_voltage, g2_V]
+        
+        if any(self.rigol_values):
+            self.send_rigol_publishing_values()#self.rigol_values)
+            self.rigol_values = []
+        if any(self.laser_values):    
+            self.send_laser_publishing_values()#self.laser_values)
+            self.laser_values = []              
         
     def calculate_fundamental_frequency(self, freq, magn):
         # Find valid indices with frequency > 1.1 and magnitude > 0.5
@@ -2402,7 +2437,7 @@ def get_rigol_data(status, channel, auto, voltage, frequency, function, tscale, 
     try:    
         if (status == 1 or g2_V == 1):
             rm = pyvisa.ResourceManager('@py')
-            print(rigol_ip,datetime.now())
+            #print(rigol_ip,datetime.now())
             scope = rm.open_resource(rigol_ip, timeout=15000)
             #rigol_g2 = g2_V  
             rigol_g2 = float(scope.query(":OUTP2?"))                     

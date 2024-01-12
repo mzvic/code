@@ -36,7 +36,7 @@ std::vector<std::string> data_ids;
 
 typedef struct {
   double timestamp_;
-  double counts[COUNTS_SIZE];
+  uint32_t counts[COUNTS_SIZE];
 } CountsEntry;
 
 typedef struct {
@@ -46,16 +46,16 @@ typedef struct {
 
 typedef struct {
   double timestamp_;
-  double pump1_current_mon;
-  double pump1_voltage_mon;
-  double pump1_power_mon;
-  double pump1_frequency_mon;
-  double pump1_temperature_mon;
-  double pump2_current_mon;
-  double pump2_voltage_mon;
-  double pump2_power_mon;
-  double pump2_frequency_mon;
-  double pump2_temperature_mon;
+  uint32_t pump1_current_mon;
+  uint32_t pump1_voltage_mon;
+  uint32_t pump1_power_mon;
+  uint32_t pump1_frequency_mon;
+  uint32_t pump1_temperature_mon;
+  uint32_t pump2_current_mon;
+  uint32_t pump2_voltage_mon;
+  uint32_t pump2_power_mon;
+  uint32_t pump2_frequency_mon;
+  uint32_t pump2_temperature_mon;
 } TwisTorrMonitorEntry;
 
 typedef struct {
@@ -63,13 +63,13 @@ typedef struct {
   double trap_voltage_mon;
   double trap_voltage_offset_mon;
   double trap_frequency_mon;
-  double trap_function_mon;
+  std::string trap_function_mon;
 } RigolMonitorEntry;
 
 typedef struct {
   double timestamp_;
   double laser_voltage_mon;
-  double laser_status_mon;
+  uint32_t laser_status_mon;
 } LaserMonitorEntry;
 
 typedef struct {
@@ -220,10 +220,34 @@ void WriteData(const Bundle &bundle) {
 		  LOG("Writing rigol monitor record");
 		  // Create entry
 		  rigol_monitor_entry->timestamp_ = (double) bundle.timestamp().seconds() + (double) bundle.timestamp().nanos() / 1000000000L;
-		  rigol_monitor_entry->trap_voltage_mon = kValue.Get(0);// MODIFICAR
-		  rigol_monitor_entry->trap_voltage_offset_mon = kValue.Get(1);// MODIFICAR
-		  rigol_monitor_entry->trap_frequency_mon = kValue.Get(2);// MODIFICAR
-		  rigol_monitor_entry->trap_function_mon = kValue.Get(3); // MODIFICAR
+		  rigol_monitor_entry->trap_voltage_mon = kValue.Get(0);
+		  rigol_monitor_entry->trap_voltage_offset_mon = kValue.Get(1);
+		  rigol_monitor_entry->trap_frequency_mon = kValue.Get(2);
+		  //rigol_monitor_entry->trap_function_mon = kValue.Get(3); 
+		  int function_value = kValue.Get(3);
+		  std::string trap_function;
+		  switch (function_value){
+            case 1:
+              trap_function = "SIN";
+              break;
+            case 2:
+              trap_function = "SQUARE";
+              break;
+            case 3:
+              trap_function = "RAMP";
+              break;
+            case 4:
+              trap_function = "PULSE";
+              break;
+            case 5:
+              trap_function = "DC";
+              break;
+            case 0:
+            default:
+              trap_function = "UNKNOWN";
+              break;
+		  }
+		  rigol_monitor_entry->trap_function_mon = trap_function;
 		  LOG("Parsing done");
 		  if (H5PTappend(rigol_monitor_ptable, 1, rigol_monitor_entry.get()) < 0)
 			LOG("Error appending entry");
@@ -340,7 +364,8 @@ static hid_t MakeCountsEntryType() {
 
 	  // Create and insert data array in data type
 	  hsize_t size = COUNTS_SIZE;
-	  data_id_counts = H5Tarray_create(H5T_NATIVE_DOUBLE, 1, &size);
+	  //data_id_counts = H5Tarray_create(H5T_NATIVE_DOUBLE, 1, &size);
+	  data_id_counts = H5Tarray_create(H5T_NATIVE_INT32, 1, &size);
 	  if (H5Tinsert(type_id_counts, "Counts", HOFFSET(CountsEntry, counts), data_id_counts) < 0){
 	  	H5Tclose(data_id_counts);
 	  	return H5I_INVALID_HID;
@@ -366,52 +391,52 @@ static hid_t MakeTwisTorrMonitorEntryType() {
   // Insert other parameters
   for (const auto &id : data_ids) {
     if (id == "pump1_current") {
-      if (H5Tinsert(type_id_tt, "305FS_Current", HOFFSET(TwisTorrMonitorEntry, pump1_current_mon), H5T_NATIVE_DOUBLE) < 0){
+      if (H5Tinsert(type_id_tt, "305FS_Current", HOFFSET(TwisTorrMonitorEntry, pump1_current_mon), H5T_NATIVE_INT32) < 0){
       	H5Tclose(type_id_tt);
         return H5I_INVALID_HID;
       }
     } else if (id == "pump1_voltage") {
-      if (H5Tinsert(type_id_tt, "305FS_Voltage", HOFFSET(TwisTorrMonitorEntry, pump1_voltage_mon), H5T_NATIVE_DOUBLE) < 0){
+      if (H5Tinsert(type_id_tt, "305FS_Voltage", HOFFSET(TwisTorrMonitorEntry, pump1_voltage_mon), H5T_NATIVE_INT32) < 0){
       	H5Tclose(type_id_tt);
         return H5I_INVALID_HID;
       }
     } else if (id == "pump1_power") {
-      if (H5Tinsert(type_id_tt, "305FS_Power", HOFFSET(TwisTorrMonitorEntry, pump1_power_mon), H5T_NATIVE_DOUBLE) < 0){
+      if (H5Tinsert(type_id_tt, "305FS_Power", HOFFSET(TwisTorrMonitorEntry, pump1_power_mon), H5T_NATIVE_INT32) < 0){
       	H5Tclose(type_id_tt);
         return H5I_INVALID_HID;
       }
     } else if (id == "pump1_frequency") {
-      if (H5Tinsert(type_id_tt, "305FS_Frequency", HOFFSET(TwisTorrMonitorEntry, pump1_frequency_mon), H5T_NATIVE_DOUBLE) < 0){
+      if (H5Tinsert(type_id_tt, "305FS_Frequency", HOFFSET(TwisTorrMonitorEntry, pump1_frequency_mon), H5T_NATIVE_INT32) < 0){
       	H5Tclose(type_id_tt);
         return H5I_INVALID_HID;
       }
     } else if (id == "pump1_temperature") {
-      if (H5Tinsert(type_id_tt, "305FS_Temperature", HOFFSET(TwisTorrMonitorEntry, pump1_temperature_mon), H5T_NATIVE_DOUBLE) < 0){
+      if (H5Tinsert(type_id_tt, "305FS_Temperature", HOFFSET(TwisTorrMonitorEntry, pump1_temperature_mon), H5T_NATIVE_INT32) < 0){
 				H5Tclose(type_id_tt);
         return H5I_INVALID_HID;
       }
     } else if (id == "pump2_current") {
-      if (H5Tinsert(type_id_tt, "74FS_Current", HOFFSET(TwisTorrMonitorEntry, pump2_current_mon), H5T_NATIVE_DOUBLE) < 0){
+      if (H5Tinsert(type_id_tt, "74FS_Current", HOFFSET(TwisTorrMonitorEntry, pump2_current_mon), H5T_NATIVE_INT32) < 0){
 				H5Tclose(type_id_tt);
         return H5I_INVALID_HID;
       }
     } else if (id == "pump2_voltage") {
-      if (H5Tinsert(type_id_tt, "74FS_Voltage", HOFFSET(TwisTorrMonitorEntry, pump2_voltage_mon), H5T_NATIVE_DOUBLE) < 0){
+      if (H5Tinsert(type_id_tt, "74FS_Voltage", HOFFSET(TwisTorrMonitorEntry, pump2_voltage_mon), H5T_NATIVE_INT32) < 0){
       	H5Tclose(type_id_tt);
         return H5I_INVALID_HID;
       }
     } else if (id == "pump2_power") {
-      if (H5Tinsert(type_id_tt, "74FS_Power", HOFFSET(TwisTorrMonitorEntry, pump2_power_mon), H5T_NATIVE_DOUBLE) < 0){
+      if (H5Tinsert(type_id_tt, "74FS_Power", HOFFSET(TwisTorrMonitorEntry, pump2_power_mon), H5T_NATIVE_INT32) < 0){
       	H5Tclose(type_id_tt);
         return H5I_INVALID_HID;
       }
     } else if (id == "pump2_frequency") {
-      if (H5Tinsert(type_id_tt, "74FS_Frequency", HOFFSET(TwisTorrMonitorEntry, pump2_frequency_mon), H5T_NATIVE_DOUBLE) < 0){
+      if (H5Tinsert(type_id_tt, "74FS_Frequency", HOFFSET(TwisTorrMonitorEntry, pump2_frequency_mon), H5T_NATIVE_INT32) < 0){
       	H5Tclose(type_id_tt);
         return H5I_INVALID_HID;
       }
     } else if (id == "pump2_temperature") {
-      if (H5Tinsert(type_id_tt, "74FS_Temperature", HOFFSET(TwisTorrMonitorEntry, pump2_temperature_mon), H5T_NATIVE_DOUBLE) < 0){
+      if (H5Tinsert(type_id_tt, "74FS_Temperature", HOFFSET(TwisTorrMonitorEntry, pump2_temperature_mon), H5T_NATIVE_INT32) < 0){
 				H5Tclose(type_id_tt);
         return H5I_INVALID_HID;
       }
@@ -454,10 +479,14 @@ static hid_t MakeRigolMonitorEntryType() {
 		    return H5I_INVALID_HID;
 	    }
     } else if (id == "rigol_function") {
-	    if (H5Tinsert(type_id_rgl, "PatricleTrap_Function", HOFFSET(RigolMonitorEntry, trap_function_mon), H5T_NATIVE_DOUBLE) < 0){
-	    	H5Tclose(type_id_rgl);
-		    return H5I_INVALID_HID;	
-	    }
+            hid_t string_type = H5Tcopy(H5T_C_S1);
+            H5Tset_size(string_type, H5T_VARIABLE);
+            if (H5Tinsert(type_id_rgl, "PatricleTrap_Function", HOFFSET(RigolMonitorEntry, trap_function_mon), string_type) < 0) {
+                H5Tclose(type_id_rgl);
+                H5Tclose(string_type);
+                return H5I_INVALID_HID;
+            }
+            H5Tclose(string_type);
     }
   }
 
@@ -487,7 +516,7 @@ static hid_t MakeLaserMonitorEntryType() {
 		  }
 
 	    } else if (id == "laser_state") {
-		  if (H5Tinsert(type_id_lsr, "Laser_state", HOFFSET(LaserMonitorEntry, laser_status_mon), H5T_NATIVE_DOUBLE) < 0){
+		  if (H5Tinsert(type_id_lsr, "Laser_state", HOFFSET(LaserMonitorEntry, laser_status_mon), H5T_NATIVE_INT32) < 0){
 		  	H5Tclose(type_id_lsr);
 				return H5I_INVALID_HID;
 		  }
