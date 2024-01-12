@@ -53,19 +53,19 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /home/code/.local/bin/cmake
+CMAKE_COMMAND = /home/asus/.local/bin/cmake
 
 # The command to remove a file.
-RM = /home/code/.local/bin/cmake -E rm -f
+RM = /home/asus/.local/bin/cmake -E rm -f
 
 # Escaping for special characters.
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/code/Development/core_ba
+CMAKE_SOURCE_DIR = /home/asus/Escritorio/code-main/core_ba
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/code/Development/core_ba
+CMAKE_BINARY_DIR = /home/asus/Escritorio/code-main/core_ba
 
 # Include any dependencies generated for this target.
 include CMakeFiles/client.dir/depend.make
@@ -78,29 +78,29 @@ include CMakeFiles/client.dir/flags.make
 
 CMakeFiles/client.dir/publisher_client.cc.o: CMakeFiles/client.dir/flags.make
 CMakeFiles/client.dir/publisher_client.cc.o: publisher_client.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/client.dir/publisher_client.cc.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/client.dir/publisher_client.cc.o -c /home/code/Development/core_ba/publisher_client.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/asus/Escritorio/code-main/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/client.dir/publisher_client.cc.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/client.dir/publisher_client.cc.o -c /home/asus/Escritorio/code-main/core_ba/publisher_client.cc
 
 CMakeFiles/client.dir/publisher_client.cc.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/client.dir/publisher_client.cc.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/code/Development/core_ba/publisher_client.cc > CMakeFiles/client.dir/publisher_client.cc.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/asus/Escritorio/code-main/core_ba/publisher_client.cc > CMakeFiles/client.dir/publisher_client.cc.i
 
 CMakeFiles/client.dir/publisher_client.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/client.dir/publisher_client.cc.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/code/Development/core_ba/publisher_client.cc -o CMakeFiles/client.dir/publisher_client.cc.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/asus/Escritorio/code-main/core_ba/publisher_client.cc -o CMakeFiles/client.dir/publisher_client.cc.s
 
 CMakeFiles/client.dir/subscriber_client.cc.o: CMakeFiles/client.dir/flags.make
 CMakeFiles/client.dir/subscriber_client.cc.o: subscriber_client.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/client.dir/subscriber_client.cc.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/client.dir/subscriber_client.cc.o -c /home/code/Development/core_ba/subscriber_client.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/asus/Escritorio/code-main/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/client.dir/subscriber_client.cc.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/client.dir/subscriber_client.cc.o -c /home/asus/Escritorio/code-main/core_ba/subscriber_client.cc
 
 CMakeFiles/client.dir/subscriber_client.cc.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/client.dir/subscriber_client.cc.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/code/Development/core_ba/subscriber_client.cc > CMakeFiles/client.dir/subscriber_client.cc.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/asus/Escritorio/code-main/core_ba/subscriber_client.cc > CMakeFiles/client.dir/subscriber_client.cc.i
 
 CMakeFiles/client.dir/subscriber_client.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/client.dir/subscriber_client.cc.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/code/Development/core_ba/subscriber_client.cc -o CMakeFiles/client.dir/subscriber_client.cc.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/asus/Escritorio/code-main/core_ba/subscriber_client.cc -o CMakeFiles/client.dir/subscriber_client.cc.s
 
 # Object files for target client
 client_OBJECTS = \
@@ -114,7 +114,7 @@ libclient.a: CMakeFiles/client.dir/publisher_client.cc.o
 libclient.a: CMakeFiles/client.dir/subscriber_client.cc.o
 libclient.a: CMakeFiles/client.dir/build.make
 libclient.a: CMakeFiles/client.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX static library libclient.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/asus/Escritorio/code-main/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX static library libclient.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/client.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/client.dir/link.txt --verbose=$(VERBOSE)
 
@@ -128,6 +128,6 @@ CMakeFiles/client.dir/clean:
 .PHONY : CMakeFiles/client.dir/clean
 
 CMakeFiles/client.dir/depend:
-	cd /home/code/Development/core_ba && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/code/Development/core_ba /home/code/Development/core_ba /home/code/Development/core_ba /home/code/Development/core_ba /home/code/Development/core_ba/CMakeFiles/client.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/asus/Escritorio/code-main/core_ba && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/asus/Escritorio/code-main/core_ba /home/asus/Escritorio/code-main/core_ba /home/asus/Escritorio/code-main/core_ba /home/asus/Escritorio/code-main/core_ba /home/asus/Escritorio/code-main/core_ba/CMakeFiles/client.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/client.dir/depend
 

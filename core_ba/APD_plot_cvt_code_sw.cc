@@ -10,7 +10,7 @@
 #include <csignal>
 #include <vector>
 #include "core.grpc.pb.h"
-#include "client.h"
+#include "broker_client.h"
 
 using namespace core;
 using namespace std::chrono;

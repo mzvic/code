@@ -14,8 +14,6 @@ class PusherClient : public ClientUpstream<Bundle, Empty> {
   explicit PusherClient();
   ~PusherClient();
   void Initialize(ClientUpstreamReactor<Bundle> *) override;
-  void Push(Bundle &);
-  void Push(Bundle &, const Timestamp &);
 };
 
 class PullerClient : public ClientDownstream<Bundle, Query> {

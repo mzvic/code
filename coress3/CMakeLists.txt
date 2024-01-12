@@ -35,6 +35,7 @@ add_library(core_grpc_proto
 target_link_libraries(core_grpc_proto
         ${_REFLECTION}
         ${_GRPC_GRPCPP}
+        ${ZLIB_LIBRARIES}
         ${_PROTOBUF_LIBPROTOBUF})
 
 # HDF5 stuff
@@ -58,6 +59,9 @@ target_link_libraries(storage_client
         ${_REFLECTION}
         ${_GRPC_GRPCPP}
         ${_PROTOBUF_LIBPROTOBUF})
+ 
+# Find ZLib library
+find_package(ZLIB REQUIRED)
 
 # Targets
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
@@ -74,6 +78,7 @@ foreach (_target
             ${HDF5_LIBRARIES}
             ${HDF5_HL_LIBRARIES}
             ${_REFLECTION}
+            ${ZLIB_LIBRARIES}
             ${_GRPC_GRPCPP}
             ${_PROTOBUF_LIBPROTOBUF})
 endforeach ()

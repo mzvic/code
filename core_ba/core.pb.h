@@ -60,12 +60,17 @@ extern BundleDefaultTypeInternal _Bundle_default_instance_;
 class Interests;
 struct InterestsDefaultTypeInternal;
 extern InterestsDefaultTypeInternal _Interests_default_instance_;
+class Query;
+struct QueryDefaultTypeInternal;
+extern QueryDefaultTypeInternal _Query_default_instance_;
 }  // namespace core
 PROTOBUF_NAMESPACE_OPEN
 template <>
 ::core::Bundle* Arena::CreateMaybeMessage<::core::Bundle>(Arena*);
 template <>
 ::core::Interests* Arena::CreateMaybeMessage<::core::Interests>(Arena*);
+template <>
+::core::Query* Arena::CreateMaybeMessage<::core::Query>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 
 namespace core {
@@ -79,8 +84,20 @@ enum Type : int {
   TIME_APD_CVT = 6,
   DATA_TT_SET = 7,
   DATA_TT_MON = 8,
-  CONTROL_LASER = 100,
-  CONTROL_VACUUM_PUMP = 101,
+  DATA_RIGOL_SET = 9,
+  DATA_RIGOL_MON = 10,
+  DATA_LASER_SET = 11,
+  DATA_LASER_MON = 12,
+  DATA_EG_SET = 13,
+  DATA_EG_MON = 14,
+  STORAGE_APD_FULL = 30,
+  STORAGE_APD_PARTIAL = 31,
+  STORAGE_FFT_FULL = 32,
+  STORAGE_FFT_PARTIAL = 33,
+  STORAGE_TT_MON = 34,
+  STORAGE_RIGOL_MON = 35,
+  STORAGE_LASER_MON = 36,
+  STORAGE_EG_MON = 37,
   Type_INT_MIN_SENTINEL_DO_NOT_USE_ =
       std::numeric_limits<::int32_t>::min(),
   Type_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -89,8 +106,8 @@ enum Type : int {
 
 bool Type_IsValid(int value);
 constexpr Type Type_MIN = static_cast<Type>(0);
-constexpr Type Type_MAX = static_cast<Type>(101);
-constexpr int Type_ARRAYSIZE = 101 + 1;
+constexpr Type Type_MAX = static_cast<Type>(37);
+constexpr int Type_ARRAYSIZE = 37 + 1;
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor*
 Type_descriptor();
 template <typename T>
@@ -98,7 +115,13 @@ const std::string& Type_Name(T value) {
   static_assert(std::is_same<T, Type>::value ||
                     std::is_integral<T>::value,
                 "Incorrect type passed to Type_Name().");
-  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(Type_descriptor(), value);
+  return Type_Name(static_cast<Type>(value));
+}
+template <>
+inline const std::string& Type_Name(Type value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfDenseEnum<Type_descriptor,
+                                                 0, 37>(
+      static_cast<int>(value));
 }
 inline bool Type_Parse(absl::string_view name, Type* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<Type>(
@@ -455,6 +478,193 @@ class Interests final :
   };
   union { Impl_ _impl_; };
   friend struct ::TableStruct_core_2eproto;
+};// -------------------------------------------------------------------
+
+class Query final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:core.Query) */ {
+ public:
+  inline Query() : Query(nullptr) {}
+  ~Query() override;
+  explicit PROTOBUF_CONSTEXPR Query(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  Query(const Query& from);
+  Query(Query&& from) noexcept
+    : Query() {
+    *this = ::std::move(from);
+  }
+
+  inline Query& operator=(const Query& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Query& operator=(Query&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Query& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const Query* internal_default_instance() {
+    return reinterpret_cast<const Query*>(
+               &_Query_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    2;
+
+  friend void swap(Query& a, Query& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Query* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Query* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Query* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<Query>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const Query& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const Query& from) {
+    Query::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  ::size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Query* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::absl::string_view FullMessageName() {
+    return "core.Query";
+  }
+  protected:
+  explicit Query(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kFromFieldNumber = 1,
+    kToFieldNumber = 2,
+    kTypeFieldNumber = 3,
+  };
+  // .google.protobuf.Timestamp from = 1;
+  bool has_from() const;
+  private:
+  bool _internal_has_from() const;
+
+  public:
+  void clear_from() ;
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& from() const;
+  PROTOBUF_NODISCARD ::PROTOBUF_NAMESPACE_ID::Timestamp* release_from();
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* mutable_from();
+  void set_allocated_from(::PROTOBUF_NAMESPACE_ID::Timestamp* from);
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& _internal_from() const;
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _internal_mutable_from();
+  public:
+  void unsafe_arena_set_allocated_from(
+      ::PROTOBUF_NAMESPACE_ID::Timestamp* from);
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* unsafe_arena_release_from();
+  // .google.protobuf.Timestamp to = 2;
+  bool has_to() const;
+  private:
+  bool _internal_has_to() const;
+
+  public:
+  void clear_to() ;
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& to() const;
+  PROTOBUF_NODISCARD ::PROTOBUF_NAMESPACE_ID::Timestamp* release_to();
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* mutable_to();
+  void set_allocated_to(::PROTOBUF_NAMESPACE_ID::Timestamp* to);
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& _internal_to() const;
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _internal_mutable_to();
+  public:
+  void unsafe_arena_set_allocated_to(
+      ::PROTOBUF_NAMESPACE_ID::Timestamp* to);
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* unsafe_arena_release_to();
+  // .core.Type type = 3;
+  void clear_type() ;
+  ::core::Type type() const;
+  void set_type(::core::Type value);
+
+  private:
+  ::core::Type _internal_type() const;
+  void _internal_set_type(::core::Type value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:core.Query)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::Timestamp* from_;
+    ::PROTOBUF_NAMESPACE_ID::Timestamp* to_;
+    int type_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_core_2eproto;
 };
 
 // ===================================================================
@@ -657,6 +867,190 @@ inline void Interests::_internal_add_types(::core::Type value) {
 }
 inline ::PROTOBUF_NAMESPACE_ID::RepeatedField<int>* Interests::_internal_mutable_types() {
   return &_impl_.types_;
+}
+
+// -------------------------------------------------------------------
+
+// Query
+
+// .google.protobuf.Timestamp from = 1;
+inline bool Query::_internal_has_from() const {
+  return this != internal_default_instance() && _impl_.from_ != nullptr;
+}
+inline bool Query::has_from() const {
+  return _internal_has_from();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& Query::_internal_from() const {
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp* p = _impl_.from_;
+  return p != nullptr ? *p : reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Timestamp&>(
+      ::PROTOBUF_NAMESPACE_ID::_Timestamp_default_instance_);
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& Query::from() const {
+  // @@protoc_insertion_point(field_get:core.Query.from)
+  return _internal_from();
+}
+inline void Query::unsafe_arena_set_allocated_from(
+    ::PROTOBUF_NAMESPACE_ID::Timestamp* from) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.from_);
+  }
+  _impl_.from_ = from;
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:core.Query.from)
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Query::release_from() {
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = _impl_.from_;
+  _impl_.from_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Query::unsafe_arena_release_from() {
+  // @@protoc_insertion_point(field_release:core.Query.from)
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = _impl_.from_;
+  _impl_.from_ = nullptr;
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Query::_internal_mutable_from() {
+  
+  if (_impl_.from_ == nullptr) {
+    auto* p = CreateMaybeMessage<::PROTOBUF_NAMESPACE_ID::Timestamp>(GetArenaForAllocation());
+    _impl_.from_ = p;
+  }
+  return _impl_.from_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Query::mutable_from() {
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _msg = _internal_mutable_from();
+  // @@protoc_insertion_point(field_mutable:core.Query.from)
+  return _msg;
+}
+inline void Query::set_allocated_from(::PROTOBUF_NAMESPACE_ID::Timestamp* from) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.from_);
+  }
+  if (from) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(from));
+    if (message_arena != submessage_arena) {
+      from = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, from, submessage_arena);
+    }
+
+  } else {
+
+  }
+  _impl_.from_ = from;
+  // @@protoc_insertion_point(field_set_allocated:core.Query.from)
+}
+
+// .google.protobuf.Timestamp to = 2;
+inline bool Query::_internal_has_to() const {
+  return this != internal_default_instance() && _impl_.to_ != nullptr;
+}
+inline bool Query::has_to() const {
+  return _internal_has_to();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& Query::_internal_to() const {
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp* p = _impl_.to_;
+  return p != nullptr ? *p : reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Timestamp&>(
+      ::PROTOBUF_NAMESPACE_ID::_Timestamp_default_instance_);
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& Query::to() const {
+  // @@protoc_insertion_point(field_get:core.Query.to)
+  return _internal_to();
+}
+inline void Query::unsafe_arena_set_allocated_to(
+    ::PROTOBUF_NAMESPACE_ID::Timestamp* to) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.to_);
+  }
+  _impl_.to_ = to;
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:core.Query.to)
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Query::release_to() {
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = _impl_.to_;
+  _impl_.to_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Query::unsafe_arena_release_to() {
+  // @@protoc_insertion_point(field_release:core.Query.to)
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = _impl_.to_;
+  _impl_.to_ = nullptr;
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Query::_internal_mutable_to() {
+  
+  if (_impl_.to_ == nullptr) {
+    auto* p = CreateMaybeMessage<::PROTOBUF_NAMESPACE_ID::Timestamp>(GetArenaForAllocation());
+    _impl_.to_ = p;
+  }
+  return _impl_.to_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Query::mutable_to() {
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _msg = _internal_mutable_to();
+  // @@protoc_insertion_point(field_mutable:core.Query.to)
+  return _msg;
+}
+inline void Query::set_allocated_to(::PROTOBUF_NAMESPACE_ID::Timestamp* to) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.to_);
+  }
+  if (to) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(to));
+    if (message_arena != submessage_arena) {
+      to = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, to, submessage_arena);
+    }
+
+  } else {
+
+  }
+  _impl_.to_ = to;
+  // @@protoc_insertion_point(field_set_allocated:core.Query.to)
+}
+
+// .core.Type type = 3;
+inline void Query::clear_type() {
+  _impl_.type_ = 0;
+}
+inline ::core::Type Query::type() const {
+  // @@protoc_insertion_point(field_get:core.Query.type)
+  return _internal_type();
+}
+inline void Query::set_type(::core::Type value) {
+   _internal_set_type(value);
+  // @@protoc_insertion_point(field_set:core.Query.type)
+}
+inline ::core::Type Query::_internal_type() const {
+  return static_cast<::core::Type>(_impl_.type_);
+}
+inline void Query::_internal_set_type(::core::Type value) {
+  ;
+  _impl_.type_ = value;
 }
 
 #ifdef __GNUC__

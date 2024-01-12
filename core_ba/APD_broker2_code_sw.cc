@@ -3,111 +3,129 @@
 #include <sys/wait.h>
 
 #include "core.grpc.pb.h"
-#include "reactor/reactor.h"
+#include "log.h"
+#include "reactor/server_reactor.h"
+
+#define SERVER_ADDRESS "0.0.0.0:50051"
+#define SERVER_SHUTDOWN_TIMEOUT 1000
 
 #define STACK_SIZE (1024 * 1024)
 
-using namespace reactor;
 using namespace core;
-
-using google::protobuf::Empty;
-using grpc::CallbackServerContext;
-using grpc::Server;
-using grpc::ServerBuilder;
-using grpc::ServerReadReactor;
-using grpc::ServerWriteReactor;
-using std::list;
-using std::mutex;
-using std::shared_ptr;
+using namespace google::protobuf;
 
 bool exit_flag = false;
 int pid = 0;
 
-list<SubscriberServerReactor *> subscriber_reactors;
-list<PublisherServerReactor *> publisher_reactors;
+list<ServerUpstreamReactor<Bundle, Empty> *> publisher_reactors;
+list<ServerDownstreamReactor<Bundle, Interests> *> subscriber_reactors;
 
 mutex publisher_mutex;
 mutex subscriber_mutex;
-mutex queue_mutex;
+mutex inbound_mutex;
 
-class BrokerServiceImpl final : public Broker::CallbackService, public ServerReactorInterface {
+void OnServerUpstreamReactorDone(void *publisher_reactor) {
+  unique_lock<mutex> plck(publisher_mutex);
+
+//  cout << "Removing Publisher Reactor" << endl;
+//  LOG("Removing Publisher ");
+
+  publisher_reactors.remove((ServerUpstreamReactor<Bundle, Empty> *) publisher_reactor);
+
+//  cout << "Publishers count: " << publisher_reactors.size() << endl;
+  LOG("Removing publisher reactor. Count: " << publisher_reactors.size());
+}
+
+//void OnServerUpstreamReactorReady(void *publisher_reactor) {
+//  unique_lock<mutex> plck(publisher_mutex);
+//
+//  cout << "No more data from client, Publisher Reactor is ready to send data back" << endl;
+//}
+
+void OnServerDownstreamReactorDone(void *subscriber_reactor) {
+  unique_lock<mutex> slck(subscriber_mutex);
+
+//  cout << "Removing Subscriber Reactor" << endl;
+//  LOG("Removing Subscriber Reactor");
+
+  subscriber_reactors.remove((ServerDownstreamReactor<Bundle, Interests> *) subscriber_reactor);
+
+//  cout << "Subscribers count: " << subscriber_reactors.size() << endl;
+  LOG("Removing subscriber reactor. Count: " << subscriber_reactors.size());
+}
+
+void ProcessInboundBundle(const Bundle &bundle) {
+  unique_lock<mutex> slck(subscriber_mutex);
+  unique_lock<mutex> ilck(inbound_mutex);
+
+// There is no need to implement a local inbound queue, processing here is minimal since they are enqueued at each reactor
+  for (auto const &kSubscriberReactor : subscriber_reactors) {
+// If there is no particular interest, or the explicitly defined ones, enqueue this message
+	if (kSubscriberReactor->GetRequest()->types().empty() || (find(kSubscriberReactor->GetRequest()->types().begin(), kSubscriberReactor->GetRequest()->types().end(), bundle.type()) != kSubscriberReactor->GetRequest()->types().end()))
+	  kSubscriberReactor->EnqueueOutboundMessage(bundle);
+  }
+}
+
+class BrokerServiceImpl final : public Broker::CallbackService {
  public:
-  ServerReadReactor<Bundle> *Publish(CallbackServerContext *context, Empty *reply) override {
-	unique_lock<mutex> lck(publisher_mutex);
+  __attribute__((unused)) ServerReadReactor<Bundle> *Publish(CallbackServerContext *context, Empty *response) override {
+	unique_lock<mutex> plck(publisher_mutex);
 
-	cout << "Creating new Publisher Reactor" << endl;
+//	cout << "Creating new Publisher Reactor" << endl;
+//	LOG("Creating new publisher");
 
-	publisher_reactors.push_back(new PublisherServerReactor(this));
+	// This reactor will self delete after completion
+	publisher_reactors.push_back(new ServerUpstreamReactor<Bundle, Empty>(response));
 
-	cout << "Publishers count: " << publisher_reactors.size() << endl;
+	publisher_reactors.back()->SetInboundCallback(&ProcessInboundBundle);
+//	publisher_reactors.back()->SetReadyCallback(&OnServerUpstreamReactorReady);
+	publisher_reactors.back()->SetDoneCallback(&OnServerUpstreamReactorDone);
+
+//	cout << "Publishers count: " << publisher_reactors.size() << endl;
+	LOG("Creating new publisher reactor. Count: " << publisher_reactors.size());
 
 	return publisher_reactors.back();
   }
 
-  ServerWriteReactor<Bundle> *Subscribe(CallbackServerContext *context, const Interests *request) override {
-	unique_lock<mutex> lck(subscriber_mutex);
+  __attribute__((unused)) ServerWriteReactor<Bundle> *Subscribe(CallbackServerContext *context, const Interests *request) override {
+	unique_lock<mutex> slck(subscriber_mutex);
 
-	cout << "Creating new Subscriber Reactor ";
+//	cout << "Creating new Subscriber Reactor ";
+//	LOG("Creating new Subscriber Reactor");
 
-	if (request->types().empty()) {
-	  cout << "with no interests. Sending all messages" << endl;
-	} else {
-	  cout << "with interests:";
-	  for (const auto &kElem : request->types())
-		cout << " " << kElem;
-	  cout << endl;
-	}
+//	if (request->types().empty()) {
+//	  cout << "with no interests. Sending all messages" << endl;
+//	} else {
+//	  cout << "with interests:";
+//	  for (const auto &kElem : request->types())
+//		cout << " " << kElem;
+//	  cout << endl;
+//	}
 
-	subscriber_reactors.push_back(new SubscriberServerReactor(this, request));
+	// This reactor will self delete after completion
+	subscriber_reactors.push_back(new ServerDownstreamReactor<Bundle, Interests>(request));
 
-	cout << "Subscribers count: " << subscriber_reactors.size() << endl;
+	subscriber_reactors.back()->SetDoneCallback(&OnServerDownstreamReactorDone);
+
+//	cout << "Subscribers count: " << subscriber_reactors.size() << endl;
+	LOG("Creating new subscriber reactor. Count: " << subscriber_reactors.size());
 
 	return subscriber_reactors.back();
-  }
-
-  void ProcessMessage(Bundle &bundle) override {
-	unique_lock<mutex> slck(subscriber_mutex);
-	unique_lock<mutex> qlck(queue_mutex);
-
-//	cout << "Processing a bundle" << endl;
-
-	for (auto const &kSubscriberreactor : subscriber_reactors)
-	  kSubscriberreactor->EnqueueMessage(bundle);
-  }
-
-  void OnPublisherServerReactorFinish(void *publisher_server_reactor) override {
-	unique_lock<mutex> lck(publisher_mutex);
-
-	cout << "Removing Publisher Reactor" << endl;
-
-	publisher_reactors.remove((PublisherServerReactor *) publisher_server_reactor);
-
-	cout << "Publishers count: " << publisher_reactors.size() << endl;
-  }
-
-  void OnSubscriberServerReactorFinish(void *subscriber_server_reactor) override {
-	unique_lock<mutex> lck(subscriber_mutex);
-
-	cout << "Removing Subscriber Reactor" << endl;
-
-	subscriber_reactors.remove((SubscriberServerReactor *) subscriber_server_reactor);
-
-	cout << "Subscribers count: " << subscriber_reactors.size() << endl;
   }
 };
 
 int RunServer(void *) {
   BrokerServiceImpl service;
-
-  string server_address("0.0.0.0:50051");
+  ServerBuilder builder;
+  sigset_t set;
+  int s;
 
   // grpc::EnableDefaultHealthCheckService(true);
   // grpc::reflection::InitProtoReflectionServerBuilderPlugin();
 
-  ServerBuilder builder;
-
   // Listen on the given address without any authentication mechanism.
-  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+  builder.AddListeningPort(SERVER_ADDRESS, grpc::InsecureServerCredentials());
+  builder.SetMaxReceiveMessageSize(-1);
 
   // Configure channel
   //	builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIME_MS, 300);
@@ -118,34 +136,78 @@ int RunServer(void *) {
 
   unique_ptr<Server> server(builder.BuildAndStart());
 
-  cout << "Server listening on " << server_address << endl;
+//  cout << "Server listening on " << SERVER_ADDRESS << endl;
+  LOG("Listening on " << SERVER_ADDRESS);
 
+
+  // Register signal processing and wait
+  // Children ignore SIGINT (Ctrl-C) signal. They exit by SIGTERM sent by the parent
+  signal(SIGINT, SIG_IGN);
+
+  // Block SIGTERM signal
+  sigemptyset(&set);
+  sigaddset(&set, SIGTERM);
+  sigprocmask(SIG_BLOCK, &set, nullptr);
+
+  LOG("Server up and running");
+
+  // Wait for SIGTERM signal from parent
+  sigwait(&set, &s);
+
+  // Start shutdown procedure
+  LOG("Shutting down server");
+
+  // Terminate all reactors
+  {
+	unique_lock<mutex> plck(publisher_mutex);
+	unique_lock<mutex> slck(subscriber_mutex);
+
+	for (auto const &kPublisherReactor : publisher_reactors)
+	  kPublisherReactor->Terminate();
+
+	for (auto const &kSubscriberReactor : subscriber_reactors)
+	  kSubscriberReactor->Terminate(false);
+  }
+
+  // GRPC server shutdown must be done on a separate thread to avoid hung ups (it does it sometimes anyway so let's add a timeout)
+  thread shutdown_thread([&server] { server->Shutdown(chrono::system_clock::now() + chrono::milliseconds(SERVER_SHUTDOWN_TIMEOUT)); });
+  shutdown_thread.join();
   server->Wait();
 
   return 0;
 }
 
 void HandleSignal(int) {
-  if (pid == 0)        // Children ignore signals
-	return;
+//  if (pid == 0)        // Children ignore signals
+//	return;
 
-  cout << "Exiting" << endl;
+  LOG("Exiting");
 
   exit_flag = true;
 
   kill(pid, SIGTERM);
 }
+
 int main() {
   char *stack;
+  bool first_run = true;
 
   signal(SIGINT, HandleSignal);
 
   while (!exit_flag) {
-	cout << "Starting new child process" << endl;
+//	cout << "Starting new child process" << endl;
+	LOG("Starting new child process");
 
 	stack = static_cast<char *>(mmap(nullptr, STACK_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0));
 
 	pid = clone(RunServer, stack + STACK_SIZE, SIGCHLD, nullptr);
+
+	// Register signal handler on first iteration
+	if (first_run) {
+	  signal(SIGINT, &HandleSignal);
+
+	  first_run = false;
+	}
 
 	waitpid(pid, nullptr, 0);
 

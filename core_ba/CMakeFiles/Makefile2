@@ -63,31 +63,32 @@ RM = /home/code/.local/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/code/Development/core_ba
+CMAKE_SOURCE_DIR = /home/code/Development1/core_ba
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/code/Development/core_ba
+CMAKE_BINARY_DIR = /home/code/Development1/core_ba
 
 #=============================================================================
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
+all: CMakeFiles/recorder.dir/all
+all: CMakeFiles/storage.dir/all
+all: CMakeFiles/TwisTorrMonitor_code_sw.dir/all
+all: CMakeFiles/TwisTorrSetter_code_sw.dir/all
 all: CMakeFiles/TwisTorrIO_code_sw.dir/all
-all: CMakeFiles/APD_reg_zero_code_sw.dir/all
-all: CMakeFiles/APD_reg_fft_1_code_sw.dir/all
 all: CMakeFiles/APD_broker2_code_sw.dir/all
-all: CMakeFiles/APD_fft_full_code_sw.dir/all
-all: CMakeFiles/reactor.dir/all
+all: CMakeFiles/APD_reg_zero_code_sw.dir/all
+all: CMakeFiles/broker_client.dir/all
 all: CMakeFiles/APD_reg_proc_code_sw.dir/all
 all: CMakeFiles/core_grpc_proto.dir/all
-all: CMakeFiles/APD_reg_fft_01_code_sw.dir/all
+all: CMakeFiles/APD_fft_full_code_sw.dir/all
+all: CMakeFiles/storage_client.dir/all
 all: CMakeFiles/APD_fft_partial_code_sw.dir/all
-all: CMakeFiles/client.dir/all
+all: CMakeFiles/APD_reg_fft_01_code_sw.dir/all
 all: CMakeFiles/APD_plot_cvt_code_sw.dir/all
 all: CMakeFiles/APD_publisher_code_sw.dir/all
-all: CMakeFiles/TwisTorrSetter_code_sw.dir/all
-all: CMakeFiles/publisher6.dir/all
-all: CMakeFiles/subscriber6.dir/all
+all: CMakeFiles/APD_reg_fft_1_code_sw.dir/all
 
 .PHONY : all
 
@@ -97,42 +98,159 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
+clean: CMakeFiles/recorder.dir/clean
+clean: CMakeFiles/storage.dir/clean
+clean: CMakeFiles/TwisTorrMonitor_code_sw.dir/clean
+clean: CMakeFiles/TwisTorrSetter_code_sw.dir/clean
 clean: CMakeFiles/TwisTorrIO_code_sw.dir/clean
-clean: CMakeFiles/APD_reg_zero_code_sw.dir/clean
-clean: CMakeFiles/APD_reg_fft_1_code_sw.dir/clean
 clean: CMakeFiles/APD_broker2_code_sw.dir/clean
-clean: CMakeFiles/APD_fft_full_code_sw.dir/clean
-clean: CMakeFiles/reactor.dir/clean
+clean: CMakeFiles/APD_reg_zero_code_sw.dir/clean
+clean: CMakeFiles/broker_client.dir/clean
 clean: CMakeFiles/APD_reg_proc_code_sw.dir/clean
 clean: CMakeFiles/core_grpc_proto.dir/clean
-clean: CMakeFiles/APD_reg_fft_01_code_sw.dir/clean
+clean: CMakeFiles/APD_fft_full_code_sw.dir/clean
+clean: CMakeFiles/storage_client.dir/clean
 clean: CMakeFiles/APD_fft_partial_code_sw.dir/clean
-clean: CMakeFiles/client.dir/clean
+clean: CMakeFiles/APD_reg_fft_01_code_sw.dir/clean
 clean: CMakeFiles/APD_plot_cvt_code_sw.dir/clean
 clean: CMakeFiles/APD_publisher_code_sw.dir/clean
-clean: CMakeFiles/TwisTorrSetter_code_sw.dir/clean
-clean: CMakeFiles/publisher6.dir/clean
-clean: CMakeFiles/subscriber6.dir/clean
+clean: CMakeFiles/APD_reg_fft_1_code_sw.dir/clean
 
 .PHONY : clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/recorder.dir
+
+# All Build rule for target.
+CMakeFiles/recorder.dir/all: CMakeFiles/broker_client.dir/all
+CMakeFiles/recorder.dir/all: CMakeFiles/core_grpc_proto.dir/all
+CMakeFiles/recorder.dir/all: CMakeFiles/storage_client.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/recorder.dir/build.make CMakeFiles/recorder.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/recorder.dir/build.make CMakeFiles/recorder.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=31,32 "Built target recorder"
+.PHONY : CMakeFiles/recorder.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/recorder.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 10
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/recorder.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
+.PHONY : CMakeFiles/recorder.dir/rule
+
+# Convenience name for target.
+recorder: CMakeFiles/recorder.dir/rule
+
+.PHONY : recorder
+
+# clean rule for target.
+CMakeFiles/recorder.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/recorder.dir/build.make CMakeFiles/recorder.dir/clean
+.PHONY : CMakeFiles/recorder.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/storage.dir
+
+# All Build rule for target.
+CMakeFiles/storage.dir/all: CMakeFiles/broker_client.dir/all
+CMakeFiles/storage.dir/all: CMakeFiles/core_grpc_proto.dir/all
+CMakeFiles/storage.dir/all: CMakeFiles/storage_client.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage.dir/build.make CMakeFiles/storage.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage.dir/build.make CMakeFiles/storage.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=33,34 "Built target storage"
+.PHONY : CMakeFiles/storage.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/storage.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 10
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/storage.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
+.PHONY : CMakeFiles/storage.dir/rule
+
+# Convenience name for target.
+storage: CMakeFiles/storage.dir/rule
+
+.PHONY : storage
+
+# clean rule for target.
+CMakeFiles/storage.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage.dir/build.make CMakeFiles/storage.dir/clean
+.PHONY : CMakeFiles/storage.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/TwisTorrMonitor_code_sw.dir
+
+# All Build rule for target.
+CMakeFiles/TwisTorrMonitor_code_sw.dir/all: CMakeFiles/broker_client.dir/all
+CMakeFiles/TwisTorrMonitor_code_sw.dir/all: CMakeFiles/core_grpc_proto.dir/all
+CMakeFiles/TwisTorrMonitor_code_sw.dir/all: CMakeFiles/storage_client.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrMonitor_code_sw.dir/build.make CMakeFiles/TwisTorrMonitor_code_sw.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrMonitor_code_sw.dir/build.make CMakeFiles/TwisTorrMonitor_code_sw.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=21,22 "Built target TwisTorrMonitor_code_sw"
+.PHONY : CMakeFiles/TwisTorrMonitor_code_sw.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/TwisTorrMonitor_code_sw.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 10
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/TwisTorrMonitor_code_sw.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
+.PHONY : CMakeFiles/TwisTorrMonitor_code_sw.dir/rule
+
+# Convenience name for target.
+TwisTorrMonitor_code_sw: CMakeFiles/TwisTorrMonitor_code_sw.dir/rule
+
+.PHONY : TwisTorrMonitor_code_sw
+
+# clean rule for target.
+CMakeFiles/TwisTorrMonitor_code_sw.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrMonitor_code_sw.dir/build.make CMakeFiles/TwisTorrMonitor_code_sw.dir/clean
+.PHONY : CMakeFiles/TwisTorrMonitor_code_sw.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/TwisTorrSetter_code_sw.dir
+
+# All Build rule for target.
+CMakeFiles/TwisTorrSetter_code_sw.dir/all: CMakeFiles/broker_client.dir/all
+CMakeFiles/TwisTorrSetter_code_sw.dir/all: CMakeFiles/core_grpc_proto.dir/all
+CMakeFiles/TwisTorrSetter_code_sw.dir/all: CMakeFiles/storage_client.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter_code_sw.dir/build.make CMakeFiles/TwisTorrSetter_code_sw.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter_code_sw.dir/build.make CMakeFiles/TwisTorrSetter_code_sw.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=23,24 "Built target TwisTorrSetter_code_sw"
+.PHONY : CMakeFiles/TwisTorrSetter_code_sw.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/TwisTorrSetter_code_sw.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 10
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/TwisTorrSetter_code_sw.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
+.PHONY : CMakeFiles/TwisTorrSetter_code_sw.dir/rule
+
+# Convenience name for target.
+TwisTorrSetter_code_sw: CMakeFiles/TwisTorrSetter_code_sw.dir/rule
+
+.PHONY : TwisTorrSetter_code_sw
+
+# clean rule for target.
+CMakeFiles/TwisTorrSetter_code_sw.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter_code_sw.dir/build.make CMakeFiles/TwisTorrSetter_code_sw.dir/clean
+.PHONY : CMakeFiles/TwisTorrSetter_code_sw.dir/clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/TwisTorrIO_code_sw.dir
 
 # All Build rule for target.
-CMakeFiles/TwisTorrIO_code_sw.dir/all: CMakeFiles/reactor.dir/all
+CMakeFiles/TwisTorrIO_code_sw.dir/all: CMakeFiles/broker_client.dir/all
 CMakeFiles/TwisTorrIO_code_sw.dir/all: CMakeFiles/core_grpc_proto.dir/all
-CMakeFiles/TwisTorrIO_code_sw.dir/all: CMakeFiles/client.dir/all
+CMakeFiles/TwisTorrIO_code_sw.dir/all: CMakeFiles/storage_client.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrIO_code_sw.dir/build.make CMakeFiles/TwisTorrIO_code_sw.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrIO_code_sw.dir/build.make CMakeFiles/TwisTorrIO_code_sw.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=19,20 "Built target TwisTorrIO_code_sw"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=19,20 "Built target TwisTorrIO_code_sw"
 .PHONY : CMakeFiles/TwisTorrIO_code_sw.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/TwisTorrIO_code_sw.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 12
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 10
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/TwisTorrIO_code_sw.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
 .PHONY : CMakeFiles/TwisTorrIO_code_sw.dir/rule
 
 # Convenience name for target.
@@ -146,80 +264,22 @@ CMakeFiles/TwisTorrIO_code_sw.dir/clean:
 .PHONY : CMakeFiles/TwisTorrIO_code_sw.dir/clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/APD_reg_zero_code_sw.dir
-
-# All Build rule for target.
-CMakeFiles/APD_reg_zero_code_sw.dir/all: CMakeFiles/reactor.dir/all
-CMakeFiles/APD_reg_zero_code_sw.dir/all: CMakeFiles/core_grpc_proto.dir/all
-CMakeFiles/APD_reg_zero_code_sw.dir/all: CMakeFiles/client.dir/all
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero_code_sw.dir/build.make CMakeFiles/APD_reg_zero_code_sw.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero_code_sw.dir/build.make CMakeFiles/APD_reg_zero_code_sw.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=17,18 "Built target APD_reg_zero_code_sw"
-.PHONY : CMakeFiles/APD_reg_zero_code_sw.dir/all
-
-# Build rule for subdir invocation for target.
-CMakeFiles/APD_reg_zero_code_sw.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 12
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/APD_reg_zero_code_sw.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
-.PHONY : CMakeFiles/APD_reg_zero_code_sw.dir/rule
-
-# Convenience name for target.
-APD_reg_zero_code_sw: CMakeFiles/APD_reg_zero_code_sw.dir/rule
-
-.PHONY : APD_reg_zero_code_sw
-
-# clean rule for target.
-CMakeFiles/APD_reg_zero_code_sw.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero_code_sw.dir/build.make CMakeFiles/APD_reg_zero_code_sw.dir/clean
-.PHONY : CMakeFiles/APD_reg_zero_code_sw.dir/clean
-
-#=============================================================================
-# Target rules for target CMakeFiles/APD_reg_fft_1_code_sw.dir
-
-# All Build rule for target.
-CMakeFiles/APD_reg_fft_1_code_sw.dir/all: CMakeFiles/reactor.dir/all
-CMakeFiles/APD_reg_fft_1_code_sw.dir/all: CMakeFiles/core_grpc_proto.dir/all
-CMakeFiles/APD_reg_fft_1_code_sw.dir/all: CMakeFiles/client.dir/all
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_1_code_sw.dir/build.make CMakeFiles/APD_reg_fft_1_code_sw.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_1_code_sw.dir/build.make CMakeFiles/APD_reg_fft_1_code_sw.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=13,14 "Built target APD_reg_fft_1_code_sw"
-.PHONY : CMakeFiles/APD_reg_fft_1_code_sw.dir/all
-
-# Build rule for subdir invocation for target.
-CMakeFiles/APD_reg_fft_1_code_sw.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 12
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/APD_reg_fft_1_code_sw.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
-.PHONY : CMakeFiles/APD_reg_fft_1_code_sw.dir/rule
-
-# Convenience name for target.
-APD_reg_fft_1_code_sw: CMakeFiles/APD_reg_fft_1_code_sw.dir/rule
-
-.PHONY : APD_reg_fft_1_code_sw
-
-# clean rule for target.
-CMakeFiles/APD_reg_fft_1_code_sw.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_1_code_sw.dir/build.make CMakeFiles/APD_reg_fft_1_code_sw.dir/clean
-.PHONY : CMakeFiles/APD_reg_fft_1_code_sw.dir/clean
-
-#=============================================================================
 # Target rules for target CMakeFiles/APD_broker2_code_sw.dir
 
 # All Build rule for target.
-CMakeFiles/APD_broker2_code_sw.dir/all: CMakeFiles/reactor.dir/all
+CMakeFiles/APD_broker2_code_sw.dir/all: CMakeFiles/broker_client.dir/all
 CMakeFiles/APD_broker2_code_sw.dir/all: CMakeFiles/core_grpc_proto.dir/all
-CMakeFiles/APD_broker2_code_sw.dir/all: CMakeFiles/client.dir/all
+CMakeFiles/APD_broker2_code_sw.dir/all: CMakeFiles/storage_client.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_broker2_code_sw.dir/build.make CMakeFiles/APD_broker2_code_sw.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_broker2_code_sw.dir/build.make CMakeFiles/APD_broker2_code_sw.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=1,2 "Built target APD_broker2_code_sw"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=1,2 "Built target APD_broker2_code_sw"
 .PHONY : CMakeFiles/APD_broker2_code_sw.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/APD_broker2_code_sw.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 12
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 10
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/APD_broker2_code_sw.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
 .PHONY : CMakeFiles/APD_broker2_code_sw.dir/rule
 
 # Convenience name for target.
@@ -233,78 +293,78 @@ CMakeFiles/APD_broker2_code_sw.dir/clean:
 .PHONY : CMakeFiles/APD_broker2_code_sw.dir/clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/APD_fft_full_code_sw.dir
+# Target rules for target CMakeFiles/APD_reg_zero_code_sw.dir
 
 # All Build rule for target.
-CMakeFiles/APD_fft_full_code_sw.dir/all: CMakeFiles/reactor.dir/all
-CMakeFiles/APD_fft_full_code_sw.dir/all: CMakeFiles/core_grpc_proto.dir/all
-CMakeFiles/APD_fft_full_code_sw.dir/all: CMakeFiles/client.dir/all
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft_full_code_sw.dir/build.make CMakeFiles/APD_fft_full_code_sw.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft_full_code_sw.dir/build.make CMakeFiles/APD_fft_full_code_sw.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=3,4 "Built target APD_fft_full_code_sw"
-.PHONY : CMakeFiles/APD_fft_full_code_sw.dir/all
+CMakeFiles/APD_reg_zero_code_sw.dir/all: CMakeFiles/broker_client.dir/all
+CMakeFiles/APD_reg_zero_code_sw.dir/all: CMakeFiles/core_grpc_proto.dir/all
+CMakeFiles/APD_reg_zero_code_sw.dir/all: CMakeFiles/storage_client.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero_code_sw.dir/build.make CMakeFiles/APD_reg_zero_code_sw.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero_code_sw.dir/build.make CMakeFiles/APD_reg_zero_code_sw.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=17,18 "Built target APD_reg_zero_code_sw"
+.PHONY : CMakeFiles/APD_reg_zero_code_sw.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/APD_fft_full_code_sw.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 12
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/APD_fft_full_code_sw.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
-.PHONY : CMakeFiles/APD_fft_full_code_sw.dir/rule
+CMakeFiles/APD_reg_zero_code_sw.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 10
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/APD_reg_zero_code_sw.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
+.PHONY : CMakeFiles/APD_reg_zero_code_sw.dir/rule
 
 # Convenience name for target.
-APD_fft_full_code_sw: CMakeFiles/APD_fft_full_code_sw.dir/rule
+APD_reg_zero_code_sw: CMakeFiles/APD_reg_zero_code_sw.dir/rule
 
-.PHONY : APD_fft_full_code_sw
+.PHONY : APD_reg_zero_code_sw
 
 # clean rule for target.
-CMakeFiles/APD_fft_full_code_sw.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft_full_code_sw.dir/build.make CMakeFiles/APD_fft_full_code_sw.dir/clean
-.PHONY : CMakeFiles/APD_fft_full_code_sw.dir/clean
+CMakeFiles/APD_reg_zero_code_sw.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero_code_sw.dir/build.make CMakeFiles/APD_reg_zero_code_sw.dir/clean
+.PHONY : CMakeFiles/APD_reg_zero_code_sw.dir/clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/reactor.dir
+# Target rules for target CMakeFiles/broker_client.dir
 
 # All Build rule for target.
-CMakeFiles/reactor.dir/all: CMakeFiles/core_grpc_proto.dir/all
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/reactor.dir/build.make CMakeFiles/reactor.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/reactor.dir/build.make CMakeFiles/reactor.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=32,33,34 "Built target reactor"
-.PHONY : CMakeFiles/reactor.dir/all
+CMakeFiles/broker_client.dir/all: CMakeFiles/core_grpc_proto.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/broker_client.dir/build.make CMakeFiles/broker_client.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/broker_client.dir/build.make CMakeFiles/broker_client.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=25,26 "Built target broker_client"
+.PHONY : CMakeFiles/broker_client.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/reactor.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 7
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/reactor.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
-.PHONY : CMakeFiles/reactor.dir/rule
+CMakeFiles/broker_client.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 6
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/broker_client.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
+.PHONY : CMakeFiles/broker_client.dir/rule
 
 # Convenience name for target.
-reactor: CMakeFiles/reactor.dir/rule
+broker_client: CMakeFiles/broker_client.dir/rule
 
-.PHONY : reactor
+.PHONY : broker_client
 
 # clean rule for target.
-CMakeFiles/reactor.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/reactor.dir/build.make CMakeFiles/reactor.dir/clean
-.PHONY : CMakeFiles/reactor.dir/clean
+CMakeFiles/broker_client.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/broker_client.dir/build.make CMakeFiles/broker_client.dir/clean
+.PHONY : CMakeFiles/broker_client.dir/clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/APD_reg_proc_code_sw.dir
 
 # All Build rule for target.
-CMakeFiles/APD_reg_proc_code_sw.dir/all: CMakeFiles/reactor.dir/all
+CMakeFiles/APD_reg_proc_code_sw.dir/all: CMakeFiles/broker_client.dir/all
 CMakeFiles/APD_reg_proc_code_sw.dir/all: CMakeFiles/core_grpc_proto.dir/all
-CMakeFiles/APD_reg_proc_code_sw.dir/all: CMakeFiles/client.dir/all
+CMakeFiles/APD_reg_proc_code_sw.dir/all: CMakeFiles/storage_client.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc_code_sw.dir/build.make CMakeFiles/APD_reg_proc_code_sw.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc_code_sw.dir/build.make CMakeFiles/APD_reg_proc_code_sw.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=15,16 "Built target APD_reg_proc_code_sw"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=15,16 "Built target APD_reg_proc_code_sw"
 .PHONY : CMakeFiles/APD_reg_proc_code_sw.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/APD_reg_proc_code_sw.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 12
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 10
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/APD_reg_proc_code_sw.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
 .PHONY : CMakeFiles/APD_reg_proc_code_sw.dir/rule
 
 # Convenience name for target.
@@ -324,14 +384,14 @@ CMakeFiles/APD_reg_proc_code_sw.dir/clean:
 CMakeFiles/core_grpc_proto.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/core_grpc_proto.dir/build.make CMakeFiles/core_grpc_proto.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/core_grpc_proto.dir/build.make CMakeFiles/core_grpc_proto.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=26,27,28,29 "Built target core_grpc_proto"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=27,28,29,30 "Built target core_grpc_proto"
 .PHONY : CMakeFiles/core_grpc_proto.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/core_grpc_proto.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 4
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 4
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/core_grpc_proto.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
 .PHONY : CMakeFiles/core_grpc_proto.dir/rule
 
 # Convenience name for target.
@@ -345,51 +405,78 @@ CMakeFiles/core_grpc_proto.dir/clean:
 .PHONY : CMakeFiles/core_grpc_proto.dir/clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/APD_reg_fft_01_code_sw.dir
+# Target rules for target CMakeFiles/APD_fft_full_code_sw.dir
 
 # All Build rule for target.
-CMakeFiles/APD_reg_fft_01_code_sw.dir/all: CMakeFiles/reactor.dir/all
-CMakeFiles/APD_reg_fft_01_code_sw.dir/all: CMakeFiles/core_grpc_proto.dir/all
-CMakeFiles/APD_reg_fft_01_code_sw.dir/all: CMakeFiles/client.dir/all
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_01_code_sw.dir/build.make CMakeFiles/APD_reg_fft_01_code_sw.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_01_code_sw.dir/build.make CMakeFiles/APD_reg_fft_01_code_sw.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=11,12 "Built target APD_reg_fft_01_code_sw"
-.PHONY : CMakeFiles/APD_reg_fft_01_code_sw.dir/all
+CMakeFiles/APD_fft_full_code_sw.dir/all: CMakeFiles/broker_client.dir/all
+CMakeFiles/APD_fft_full_code_sw.dir/all: CMakeFiles/core_grpc_proto.dir/all
+CMakeFiles/APD_fft_full_code_sw.dir/all: CMakeFiles/storage_client.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft_full_code_sw.dir/build.make CMakeFiles/APD_fft_full_code_sw.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft_full_code_sw.dir/build.make CMakeFiles/APD_fft_full_code_sw.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=3,4 "Built target APD_fft_full_code_sw"
+.PHONY : CMakeFiles/APD_fft_full_code_sw.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/APD_reg_fft_01_code_sw.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 12
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/APD_reg_fft_01_code_sw.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
-.PHONY : CMakeFiles/APD_reg_fft_01_code_sw.dir/rule
+CMakeFiles/APD_fft_full_code_sw.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 10
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/APD_fft_full_code_sw.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
+.PHONY : CMakeFiles/APD_fft_full_code_sw.dir/rule
 
 # Convenience name for target.
-APD_reg_fft_01_code_sw: CMakeFiles/APD_reg_fft_01_code_sw.dir/rule
+APD_fft_full_code_sw: CMakeFiles/APD_fft_full_code_sw.dir/rule
 
-.PHONY : APD_reg_fft_01_code_sw
+.PHONY : APD_fft_full_code_sw
 
 # clean rule for target.
-CMakeFiles/APD_reg_fft_01_code_sw.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_01_code_sw.dir/build.make CMakeFiles/APD_reg_fft_01_code_sw.dir/clean
-.PHONY : CMakeFiles/APD_reg_fft_01_code_sw.dir/clean
+CMakeFiles/APD_fft_full_code_sw.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft_full_code_sw.dir/build.make CMakeFiles/APD_fft_full_code_sw.dir/clean
+.PHONY : CMakeFiles/APD_fft_full_code_sw.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/storage_client.dir
+
+# All Build rule for target.
+CMakeFiles/storage_client.dir/all: CMakeFiles/core_grpc_proto.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_client.dir/build.make CMakeFiles/storage_client.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_client.dir/build.make CMakeFiles/storage_client.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=35,36 "Built target storage_client"
+.PHONY : CMakeFiles/storage_client.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/storage_client.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 6
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/storage_client.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
+.PHONY : CMakeFiles/storage_client.dir/rule
+
+# Convenience name for target.
+storage_client: CMakeFiles/storage_client.dir/rule
+
+.PHONY : storage_client
+
+# clean rule for target.
+CMakeFiles/storage_client.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_client.dir/build.make CMakeFiles/storage_client.dir/clean
+.PHONY : CMakeFiles/storage_client.dir/clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/APD_fft_partial_code_sw.dir
 
 # All Build rule for target.
-CMakeFiles/APD_fft_partial_code_sw.dir/all: CMakeFiles/reactor.dir/all
+CMakeFiles/APD_fft_partial_code_sw.dir/all: CMakeFiles/broker_client.dir/all
 CMakeFiles/APD_fft_partial_code_sw.dir/all: CMakeFiles/core_grpc_proto.dir/all
-CMakeFiles/APD_fft_partial_code_sw.dir/all: CMakeFiles/client.dir/all
+CMakeFiles/APD_fft_partial_code_sw.dir/all: CMakeFiles/storage_client.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft_partial_code_sw.dir/build.make CMakeFiles/APD_fft_partial_code_sw.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft_partial_code_sw.dir/build.make CMakeFiles/APD_fft_partial_code_sw.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=5,6 "Built target APD_fft_partial_code_sw"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=5,6 "Built target APD_fft_partial_code_sw"
 .PHONY : CMakeFiles/APD_fft_partial_code_sw.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/APD_fft_partial_code_sw.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 12
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 10
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/APD_fft_partial_code_sw.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
 .PHONY : CMakeFiles/APD_fft_partial_code_sw.dir/rule
 
 # Convenience name for target.
@@ -403,49 +490,51 @@ CMakeFiles/APD_fft_partial_code_sw.dir/clean:
 .PHONY : CMakeFiles/APD_fft_partial_code_sw.dir/clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/client.dir
+# Target rules for target CMakeFiles/APD_reg_fft_01_code_sw.dir
 
 # All Build rule for target.
-CMakeFiles/client.dir/all: CMakeFiles/core_grpc_proto.dir/all
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=23,24,25 "Built target client"
-.PHONY : CMakeFiles/client.dir/all
+CMakeFiles/APD_reg_fft_01_code_sw.dir/all: CMakeFiles/broker_client.dir/all
+CMakeFiles/APD_reg_fft_01_code_sw.dir/all: CMakeFiles/core_grpc_proto.dir/all
+CMakeFiles/APD_reg_fft_01_code_sw.dir/all: CMakeFiles/storage_client.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_01_code_sw.dir/build.make CMakeFiles/APD_reg_fft_01_code_sw.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_01_code_sw.dir/build.make CMakeFiles/APD_reg_fft_01_code_sw.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=11,12 "Built target APD_reg_fft_01_code_sw"
+.PHONY : CMakeFiles/APD_reg_fft_01_code_sw.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/client.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 7
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/client.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
-.PHONY : CMakeFiles/client.dir/rule
+CMakeFiles/APD_reg_fft_01_code_sw.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 10
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/APD_reg_fft_01_code_sw.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
+.PHONY : CMakeFiles/APD_reg_fft_01_code_sw.dir/rule
 
 # Convenience name for target.
-client: CMakeFiles/client.dir/rule
+APD_reg_fft_01_code_sw: CMakeFiles/APD_reg_fft_01_code_sw.dir/rule
 
-.PHONY : client
+.PHONY : APD_reg_fft_01_code_sw
 
 # clean rule for target.
-CMakeFiles/client.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/clean
-.PHONY : CMakeFiles/client.dir/clean
+CMakeFiles/APD_reg_fft_01_code_sw.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_01_code_sw.dir/build.make CMakeFiles/APD_reg_fft_01_code_sw.dir/clean
+.PHONY : CMakeFiles/APD_reg_fft_01_code_sw.dir/clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/APD_plot_cvt_code_sw.dir
 
 # All Build rule for target.
-CMakeFiles/APD_plot_cvt_code_sw.dir/all: CMakeFiles/reactor.dir/all
+CMakeFiles/APD_plot_cvt_code_sw.dir/all: CMakeFiles/broker_client.dir/all
 CMakeFiles/APD_plot_cvt_code_sw.dir/all: CMakeFiles/core_grpc_proto.dir/all
-CMakeFiles/APD_plot_cvt_code_sw.dir/all: CMakeFiles/client.dir/all
+CMakeFiles/APD_plot_cvt_code_sw.dir/all: CMakeFiles/storage_client.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_plot_cvt_code_sw.dir/build.make CMakeFiles/APD_plot_cvt_code_sw.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_plot_cvt_code_sw.dir/build.make CMakeFiles/APD_plot_cvt_code_sw.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=7,8 "Built target APD_plot_cvt_code_sw"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=7,8 "Built target APD_plot_cvt_code_sw"
 .PHONY : CMakeFiles/APD_plot_cvt_code_sw.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/APD_plot_cvt_code_sw.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 12
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 10
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/APD_plot_cvt_code_sw.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
 .PHONY : CMakeFiles/APD_plot_cvt_code_sw.dir/rule
 
 # Convenience name for target.
@@ -462,19 +551,19 @@ CMakeFiles/APD_plot_cvt_code_sw.dir/clean:
 # Target rules for target CMakeFiles/APD_publisher_code_sw.dir
 
 # All Build rule for target.
-CMakeFiles/APD_publisher_code_sw.dir/all: CMakeFiles/reactor.dir/all
+CMakeFiles/APD_publisher_code_sw.dir/all: CMakeFiles/broker_client.dir/all
 CMakeFiles/APD_publisher_code_sw.dir/all: CMakeFiles/core_grpc_proto.dir/all
-CMakeFiles/APD_publisher_code_sw.dir/all: CMakeFiles/client.dir/all
+CMakeFiles/APD_publisher_code_sw.dir/all: CMakeFiles/storage_client.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_publisher_code_sw.dir/build.make CMakeFiles/APD_publisher_code_sw.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_publisher_code_sw.dir/build.make CMakeFiles/APD_publisher_code_sw.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=9,10 "Built target APD_publisher_code_sw"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=9,10 "Built target APD_publisher_code_sw"
 .PHONY : CMakeFiles/APD_publisher_code_sw.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/APD_publisher_code_sw.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 12
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 10
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/APD_publisher_code_sw.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
 .PHONY : CMakeFiles/APD_publisher_code_sw.dir/rule
 
 # Convenience name for target.
@@ -488,91 +577,33 @@ CMakeFiles/APD_publisher_code_sw.dir/clean:
 .PHONY : CMakeFiles/APD_publisher_code_sw.dir/clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/TwisTorrSetter_code_sw.dir
+# Target rules for target CMakeFiles/APD_reg_fft_1_code_sw.dir
 
 # All Build rule for target.
-CMakeFiles/TwisTorrSetter_code_sw.dir/all: CMakeFiles/reactor.dir/all
-CMakeFiles/TwisTorrSetter_code_sw.dir/all: CMakeFiles/core_grpc_proto.dir/all
-CMakeFiles/TwisTorrSetter_code_sw.dir/all: CMakeFiles/client.dir/all
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter_code_sw.dir/build.make CMakeFiles/TwisTorrSetter_code_sw.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter_code_sw.dir/build.make CMakeFiles/TwisTorrSetter_code_sw.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=21,22 "Built target TwisTorrSetter_code_sw"
-.PHONY : CMakeFiles/TwisTorrSetter_code_sw.dir/all
+CMakeFiles/APD_reg_fft_1_code_sw.dir/all: CMakeFiles/broker_client.dir/all
+CMakeFiles/APD_reg_fft_1_code_sw.dir/all: CMakeFiles/core_grpc_proto.dir/all
+CMakeFiles/APD_reg_fft_1_code_sw.dir/all: CMakeFiles/storage_client.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_1_code_sw.dir/build.make CMakeFiles/APD_reg_fft_1_code_sw.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_1_code_sw.dir/build.make CMakeFiles/APD_reg_fft_1_code_sw.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=13,14 "Built target APD_reg_fft_1_code_sw"
+.PHONY : CMakeFiles/APD_reg_fft_1_code_sw.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/TwisTorrSetter_code_sw.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 12
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/TwisTorrSetter_code_sw.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
-.PHONY : CMakeFiles/TwisTorrSetter_code_sw.dir/rule
+CMakeFiles/APD_reg_fft_1_code_sw.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 10
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/APD_reg_fft_1_code_sw.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
+.PHONY : CMakeFiles/APD_reg_fft_1_code_sw.dir/rule
 
 # Convenience name for target.
-TwisTorrSetter_code_sw: CMakeFiles/TwisTorrSetter_code_sw.dir/rule
+APD_reg_fft_1_code_sw: CMakeFiles/APD_reg_fft_1_code_sw.dir/rule
 
-.PHONY : TwisTorrSetter_code_sw
-
-# clean rule for target.
-CMakeFiles/TwisTorrSetter_code_sw.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter_code_sw.dir/build.make CMakeFiles/TwisTorrSetter_code_sw.dir/clean
-.PHONY : CMakeFiles/TwisTorrSetter_code_sw.dir/clean
-
-#=============================================================================
-# Target rules for target CMakeFiles/publisher6.dir
-
-# All Build rule for target.
-CMakeFiles/publisher6.dir/all: CMakeFiles/reactor.dir/all
-CMakeFiles/publisher6.dir/all: CMakeFiles/core_grpc_proto.dir/all
-CMakeFiles/publisher6.dir/all: CMakeFiles/client.dir/all
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/publisher6.dir/build.make CMakeFiles/publisher6.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/publisher6.dir/build.make CMakeFiles/publisher6.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=30,31 "Built target publisher6"
-.PHONY : CMakeFiles/publisher6.dir/all
-
-# Build rule for subdir invocation for target.
-CMakeFiles/publisher6.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 12
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/publisher6.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
-.PHONY : CMakeFiles/publisher6.dir/rule
-
-# Convenience name for target.
-publisher6: CMakeFiles/publisher6.dir/rule
-
-.PHONY : publisher6
+.PHONY : APD_reg_fft_1_code_sw
 
 # clean rule for target.
-CMakeFiles/publisher6.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/publisher6.dir/build.make CMakeFiles/publisher6.dir/clean
-.PHONY : CMakeFiles/publisher6.dir/clean
-
-#=============================================================================
-# Target rules for target CMakeFiles/subscriber6.dir
-
-# All Build rule for target.
-CMakeFiles/subscriber6.dir/all: CMakeFiles/reactor.dir/all
-CMakeFiles/subscriber6.dir/all: CMakeFiles/core_grpc_proto.dir/all
-CMakeFiles/subscriber6.dir/all: CMakeFiles/client.dir/all
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/subscriber6.dir/build.make CMakeFiles/subscriber6.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/subscriber6.dir/build.make CMakeFiles/subscriber6.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=35,36 "Built target subscriber6"
-.PHONY : CMakeFiles/subscriber6.dir/all
-
-# Build rule for subdir invocation for target.
-CMakeFiles/subscriber6.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 12
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/subscriber6.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
-.PHONY : CMakeFiles/subscriber6.dir/rule
-
-# Convenience name for target.
-subscriber6: CMakeFiles/subscriber6.dir/rule
-
-.PHONY : subscriber6
-
-# clean rule for target.
-CMakeFiles/subscriber6.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/subscriber6.dir/build.make CMakeFiles/subscriber6.dir/clean
-.PHONY : CMakeFiles/subscriber6.dir/clean
+CMakeFiles/APD_reg_fft_1_code_sw.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_1_code_sw.dir/build.make CMakeFiles/APD_reg_fft_1_code_sw.dir/clean
+.PHONY : CMakeFiles/APD_reg_fft_1_code_sw.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

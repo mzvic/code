@@ -38,32 +38,28 @@ target_link_libraries(core_grpc_proto
         ${ZLIB_LIBRARIES}
         ${_PROTOBUF_LIBPROTOBUF})
 
-# include_directories(reactor)
-# link_directories(reactor)
-# add_subdirectory(reactor)
+# HDF5 stuff
+find_package(HDF5 COMPONENTS C HL)
+include_directories(${HDF5_INCLUDE_DIRS})
 
-add_library(reactor
-        reactor/reactor.h
-        reactor/publisher_server_reactor.cc
-        reactor/subscriber_server_reactor.cc)
-
-target_link_libraries(reactor
-        core_grpc_proto
-        ${_REFLECTION}
-        ${_GRPC_GRPCPP}
-        ${ZLIB_LIBRARIES}
-        ${_PROTOBUF_LIBPROTOBUF})
-
-add_library(client
-        client.h
-        publisher_client.cc
-        subscriber_client.cc)
-
-target_link_libraries(client
+add_library(broker_client
+        broker_client.h
+        broker_client.cc)
+target_link_libraries(broker_client
         core_grpc_proto
         ${_REFLECTION}
         ${_GRPC_GRPCPP}
         ${_PROTOBUF_LIBPROTOBUF})
+
+add_library(storage_client
+        storage_client.h
+        storage_client.cc)
+target_link_libraries(storage_client
+        core_grpc_proto
+        ${_REFLECTION}
+        ${_GRPC_GRPCPP}
+        ${_PROTOBUF_LIBPROTOBUF})
+
 
 # Targets
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
@@ -73,13 +69,17 @@ find_package(Boost REQUIRED COMPONENTS system iostreams)
 find_package(ZLIB REQUIRED)
 
 foreach (_target
-        APD_broker2_code_sw APD_plot_cvt_code_sw APD_publisher_code_sw publisher6 subscriber6 APD_fft_partial_code_sw APD_fft_full_code_sw APD_reg_fft_01_code_sw APD_reg_fft_1_code_sw APD_reg_zero_code_sw APD_reg_proc_code_sw TwisTorrIO_code_sw TwisTorrSetter_code_sw) 
+        APD_broker2_code_sw APD_plot_cvt_code_sw APD_publisher_code_sw APD_fft_partial_code_sw APD_fft_full_code_sw APD_reg_fft_01_code_sw APD_reg_fft_1_code_sw APD_reg_zero_code_sw APD_reg_proc_code_sw TwisTorrIO_code_sw TwisTorrSetter_code_sw TwisTorrMonitor_code_sw storage recorder) 
     add_executable(${_target} "${_target}.cc")
     target_link_libraries(${_target}
             core_grpc_proto
-            reactor
-            client
+            broker_client
+            storage_client
             fftw3
+            fftw3_threads
+            pthread
+            ${HDF5_LIBRARIES}
+            ${HDF5_HL_LIBRARIES}            
             ${_REFLECTION}
             ${_GRPC_GRPCPP}
             ${_PROTOBUF_LIBPROTOBUF}

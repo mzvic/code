@@ -5,7 +5,7 @@
 #include <google/protobuf/timestamp.pb.h>
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <cstdio>
-#include "client.h"
+#include "broker_client.h"
 #include "core.grpc.pb.h"
 #include <csignal>
 #include <thread>

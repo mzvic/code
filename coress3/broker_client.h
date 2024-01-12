@@ -6,6 +6,7 @@
 #include "client.h"
 #include "core.grpc.pb.h"
 #include "core.pb.h"
+//#include "cmake-build-debug/core.pb.h"
 
 #define BROKER_SERVER_ADDRESS "localhost:50051"
 

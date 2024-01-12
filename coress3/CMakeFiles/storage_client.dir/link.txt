@@ -1,0 +1,2 @@
+/usr/bin/ar qc libstorage_client.a CMakeFiles/storage_client.dir/storage_client.cc.o
+/usr/bin/ranlib libstorage_client.a

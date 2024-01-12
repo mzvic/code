@@ -1,0 +1,905 @@
+#include <condition_variable>
+#include <thread>
+#include <grpcpp/grpcpp.h>
+#include <sys/mman.h>
+#include <sys/wait.h>
+#include <algorithm>
+#include <array>
+
+#include "core.grpc.pb.h"
+#include "hdf5_hl.h"
+#include "log.h"
+#include "reactor/server_reactor.h"
+
+#define SERVER_ADDRESS "0.0.0.0:50052"
+#define SERVER_SHUTDOWN_TIMEOUT 1000
+
+#define STACK_SIZE (1024 * 1024)
+#define COMPRESSION_LEVEL 7   // A number between 0 (none, fastest) to 9 (best, slowest)
+#define CHUNK_SIZE 5    // Number of rows per chunk. It progressively impacts the compression time
+#define DATASET_NAME_COUNTS "Counts"
+#define DATASET_NAME_FFT "FFT"
+#define DATASET_NAME_TWISTORR_MONITOR "TwisTorr"
+#define DATASET_NAME_RIGOL_MONITOR "Rigol"
+#define DATASET_NAME_LASER_MONITOR "Laser"
+#define DATASET_NAME_EG_MONITOR "ElectronGun"
+
+#define FFT_FULL_SIZE 5000001
+#define COUNTS_SIZE 1000
+
+using namespace core;
+using namespace google::protobuf;
+using namespace std::chrono;
+
+std::string FILENAME = "storage.h5";
+std::vector<std::string> data_ids;
+
+typedef struct {
+  double timestamp_;
+  double counts[COUNTS_SIZE];
+} CountsEntry;
+
+typedef struct {
+  double timestamp_;
+  double fft_full_[FFT_FULL_SIZE];
+} FFTEntry;
+
+typedef struct {
+  double timestamp_;
+  double pump1_current_mon;
+  double pump1_voltage_mon;
+  double pump1_power_mon;
+  double pump1_frequency_mon;
+  double pump1_temperature_mon;
+  double pump2_current_mon;
+  double pump2_voltage_mon;
+  double pump2_power_mon;
+  double pump2_frequency_mon;
+  double pump2_temperature_mon;
+} TwisTorrMonitorEntry;
+
+typedef struct {
+  double timestamp_;
+  double trap_voltage_mon;
+  double trap_voltage_offset_mon;
+  double trap_frequency_mon;
+  double trap_function_mon;
+} RigolMonitorEntry;
+
+typedef struct {
+  double timestamp_;
+  double laser_voltage_mon;
+  double laser_status_mon;
+} LaserMonitorEntry;
+
+typedef struct {
+  double timestamp_;
+  double eg_var1_mon;
+  double eg_var2_mon;
+  double eg_var3_mon;
+  double eg_var4_mon;
+} ElectronGunMonitorEntry;
+
+std::array<std::string, 1> counts_param = {"apd_counts_full"};
+std::array<std::string, 1> fft_param = {"apd_fft_full"};
+std::array<std::string, 10> twistorr_param = {"pump1_current", "pump1_voltage", "pump1_power", "pump1_frequency", "pump1_temperature","pump2_current", "pump2_voltage", "pump2_power", "pump2_frequency", "pump2_temperature",};
+std::array<std::string, 4> rigol_param = {"rigol_voltage", "rigol_voltage_offset", "rigol_frequency", "rigol_function"};
+std::array<std::string, 2> laser_param = {"laser_voltage", "laser_state"};
+std::array<std::string, 4> electron_gun_param = {"eg_var1", "eg_var2", "eg_var3", "eg_var4"};
+
+
+bool exit_flag = false;
+int pid = 0;
+
+unique_ptr<CountsEntry> counts_entry;
+unique_ptr<FFTEntry> fft_entry;
+unique_ptr<TwisTorrMonitorEntry> twistorr_monitor_entry;
+unique_ptr<RigolMonitorEntry> rigol_monitor_entry;
+unique_ptr<LaserMonitorEntry> laser_monitor_entry;
+unique_ptr<ElectronGunMonitorEntry> electron_gun_monitor_entry;
+
+list<ServerUpstreamReactor<Bundle, Empty> *> pusher_reactors;
+list<ServerDownstreamReactor<Bundle, Query> *> puller_reactors;
+
+queue<Bundle> inbound_queue;
+
+mutex pusher_mutex;
+mutex puller_mutex;
+mutex inbound_queue_mutex;
+condition_variable inbound_queue_cv;
+
+hid_t fid, counts_ptable, fft_ptable, twistorr_monitor_ptable, rigol_monitor_ptable, laser_monitor_ptable, electron_gun_monitor_ptable;
+
+void OnServerUpstreamReactorDone(void *pusher_reactor) {
+  unique_lock<mutex> plck(pusher_mutex);
+  pusher_reactors.remove((ServerUpstreamReactor<Bundle, Empty> *) pusher_reactor);
+  LOG("Removing pusher reactor. Count: " << pusher_reactors.size());
+}
+
+void OnServerDownstreamReactorDone(void *puller_reactor) {
+  unique_lock<mutex> plck(puller_mutex);
+  puller_reactors.remove((ServerDownstreamReactor<Bundle, Query> *) puller_reactor);
+  LOG("Removing puller reactor. Count: " << puller_reactors.size());
+}
+
+void ProcessInboundBundle(const Bundle &bundle) {
+  unique_lock<mutex> iqlck(inbound_queue_mutex);
+  inbound_queue.push(bundle);
+  LOG("Processing inbound bundle of type: " << bundle.type());
+  // Notify reading thread of this new element
+  if (inbound_queue.size() == 1)
+	inbound_queue_cv.notify_one();
+}
+
+class StorageServiceImpl final : public Storage::CallbackService {
+ public:
+  __attribute__((unused)) ServerReadReactor<Bundle> *Push(CallbackServerContext *context, Empty *empty) override {
+	unique_lock<mutex> plck(pusher_mutex);
+	pusher_reactors.push_back(new ServerUpstreamReactor<Bundle, Empty>(empty));
+	pusher_reactors.back()->SetInboundCallback(&ProcessInboundBundle);
+	pusher_reactors.back()->SetDoneCallback(&OnServerUpstreamReactorDone);
+	LOG("Creating new pusher reactor. Count: " << pusher_reactors.size());
+	return pusher_reactors.back();
+  }
+
+  __attribute__((unused)) ServerWriteReactor<Bundle> *Pull(CallbackServerContext *context, const Query *query) override {
+	unique_lock<mutex> pck(puller_mutex);
+	puller_reactors.push_back(new ServerDownstreamReactor<Bundle, Query>(query));
+	puller_reactors.back()->SetDoneCallback(&OnServerDownstreamReactorDone);
+	LOG("Creating new puller reactor. Count: " << puller_reactors.size());
+	return puller_reactors.back();
+  }
+};
+
+void WriteData(const Bundle &bundle) {
+  auto start = high_resolution_clock::now();
+  const auto &kValue = bundle.value();
+  switch (bundle.type()) {
+	case STORAGE_APD_FULL:
+	  if (std::any_of(counts_param.begin(), counts_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+		  // Here we construct the storage entry
+		  LOG("Writing counts record");
+		  // Create entry
+		  counts_entry->timestamp_ = (double) bundle.timestamp().seconds() + (double) bundle.timestamp().nanos() / 1000000000L;
+		  for (int i = 0; i < COUNTS_SIZE; i++)
+			counts_entry->counts[i] = kValue.Get(i);
+		  LOG("Parsing done");
+		  if (H5PTappend(counts_ptable, 1, counts_entry.get()) < 0)
+			LOG("Error appending entry");
+		  if (H5Fflush(fid, H5F_SCOPE_GLOBAL) < 0)
+			LOG("Error flushing data");
+		  LOG("A counts entry has been written");
+	  }	
+	break;	
+
+	case STORAGE_FFT_FULL:
+	  if (std::any_of(fft_param.begin(), fft_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+		  // Here we construct the storage entry
+		  LOG("Writing FFT record");
+		  // Create entry
+		  fft_entry->timestamp_ = (double) bundle.timestamp().seconds() + (double) bundle.timestamp().nanos() / 1000000000L;
+		  for (int i = 0; i < FFT_FULL_SIZE; i++)
+			fft_entry->fft_full_[i] = kValue.Get(i);
+		  LOG("Parsing done");
+		  if (H5PTappend(fft_ptable, 1, fft_entry.get()) < 0)
+			LOG("Error appending entry");
+		  if (H5Fflush(fid, H5F_SCOPE_GLOBAL) < 0)
+			LOG("Error flushing data");
+		  LOG("An FFT entry has been written");
+	  }
+	break;
+
+	case STORAGE_TT_MON:
+	  if (std::any_of(twistorr_param.begin(), twistorr_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+		  // Here we construct the storage entry
+		  LOG("Writing twistorr monitor record");
+		  // Create entry
+		  twistorr_monitor_entry->timestamp_ = (double) bundle.timestamp().seconds() + (double) bundle.timestamp().nanos() / 1000000000L;
+		  twistorr_monitor_entry->pump1_current_mon = kValue.Get(0);
+		  twistorr_monitor_entry->pump1_voltage_mon = kValue.Get(1);
+		  twistorr_monitor_entry->pump1_power_mon = kValue.Get(2);
+		  twistorr_monitor_entry->pump1_frequency_mon = kValue.Get(3);
+		  twistorr_monitor_entry->pump1_temperature_mon = kValue.Get(4);	
+		  twistorr_monitor_entry->pump2_current_mon = kValue.Get(5);
+		  twistorr_monitor_entry->pump2_voltage_mon = kValue.Get(6);
+		  twistorr_monitor_entry->pump2_power_mon = kValue.Get(7);
+		  twistorr_monitor_entry->pump2_frequency_mon = kValue.Get(8);
+		  twistorr_monitor_entry->pump2_temperature_mon = kValue.Get(9);			    	  
+		  LOG("Parsing done");
+		  if (H5PTappend(twistorr_monitor_ptable, 1, twistorr_monitor_entry.get()) < 0)
+			LOG("Error appending entry");
+		  if (H5Fflush(fid, H5F_SCOPE_GLOBAL) < 0)
+			LOG("Error flushing data");
+		  LOG("A twistorr monitor entry has been written");
+	  }
+	break;
+
+	case STORAGE_RIGOL_MON:
+	  if (std::any_of(rigol_param.begin(), rigol_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+		  // Here we construct the storage entry
+		  LOG("Writing rigol monitor record");
+		  // Create entry
+		  rigol_monitor_entry->timestamp_ = (double) bundle.timestamp().seconds() + (double) bundle.timestamp().nanos() / 1000000000L;
+		  rigol_monitor_entry->trap_voltage_mon = kValue.Get(0);// MODIFICAR
+		  rigol_monitor_entry->trap_voltage_offset_mon = kValue.Get(1);// MODIFICAR
+		  rigol_monitor_entry->trap_frequency_mon = kValue.Get(2);// MODIFICAR
+		  rigol_monitor_entry->trap_function_mon = kValue.Get(3); // MODIFICAR
+		  LOG("Parsing done");
+		  if (H5PTappend(rigol_monitor_ptable, 1, rigol_monitor_entry.get()) < 0)
+			LOG("Error appending entry");
+		  if (H5Fflush(fid, H5F_SCOPE_GLOBAL) < 0)
+			LOG("Error flushing data");
+		  LOG("A rigol monitor entry has been written");
+	  }
+	break; 
+
+	case STORAGE_LASER_MON:
+	  if (std::any_of(laser_param.begin(), laser_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+		  // Here we construct the storage entry
+		  LOG("Writing laser monitor record");
+		  // Create entry
+		  laser_monitor_entry->timestamp_ = (double) bundle.timestamp().seconds() + (double) bundle.timestamp().nanos() / 1000000000L;
+		  laser_monitor_entry->laser_voltage_mon = kValue.Get(0);
+		  laser_monitor_entry->laser_status_mon = kValue.Get(1);
+		  LOG("Parsing done");
+		  if (H5PTappend(laser_monitor_ptable, 1, laser_monitor_entry.get()) < 0)
+			LOG("Error appending entry");
+		  if (H5Fflush(fid, H5F_SCOPE_GLOBAL) < 0)
+			LOG("Error flushing data");
+		  LOG("A laser monitor entry has been written");
+    }
+  break;
+
+	case STORAGE_EG_MON:
+	  if (std::any_of(electron_gun_param.begin(), electron_gun_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+		  // Here we construct the storage entry
+		  LOG("Writing electron gun monitor record");
+		  // Create entry
+		  electron_gun_monitor_entry->timestamp_ = (double) bundle.timestamp().seconds() + (double) bundle.timestamp().nanos() / 1000000000L;
+		  electron_gun_monitor_entry->eg_var1_mon = kValue.Get(0);
+		  electron_gun_monitor_entry->eg_var2_mon = kValue.Get(1);
+		  electron_gun_monitor_entry->eg_var3_mon = kValue.Get(2);
+		  electron_gun_monitor_entry->eg_var4_mon = kValue.Get(3); 
+		  LOG("Parsing done");
+		  if (H5PTappend(electron_gun_monitor_ptable, 1, electron_gun_monitor_entry.get()) < 0)
+			LOG("Error appending entry");
+		  if (H5Fflush(fid, H5F_SCOPE_GLOBAL) < 0)
+			LOG("Error flushing data");
+		  LOG("A electron gun monitor entry has been written");
+	  } 
+	break;
+
+	default:
+	  break;
+  }
+
+  auto stop = high_resolution_clock::now();
+  auto duration = duration_cast<microseconds>(stop - start);
+  LOG("Writing Time: " << duration.count() << " us");
+}
+
+void InboundQueueProcessing() {
+  while (!exit_flag) {
+	{
+	  unique_lock<mutex> iqlck(inbound_queue_mutex);
+	  inbound_queue_cv.wait(iqlck, [] {
+		return !inbound_queue.empty() || exit_flag;
+	  });
+	}
+
+	if (!exit_flag && !inbound_queue.empty())
+	  WriteData(inbound_queue.front());
+
+	if (!exit_flag && !inbound_queue.empty()) {
+	  unique_lock<mutex> iqlck(inbound_queue_mutex);
+
+	  inbound_queue.pop();
+	}
+  }
+}
+
+static hid_t MakeFFTEntryType() {
+  hid_t type_id_fft, data_id_fft;
+  
+  if (std::any_of(fft_param.begin(), fft_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+	  // Create the memory data type
+	  type_id_fft = H5Tcreate(H5T_COMPOUND, sizeof(FFTEntry));
+	  if (type_id_fft < 0)
+		return H5I_INVALID_HID;
+	  
+	  // Insert timestamp
+	  if (H5Tinsert(type_id_fft, "Timestamp", HOFFSET(FFTEntry, timestamp_), H5T_NATIVE_DOUBLE) < 0)
+		return H5I_INVALID_HID;
+	  
+	  // Create and insert data array in data type
+	  hsize_t size = FFT_FULL_SIZE;
+	  data_id_fft = H5Tarray_create(H5T_NATIVE_DOUBLE, 1, &size);    	
+	  
+	  // Insert FFT
+	  if (H5Tinsert(type_id_fft, "FFT Full", HOFFSET(FFTEntry, fft_full_), data_id_fft) < 0){
+	  	H5Tclose(data_id_fft);
+	  	return H5I_INVALID_HID;
+	  }
+  }
+
+  return type_id_fft;
+}
+
+static hid_t MakeCountsEntryType() {
+  hid_t type_id_counts, data_id_counts;
+
+  if (std::any_of(counts_param.begin(), counts_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+	  // Create the memory data type
+	  type_id_counts = H5Tcreate(H5T_COMPOUND, sizeof(CountsEntry));
+	  if (type_id_counts < 0)
+		return H5I_INVALID_HID;
+
+	  // Insert timestamp in data type
+	  if (H5Tinsert(type_id_counts, "Timestamp", HOFFSET(CountsEntry, timestamp_), H5T_NATIVE_DOUBLE) < 0)
+		return H5I_INVALID_HID;
+
+	  // Create and insert data array in data type
+	  hsize_t size = COUNTS_SIZE;
+	  data_id_counts = H5Tarray_create(H5T_NATIVE_DOUBLE, 1, &size);
+	  if (H5Tinsert(type_id_counts, "Counts", HOFFSET(CountsEntry, counts), data_id_counts) < 0){
+	  	H5Tclose(data_id_counts);
+	  	return H5I_INVALID_HID;
+	  }
+  }
+
+  return type_id_counts;
+}
+
+static hid_t MakeTwisTorrMonitorEntryType() {
+  hid_t type_id_tt;
+  // Insert timestamp in data type
+  if (std::any_of(twistorr_param.begin(), twistorr_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+	  // Create the memory data type
+	  type_id_tt = H5Tcreate(H5T_COMPOUND, sizeof(TwisTorrMonitorEntry));
+	  if (type_id_tt < 0)
+		return H5I_INVALID_HID;
+	  if (H5Tinsert(type_id_tt, "Timestamp", HOFFSET(TwisTorrMonitorEntry, timestamp_), H5T_NATIVE_DOUBLE) < 0){
+			H5Tclose(type_id_tt);
+			return H5I_INVALID_HID;
+	  }
+  } 
+  // Insert other parameters
+  for (const auto &id : data_ids) {
+    if (id == "pump1_current") {
+      if (H5Tinsert(type_id_tt, "305FS_Current", HOFFSET(TwisTorrMonitorEntry, pump1_current_mon), H5T_NATIVE_DOUBLE) < 0){
+      	H5Tclose(type_id_tt);
+        return H5I_INVALID_HID;
+      }
+    } else if (id == "pump1_voltage") {
+      if (H5Tinsert(type_id_tt, "305FS_Voltage", HOFFSET(TwisTorrMonitorEntry, pump1_voltage_mon), H5T_NATIVE_DOUBLE) < 0){
+      	H5Tclose(type_id_tt);
+        return H5I_INVALID_HID;
+      }
+    } else if (id == "pump1_power") {
+      if (H5Tinsert(type_id_tt, "305FS_Power", HOFFSET(TwisTorrMonitorEntry, pump1_power_mon), H5T_NATIVE_DOUBLE) < 0){
+      	H5Tclose(type_id_tt);
+        return H5I_INVALID_HID;
+      }
+    } else if (id == "pump1_frequency") {
+      if (H5Tinsert(type_id_tt, "305FS_Frequency", HOFFSET(TwisTorrMonitorEntry, pump1_frequency_mon), H5T_NATIVE_DOUBLE) < 0){
+      	H5Tclose(type_id_tt);
+        return H5I_INVALID_HID;
+      }
+    } else if (id == "pump1_temperature") {
+      if (H5Tinsert(type_id_tt, "305FS_Temperature", HOFFSET(TwisTorrMonitorEntry, pump1_temperature_mon), H5T_NATIVE_DOUBLE) < 0){
+				H5Tclose(type_id_tt);
+        return H5I_INVALID_HID;
+      }
+    } else if (id == "pump2_current") {
+      if (H5Tinsert(type_id_tt, "74FS_Current", HOFFSET(TwisTorrMonitorEntry, pump2_current_mon), H5T_NATIVE_DOUBLE) < 0){
+				H5Tclose(type_id_tt);
+        return H5I_INVALID_HID;
+      }
+    } else if (id == "pump2_voltage") {
+      if (H5Tinsert(type_id_tt, "74FS_Voltage", HOFFSET(TwisTorrMonitorEntry, pump2_voltage_mon), H5T_NATIVE_DOUBLE) < 0){
+      	H5Tclose(type_id_tt);
+        return H5I_INVALID_HID;
+      }
+    } else if (id == "pump2_power") {
+      if (H5Tinsert(type_id_tt, "74FS_Power", HOFFSET(TwisTorrMonitorEntry, pump2_power_mon), H5T_NATIVE_DOUBLE) < 0){
+      	H5Tclose(type_id_tt);
+        return H5I_INVALID_HID;
+      }
+    } else if (id == "pump2_frequency") {
+      if (H5Tinsert(type_id_tt, "74FS_Frequency", HOFFSET(TwisTorrMonitorEntry, pump2_frequency_mon), H5T_NATIVE_DOUBLE) < 0){
+      	H5Tclose(type_id_tt);
+        return H5I_INVALID_HID;
+      }
+    } else if (id == "pump2_temperature") {
+      if (H5Tinsert(type_id_tt, "74FS_Temperature", HOFFSET(TwisTorrMonitorEntry, pump2_temperature_mon), H5T_NATIVE_DOUBLE) < 0){
+				H5Tclose(type_id_tt);
+        return H5I_INVALID_HID;
+      }
+    }
+  }
+
+  return type_id_tt;
+}
+
+static hid_t MakeRigolMonitorEntryType() {
+  hid_t type_id_rgl;
+  // Insert timestamp in data type
+  if (std::any_of(rigol_param.begin(), rigol_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+	  // Create the memory data type
+	  type_id_rgl = H5Tcreate(H5T_COMPOUND, sizeof(RigolMonitorEntry));
+	  if (type_id_rgl < 0)
+		return H5I_INVALID_HID;
+
+    if (H5Tinsert(type_id_rgl, "Timestamp", HOFFSET(RigolMonitorEntry, timestamp_), H5T_NATIVE_DOUBLE) < 0){
+    	H5Tclose(type_id_rgl);
+	    return H5I_INVALID_HID;    	
+    }
+  } 
+  // Insert other parameters
+  for (const auto &id : data_ids) {
+
+    if (id == "rigol_voltage") {
+	    if (H5Tinsert(type_id_rgl, "ParticleTrap_Voltage", HOFFSET(RigolMonitorEntry, trap_voltage_mon), H5T_NATIVE_DOUBLE) < 0){
+	    	H5Tclose(type_id_rgl);
+		    return H5I_INVALID_HID;
+	    }
+    } else if (id == "rigol_voltage_offset") {
+	    if (H5Tinsert(type_id_rgl, "PatricleTrap_VoltOffset", HOFFSET(RigolMonitorEntry, trap_voltage_offset_mon), H5T_NATIVE_DOUBLE) < 0){
+	    	H5Tclose(type_id_rgl);
+		    return H5I_INVALID_HID;
+	    }
+    } else if (id == "rigol_frequency") {
+	    if (H5Tinsert(type_id_rgl, "PatricleTrap_Frequency", HOFFSET(RigolMonitorEntry, trap_frequency_mon), H5T_NATIVE_DOUBLE) < 0){
+				H5Tclose(type_id_rgl);
+		    return H5I_INVALID_HID;
+	    }
+    } else if (id == "rigol_function") {
+	    if (H5Tinsert(type_id_rgl, "PatricleTrap_Function", HOFFSET(RigolMonitorEntry, trap_function_mon), H5T_NATIVE_DOUBLE) < 0){
+	    	H5Tclose(type_id_rgl);
+		    return H5I_INVALID_HID;	
+	    }
+    }
+  }
+
+  return type_id_rgl;
+}
+
+static hid_t MakeLaserMonitorEntryType() {
+  hid_t type_id_lsr;
+  // Insert timestamp in data type
+  if (std::any_of(laser_param.begin(), laser_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+	  // Create the memory data type
+	  type_id_lsr = H5Tcreate(H5T_COMPOUND, sizeof(LaserMonitorEntry));
+	  if (type_id_lsr < 0)
+		return H5I_INVALID_HID;
+
+  	if (H5Tinsert(type_id_lsr, "Timestamp", HOFFSET(LaserMonitorEntry, timestamp_), H5T_NATIVE_DOUBLE) < 0){
+  		H5Tclose(type_id_lsr);
+			return H5I_INVALID_HID; 	
+  	}
+  } 
+  // Insert other parameters
+  for (const auto &id : data_ids) {
+    if (id == "laser_voltage") {
+		  if (H5Tinsert(type_id_lsr, "Laser_Voltage", HOFFSET(LaserMonitorEntry, laser_voltage_mon), H5T_NATIVE_DOUBLE) < 0){
+		  	H5Tclose(type_id_lsr);
+				return H5I_INVALID_HID;
+		  }
+
+	    } else if (id == "laser_state") {
+		  if (H5Tinsert(type_id_lsr, "Laser_state", HOFFSET(LaserMonitorEntry, laser_status_mon), H5T_NATIVE_DOUBLE) < 0){
+		  	H5Tclose(type_id_lsr);
+				return H5I_INVALID_HID;
+		  }
+    }
+  }
+
+  return type_id_lsr;
+}
+
+static hid_t MakeElectronGunMonitorEntryType() {
+  hid_t type_id_eg;
+  // Insert timestamp in data type
+  if (std::any_of(electron_gun_param.begin(), electron_gun_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+	  // Create the memory data type
+	  type_id_eg = H5Tcreate(H5T_COMPOUND, sizeof(ElectronGunMonitorEntry));
+	  if (type_id_eg < 0)
+		return H5I_INVALID_HID;
+
+		if (H5Tinsert(type_id_eg, "Timestamp", HOFFSET(ElectronGunMonitorEntry, timestamp_), H5T_NATIVE_DOUBLE) < 0){
+			H5Tclose(type_id_eg);
+			return H5I_INVALID_HID; 	
+		}
+	}
+  // Insert other parameters
+  for (const auto &id : data_ids) {
+    if (id == "eg_var1") {
+		  if (H5Tinsert(type_id_eg, "ElectronGun_Var1", HOFFSET(ElectronGunMonitorEntry, eg_var1_mon), H5T_NATIVE_DOUBLE) < 0){
+		  	H5Tclose(type_id_eg);
+				return H5I_INVALID_HID;
+		  }
+    } else if (id == "eg_var2") {
+	  	if (H5Tinsert(type_id_eg, "ElectronGun_Var2", HOFFSET(ElectronGunMonitorEntry, eg_var2_mon), H5T_NATIVE_DOUBLE) < 0){
+	  		H5Tclose(type_id_eg);
+				return H5I_INVALID_HID;
+	  	}
+    } else if (id == "eg_var3") {
+		  if (H5Tinsert(type_id_eg, "ElectronGun_Var3", HOFFSET(ElectronGunMonitorEntry, eg_var3_mon), H5T_NATIVE_DOUBLE) < 0){
+		  	H5Tclose(type_id_eg);
+				return H5I_INVALID_HID;
+		  }
+    } else if (id == "eg_var4") {
+		  if (H5Tinsert(type_id_eg, "ElectronGun_Var4", HOFFSET(ElectronGunMonitorEntry, eg_var4_mon), H5T_NATIVE_DOUBLE) < 0){
+		  	H5Tclose(type_id_eg);
+				return H5I_INVALID_HID;
+		  }
+    }
+  }
+
+  return type_id_eg;
+}
+
+int OpenDataStorage() {
+  hid_t plist_id;
+
+  // Test file access
+  if (access(FILENAME.c_str(), W_OK) == 0) {
+	// File exists and is writable, so open it
+	fid = H5Fopen(FILENAME.c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+	if (fid < 0) {
+	  LOG("File exists, but it could not be opened");
+
+	  return -1;
+	} else {
+	  LOG("File successfully opened");
+
+	  if (std::any_of(counts_param.begin(), counts_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+		  counts_ptable = H5PTopen(fid, DATASET_NAME_COUNTS);
+		  if (counts_ptable == H5I_BADID) {
+			LOG("Error opening counts dataset");
+			return -1;
+		  }
+		}
+
+		if (std::any_of(fft_param.begin(), fft_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+		  fft_ptable = H5PTopen(fid, DATASET_NAME_FFT);
+		  if (fft_ptable == H5I_BADID) {
+			LOG("Error opening fft dataset");
+			return -1;
+		  }
+		}
+
+		if (std::any_of(twistorr_param.begin(), twistorr_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {		
+		  twistorr_monitor_ptable = H5PTopen(fid, DATASET_NAME_TWISTORR_MONITOR);
+		  if (twistorr_monitor_ptable == H5I_BADID) {
+			LOG("Error opening twistorr monitor dataset");
+			return -1;
+		  }
+		}
+
+		if (std::any_of(rigol_param.begin(), rigol_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+		  rigol_monitor_ptable = H5PTopen(fid, DATASET_NAME_RIGOL_MONITOR);
+		  if (rigol_monitor_ptable == H5I_BADID) {
+			LOG("Error opening rigol monitor dataset");
+			return -1;
+		  }
+		}
+
+		if (std::any_of(laser_param.begin(), laser_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {	
+		  laser_monitor_ptable = H5PTopen(fid, DATASET_NAME_LASER_MONITOR);
+		  if (laser_monitor_ptable == H5I_BADID) {
+			LOG("Error opening monitor dataset");
+			return -1;
+		  }
+		}
+
+		if (std::any_of(electron_gun_param.begin(), electron_gun_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+		  electron_gun_monitor_ptable = H5PTopen(fid, DATASET_NAME_EG_MONITOR);
+		  if (electron_gun_monitor_ptable == H5I_BADID) {
+			LOG("Error opening electron gun monitor dataset");
+			return -1;
+		  }
+		}
+
+	}
+
+  } else {
+	if (errno == ENOENT) {
+	  // File doesn't exist, so create a new one
+	  LOG("File not found, creating a new one");
+
+	  fid = H5Fcreate(FILENAME.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT);
+	  if (fid < 0) {
+		LOG("Error creating file");
+		return -1;
+	  }
+
+	  // Create property list
+	  plist_id = H5Pcreate(H5P_DATASET_CREATE);
+	  H5Pset_deflate(plist_id, COMPRESSION_LEVEL); // Compression level
+	  if (plist_id < 0) {
+		LOG("Error setting compression algorithm");
+		return -1;
+	  }
+
+	  // Create counts table
+	  if (std::any_of(counts_param.begin(), counts_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+		  counts_ptable = H5PTcreate(fid, DATASET_NAME_COUNTS, MakeCountsEntryType(), (hsize_t) CHUNK_SIZE, plist_id);
+		  if (counts_ptable == H5I_BADID) {
+			LOG("Error creating counts dataset inside file");
+			return -1;
+		  }
+		}
+
+	  // Create FFT table
+	  if (std::any_of(fft_param.begin(), fft_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+		  fft_ptable = H5PTcreate(fid, DATASET_NAME_FFT, MakeFFTEntryType(), (hsize_t) CHUNK_SIZE, plist_id);
+		  if (fft_ptable == H5I_BADID) {
+			LOG("Error creating FFT dataset inside file");
+			return -1;
+		  }
+		}
+
+	  // Create twistorr table
+		if (std::any_of(twistorr_param.begin(), twistorr_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {	  
+		  twistorr_monitor_ptable = H5PTcreate(fid, DATASET_NAME_TWISTORR_MONITOR, MakeTwisTorrMonitorEntryType(), (hsize_t) CHUNK_SIZE, plist_id);
+		  if (twistorr_monitor_ptable == H5I_BADID) {
+			LOG("Error creating twistorr monitor dataset inside file");
+			return -1;
+		  }
+		}
+
+	  // Create rigol table
+		if (std::any_of(rigol_param.begin(), rigol_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {  
+		  rigol_monitor_ptable = H5PTcreate(fid, DATASET_NAME_RIGOL_MONITOR, MakeRigolMonitorEntryType(), (hsize_t) CHUNK_SIZE, plist_id);
+		  if (rigol_monitor_ptable == H5I_BADID) {
+			LOG("Error creating rigol monitor dataset inside file");
+			return -1;
+		  }
+		}  
+
+	  // Create laser table
+		if (std::any_of(laser_param.begin(), laser_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {	  
+		  laser_monitor_ptable = H5PTcreate(fid, DATASET_NAME_LASER_MONITOR, MakeLaserMonitorEntryType(), (hsize_t) CHUNK_SIZE, plist_id);
+		  if (laser_monitor_ptable == H5I_BADID) {
+			LOG("Error creating laser monitor dataset inside file");
+			return -1;
+		  }
+		}  
+
+	  // Create electron gun table
+		if (std::any_of(electron_gun_param.begin(), electron_gun_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {	  
+		  electron_gun_monitor_ptable = H5PTcreate(fid, DATASET_NAME_EG_MONITOR, MakeElectronGunMonitorEntryType(), (hsize_t) CHUNK_SIZE, plist_id);
+		  if (electron_gun_monitor_ptable == H5I_BADID) {
+			LOG("Error creating electron gun monitor dataset inside file");
+			return -1;
+		  }	  	  	  
+		}
+
+	} else {
+	  // File exists but is not writable
+	  LOG("File access denied");
+	  return -1;
+	}
+  }
+
+  return 0;
+}
+
+int CloseDataStorage() {
+  // Close the counts packet table
+  if (std::any_of(laser_param.begin(), laser_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+	  if (H5PTclose(counts_ptable) < 0) {
+		LOG("Error closing counts dataset");
+		return -1;
+	  }
+	}
+
+  // Close the FFT packet table
+  if (std::any_of(fft_param.begin(), fft_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+	  if (H5PTclose(fft_ptable) < 0) {
+		LOG("Error closing FFT dataset");
+		return -1;
+	  }
+	}
+
+  // Close the twistorr monitor packet table
+	if (std::any_of(twistorr_param.begin(), twistorr_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {	  
+	  if (H5PTclose(twistorr_monitor_ptable) < 0) {
+		LOG("Error closing twistorr monitor dataset");
+		return -1;
+	  }
+	}
+
+  // Close the rigol monitor packet table
+	if (std::any_of(rigol_param.begin(), rigol_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+	  if (H5PTclose(rigol_monitor_ptable) < 0) {
+		LOG("Error closing rigol monitor dataset");
+		return -1;
+	  }
+	}
+
+  // Close the laser monitor packet table
+	if (std::any_of(laser_param.begin(), laser_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {	  
+		if (H5PTclose(laser_monitor_ptable) < 0) {
+		LOG("Error closing laser monitor dataset");
+		return -1;
+		}
+	}
+
+  // Close the electron gun monitor packet table
+	if (std::any_of(electron_gun_param.begin(), electron_gun_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {	  
+	  if (H5PTclose(electron_gun_monitor_ptable) < 0) {
+		LOG("Error closing electron gun monitor dataset");
+		return -1;
+	  }
+	}
+
+  // Close the file
+  if (H5Fclose(fid) < 0) {
+	LOG("Error closing file");
+	return -1;
+  }
+
+  return 0;
+}
+
+int RunServer(void *) {
+  StorageServiceImpl service;
+  ServerBuilder builder;
+  sigset_t set;
+  int s;
+  thread inbound_queue_thread;
+
+  // Create these big entries in child memory
+
+	if (std::any_of(counts_param.begin(), counts_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+	  counts_entry = make_unique<CountsEntry>();
+	}
+	if (std::any_of(fft_param.begin(), fft_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+	  fft_entry = make_unique<FFTEntry>();
+	}
+	if (std::any_of(twistorr_param.begin(), twistorr_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+	  twistorr_monitor_entry = make_unique<TwisTorrMonitorEntry>();
+	}
+	if (std::any_of(rigol_param.begin(), rigol_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+	  rigol_monitor_entry = make_unique<RigolMonitorEntry>();
+	}
+	if (std::any_of(laser_param.begin(), laser_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+	  laser_monitor_entry = make_unique<LaserMonitorEntry>();
+	}
+  if (std::any_of(electron_gun_param.begin(), electron_gun_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+	  electron_gun_monitor_entry = make_unique<ElectronGunMonitorEntry>();
+	}				
+  
+  // Open data storage
+  if (OpenDataStorage() < 0) {
+	LOG("Error opening data storage");
+
+	return 1;
+  } else {
+	LOG("Data storage successfully opened");
+  }
+
+  // Create and start InboundQueueProcessing thread
+  inbound_queue_thread = thread(&InboundQueueProcessing);
+
+  // Initialize GRPC Server
+  // grpc::EnableDefaultHealthCheckService(true);
+  // grpc::reflection::InitProtoReflectionServerBuilderPlugin();
+
+  // Listen on the given address without any authentication mechanism.
+  builder.AddListeningPort(SERVER_ADDRESS, InsecureServerCredentials());
+  builder.SetMaxReceiveMessageSize(-1);
+
+//  // Configure channel
+//  builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIME_MS, 300);
+//  builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 300);
+//  builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_PERMIT_WITHOUT_CALLS, 1);
+//  builder.AddChannelArgument(GRPC_ARG_HTTP2_MAX_PINGS_WITHOUT_DATA, 0);
+//  builder.AddChannelArgument(GRPC_ARG_MAX_CONNECTION_IDLE_MS, 100);
+
+  builder.RegisterService(&service);
+
+  unique_ptr<Server> server(builder.BuildAndStart());
+
+  LOG("Listening on " << SERVER_ADDRESS);
+
+  // Register signal processing and wait
+  // Children ignore SIGINT (Ctrl-C) signal. They exit by SIGTERM sent by the parent
+  signal(SIGINT, SIG_IGN);
+
+  // Block SIGTERM signal
+  sigemptyset(&set);
+  sigaddset(&set, SIGTERM);
+  sigprocmask(SIG_BLOCK, &set, nullptr);
+
+  LOG("Server up and running");
+
+  // Wait for SIGTERM signal from parent
+  sigwait(&set, &s);
+
+  // Start shutdown procedure
+  LOG("Shutting down server");
+
+  // Stop InboundQueueProcessing thread. No more writings after this
+  exit_flag = true;
+  inbound_queue_cv.notify_one();
+  inbound_queue_thread.join();
+
+  // Close data storage
+  if (CloseDataStorage() < 0)
+	LOG("Error closing data storage");
+  else
+	LOG("Data storage successfully closed");
+
+  // Terminate all reactors
+  {
+	unique_lock<mutex> pushlck(pusher_mutex);
+	unique_lock<mutex> pulllck(puller_mutex);
+
+	for (auto const &kPusherReactor : pusher_reactors)
+	  kPusherReactor->Terminate();
+
+	for (auto const &kPullerReactor : puller_reactors)
+	  kPullerReactor->Terminate(false);
+  }
+
+  // GRPC server shutdown must be done on a separate thread to avoid hung ups (it does it sometimes anyway so let's add a timeout)
+  thread shutdown_thread([&server] { server->Shutdown(chrono::system_clock::now() + chrono::milliseconds(SERVER_SHUTDOWN_TIMEOUT)); });
+  shutdown_thread.join();
+  server->Wait();
+
+  return 0;
+}
+
+void HandleSignal(int) {
+  LOG("Exiting");
+
+  exit_flag = true;
+
+  kill(pid, SIGTERM);
+}
+
+int main(int argc, char *argv[]) {
+  if (argc < 2) {
+    std::cerr << "Usage: " << argv[0] << " <FILENAME> <Variable_1> <Variable_2> ..." << std::endl;
+    return 1;
+  }  
+
+  FILENAME = argv[1];
+
+  std::cout << "Nombre de archivo: " << FILENAME.c_str() << std::endl;
+
+  data_ids.assign(argv + 2, argv + argc);  
+
+  std::cout << "Tipos de datos especificados:" << std::endl;
+  for (const auto &data_id : data_ids) {
+    std::cout << "- " << data_id << std::endl;
+  }
+  
+  char *stack;
+  bool first_run = true;
+
+  while (!exit_flag) {
+	LOG("Starting new child process");
+
+	stack = static_cast<char *>(mmap(nullptr, STACK_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0));
+
+	pid = clone(RunServer, stack + STACK_SIZE, SIGCHLD, nullptr);
+
+	// Register signal handler on first iteration
+	if (first_run) {
+	  signal(SIGINT, &HandleSignal);
+
+	  first_run = false;
+	}
+
+	// Wait for clone
+	waitpid(pid, nullptr, 0);
+
+	munmap(stack, STACK_SIZE);
+  }
+
+  return 0;
+}

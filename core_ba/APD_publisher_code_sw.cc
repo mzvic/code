@@ -14,8 +14,14 @@
 #include <iostream>
 #include <memory>
 #include <thread>
-#include "client.h"
+#include "broker_client.h"
 #include "core.grpc.pb.h"
+
+#define serialportpath "/dev/serial/by-id/"
+
+#pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
+#pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
+#pragma ide diagnostic ignored "cert-msc50-cpp"
 
 using namespace core;
 using google::protobuf::Timestamp;
@@ -89,9 +95,14 @@ int main(int argc, char* argv[]) {
     portname = argv[1];
     
     // Open the serial port for communication
-    fd = open(portname, O_RDWR | O_NOCTTY | O_SYNC);
+    char fullPortPath[512];
+
+    strcpy(fullPortPath, serialportpath);
+    strcat(fullPortPath, portname);
+
+    fd = open(fullPortPath, O_RDWR | O_NOCTTY | O_SYNC);
     if (fd < 0) {
-        printf("Error opening %s: %s\n", portname, strerror(errno));
+        printf("Error opening %s: %s\n", fullPortPath, strerror(errno));
         return -1;
     }
     
@@ -130,7 +141,6 @@ int main(int argc, char* argv[]) {
                 // Process the received data and add it to the data bundle to be sended to the broker
                 for (p = buf; rdlen-- > 0; p++)
                     bundle.add_value(*p);
-                
                 // If enough data has been collected, publish the bundle to the broker
                 if (c >= amount_data) {
                     publisher_client.Publish(bundle);
