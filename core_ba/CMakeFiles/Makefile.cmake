@@ -90,10 +90,12 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
+  "CMakeFiles/TwisTorrSS1_code_sw.dir/DependInfo.cmake"
   "CMakeFiles/recorder.dir/DependInfo.cmake"
   "CMakeFiles/storage.dir/DependInfo.cmake"
   "CMakeFiles/TwisTorrMonitor_code_sw.dir/DependInfo.cmake"
   "CMakeFiles/TwisTorrSetter_code_sw.dir/DependInfo.cmake"
+  "CMakeFiles/TwisTorrSS2_code_sw.dir/DependInfo.cmake"
   "CMakeFiles/TwisTorrIO_code_sw.dir/DependInfo.cmake"
   "CMakeFiles/APD_broker2_code_sw.dir/DependInfo.cmake"
   "CMakeFiles/APD_reg_zero_code_sw.dir/DependInfo.cmake"

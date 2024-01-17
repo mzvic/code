@@ -67,10 +67,10 @@ RM = /home/code/.local/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/code/Development1/core_ba
+CMAKE_SOURCE_DIR = /home/code/Development/core_ba
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/code/Development1/core_ba
+CMAKE_BINARY_DIR = /home/code/Development/core_ba
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -99,9 +99,9 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles /home/code/Development1/core_ba//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles /home/code/Development/core_ba//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development1/core_ba/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/code/Development/core_ba/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -128,6 +128,19 @@ preinstall/fast:
 depend:
 	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
+
+#=============================================================================
+# Target rules for targets named TwisTorrSS1_code_sw
+
+# Build rule for target.
+TwisTorrSS1_code_sw: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 TwisTorrSS1_code_sw
+.PHONY : TwisTorrSS1_code_sw
+
+# fast build rule for target.
+TwisTorrSS1_code_sw/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSS1_code_sw.dir/build.make CMakeFiles/TwisTorrSS1_code_sw.dir/build
+.PHONY : TwisTorrSS1_code_sw/fast
 
 #=============================================================================
 # Target rules for targets named recorder
@@ -180,6 +193,19 @@ TwisTorrSetter_code_sw: cmake_check_build_system
 TwisTorrSetter_code_sw/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter_code_sw.dir/build.make CMakeFiles/TwisTorrSetter_code_sw.dir/build
 .PHONY : TwisTorrSetter_code_sw/fast
+
+#=============================================================================
+# Target rules for targets named TwisTorrSS2_code_sw
+
+# Build rule for target.
+TwisTorrSS2_code_sw: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 TwisTorrSS2_code_sw
+.PHONY : TwisTorrSS2_code_sw
+
+# fast build rule for target.
+TwisTorrSS2_code_sw/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSS2_code_sw.dir/build.make CMakeFiles/TwisTorrSS2_code_sw.dir/build
+.PHONY : TwisTorrSS2_code_sw/fast
 
 #=============================================================================
 # Target rules for targets named TwisTorrIO_code_sw
@@ -647,6 +673,60 @@ TwisTorrMonitor_code_sw.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrMonitor_code_sw.dir/build.make CMakeFiles/TwisTorrMonitor_code_sw.dir/TwisTorrMonitor_code_sw.cc.s
 .PHONY : TwisTorrMonitor_code_sw.cc.s
 
+TwisTorrSS1_code_sw.o: TwisTorrSS1_code_sw.cc.o
+
+.PHONY : TwisTorrSS1_code_sw.o
+
+# target to build an object file
+TwisTorrSS1_code_sw.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSS1_code_sw.dir/build.make CMakeFiles/TwisTorrSS1_code_sw.dir/TwisTorrSS1_code_sw.cc.o
+.PHONY : TwisTorrSS1_code_sw.cc.o
+
+TwisTorrSS1_code_sw.i: TwisTorrSS1_code_sw.cc.i
+
+.PHONY : TwisTorrSS1_code_sw.i
+
+# target to preprocess a source file
+TwisTorrSS1_code_sw.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSS1_code_sw.dir/build.make CMakeFiles/TwisTorrSS1_code_sw.dir/TwisTorrSS1_code_sw.cc.i
+.PHONY : TwisTorrSS1_code_sw.cc.i
+
+TwisTorrSS1_code_sw.s: TwisTorrSS1_code_sw.cc.s
+
+.PHONY : TwisTorrSS1_code_sw.s
+
+# target to generate assembly for a file
+TwisTorrSS1_code_sw.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSS1_code_sw.dir/build.make CMakeFiles/TwisTorrSS1_code_sw.dir/TwisTorrSS1_code_sw.cc.s
+.PHONY : TwisTorrSS1_code_sw.cc.s
+
+TwisTorrSS2_code_sw.o: TwisTorrSS2_code_sw.cc.o
+
+.PHONY : TwisTorrSS2_code_sw.o
+
+# target to build an object file
+TwisTorrSS2_code_sw.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSS2_code_sw.dir/build.make CMakeFiles/TwisTorrSS2_code_sw.dir/TwisTorrSS2_code_sw.cc.o
+.PHONY : TwisTorrSS2_code_sw.cc.o
+
+TwisTorrSS2_code_sw.i: TwisTorrSS2_code_sw.cc.i
+
+.PHONY : TwisTorrSS2_code_sw.i
+
+# target to preprocess a source file
+TwisTorrSS2_code_sw.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSS2_code_sw.dir/build.make CMakeFiles/TwisTorrSS2_code_sw.dir/TwisTorrSS2_code_sw.cc.i
+.PHONY : TwisTorrSS2_code_sw.cc.i
+
+TwisTorrSS2_code_sw.s: TwisTorrSS2_code_sw.cc.s
+
+.PHONY : TwisTorrSS2_code_sw.s
+
+# target to generate assembly for a file
+TwisTorrSS2_code_sw.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSS2_code_sw.dir/build.make CMakeFiles/TwisTorrSS2_code_sw.dir/TwisTorrSS2_code_sw.cc.s
+.PHONY : TwisTorrSS2_code_sw.cc.s
+
 TwisTorrSetter_code_sw.o: TwisTorrSetter_code_sw.cc.o
 
 .PHONY : TwisTorrSetter_code_sw.o
@@ -855,6 +935,8 @@ help:
 	@echo "... APD_reg_zero_code_sw"
 	@echo "... TwisTorrIO_code_sw"
 	@echo "... TwisTorrMonitor_code_sw"
+	@echo "... TwisTorrSS1_code_sw"
+	@echo "... TwisTorrSS2_code_sw"
 	@echo "... TwisTorrSetter_code_sw"
 	@echo "... broker_client"
 	@echo "... core_grpc_proto"
@@ -894,6 +976,12 @@ help:
 	@echo "... TwisTorrMonitor_code_sw.o"
 	@echo "... TwisTorrMonitor_code_sw.i"
 	@echo "... TwisTorrMonitor_code_sw.s"
+	@echo "... TwisTorrSS1_code_sw.o"
+	@echo "... TwisTorrSS1_code_sw.i"
+	@echo "... TwisTorrSS1_code_sw.s"
+	@echo "... TwisTorrSS2_code_sw.o"
+	@echo "... TwisTorrSS2_code_sw.i"
+	@echo "... TwisTorrSS2_code_sw.s"
 	@echo "... TwisTorrSetter_code_sw.o"
 	@echo "... TwisTorrSetter_code_sw.i"
 	@echo "... TwisTorrSetter_code_sw.s"

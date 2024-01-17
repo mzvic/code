@@ -62,10 +62,10 @@ RM = /home/code/.local/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/code/Development1/core_ba
+CMAKE_SOURCE_DIR = /home/code/Development/core_ba
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/code/Development1/core_ba
+CMAKE_BINARY_DIR = /home/code/Development/core_ba
 
 # Include any dependencies generated for this target.
 include CMakeFiles/storage_client.dir/depend.make
@@ -78,16 +78,16 @@ include CMakeFiles/storage_client.dir/flags.make
 
 CMakeFiles/storage_client.dir/storage_client.cc.o: CMakeFiles/storage_client.dir/flags.make
 CMakeFiles/storage_client.dir/storage_client.cc.o: storage_client.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/storage_client.dir/storage_client.cc.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/storage_client.dir/storage_client.cc.o -c /home/code/Development1/core_ba/storage_client.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/storage_client.dir/storage_client.cc.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/storage_client.dir/storage_client.cc.o -c /home/code/Development/core_ba/storage_client.cc
 
 CMakeFiles/storage_client.dir/storage_client.cc.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/storage_client.dir/storage_client.cc.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/code/Development1/core_ba/storage_client.cc > CMakeFiles/storage_client.dir/storage_client.cc.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/code/Development/core_ba/storage_client.cc > CMakeFiles/storage_client.dir/storage_client.cc.i
 
 CMakeFiles/storage_client.dir/storage_client.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/storage_client.dir/storage_client.cc.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/code/Development1/core_ba/storage_client.cc -o CMakeFiles/storage_client.dir/storage_client.cc.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/code/Development/core_ba/storage_client.cc -o CMakeFiles/storage_client.dir/storage_client.cc.s
 
 # Object files for target storage_client
 storage_client_OBJECTS = \
@@ -99,7 +99,7 @@ storage_client_EXTERNAL_OBJECTS =
 libstorage_client.a: CMakeFiles/storage_client.dir/storage_client.cc.o
 libstorage_client.a: CMakeFiles/storage_client.dir/build.make
 libstorage_client.a: CMakeFiles/storage_client.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX static library libstorage_client.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX static library libstorage_client.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/storage_client.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/storage_client.dir/link.txt --verbose=$(VERBOSE)
 
@@ -113,6 +113,6 @@ CMakeFiles/storage_client.dir/clean:
 .PHONY : CMakeFiles/storage_client.dir/clean
 
 CMakeFiles/storage_client.dir/depend:
-	cd /home/code/Development1/core_ba && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/code/Development1/core_ba /home/code/Development1/core_ba /home/code/Development1/core_ba /home/code/Development1/core_ba /home/code/Development1/core_ba/CMakeFiles/storage_client.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/code/Development/core_ba && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/code/Development/core_ba /home/code/Development/core_ba /home/code/Development/core_ba /home/code/Development/core_ba /home/code/Development/core_ba/CMakeFiles/storage_client.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/storage_client.dir/depend
 

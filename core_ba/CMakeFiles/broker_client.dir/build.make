@@ -62,10 +62,10 @@ RM = /home/code/.local/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/code/Development1/core_ba
+CMAKE_SOURCE_DIR = /home/code/Development/core_ba
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/code/Development1/core_ba
+CMAKE_BINARY_DIR = /home/code/Development/core_ba
 
 # Include any dependencies generated for this target.
 include CMakeFiles/broker_client.dir/depend.make
@@ -78,16 +78,16 @@ include CMakeFiles/broker_client.dir/flags.make
 
 CMakeFiles/broker_client.dir/broker_client.cc.o: CMakeFiles/broker_client.dir/flags.make
 CMakeFiles/broker_client.dir/broker_client.cc.o: broker_client.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/broker_client.dir/broker_client.cc.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/broker_client.dir/broker_client.cc.o -c /home/code/Development1/core_ba/broker_client.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/broker_client.dir/broker_client.cc.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/broker_client.dir/broker_client.cc.o -c /home/code/Development/core_ba/broker_client.cc
 
 CMakeFiles/broker_client.dir/broker_client.cc.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/broker_client.dir/broker_client.cc.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/code/Development1/core_ba/broker_client.cc > CMakeFiles/broker_client.dir/broker_client.cc.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/code/Development/core_ba/broker_client.cc > CMakeFiles/broker_client.dir/broker_client.cc.i
 
 CMakeFiles/broker_client.dir/broker_client.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/broker_client.dir/broker_client.cc.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/code/Development1/core_ba/broker_client.cc -o CMakeFiles/broker_client.dir/broker_client.cc.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/code/Development/core_ba/broker_client.cc -o CMakeFiles/broker_client.dir/broker_client.cc.s
 
 # Object files for target broker_client
 broker_client_OBJECTS = \
@@ -99,7 +99,7 @@ broker_client_EXTERNAL_OBJECTS =
 libbroker_client.a: CMakeFiles/broker_client.dir/broker_client.cc.o
 libbroker_client.a: CMakeFiles/broker_client.dir/build.make
 libbroker_client.a: CMakeFiles/broker_client.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/code/Development1/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX static library libbroker_client.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/code/Development/core_ba/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX static library libbroker_client.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/broker_client.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/broker_client.dir/link.txt --verbose=$(VERBOSE)
 
@@ -113,6 +113,6 @@ CMakeFiles/broker_client.dir/clean:
 .PHONY : CMakeFiles/broker_client.dir/clean
 
 CMakeFiles/broker_client.dir/depend:
-	cd /home/code/Development1/core_ba && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/code/Development1/core_ba /home/code/Development1/core_ba /home/code/Development1/core_ba /home/code/Development1/core_ba /home/code/Development1/core_ba/CMakeFiles/broker_client.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/code/Development/core_ba && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/code/Development/core_ba /home/code/Development/core_ba /home/code/Development/core_ba /home/code/Development/core_ba /home/code/Development/core_ba/CMakeFiles/broker_client.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/broker_client.dir/depend
 

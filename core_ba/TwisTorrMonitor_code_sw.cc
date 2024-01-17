@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     tcsetattr(pserial, TCSANOW, &options);
     char data = '0';
     write(pserial, &data, 1);
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     close(pserial);
     // Create a data bundle and a publisher client for communication
     Bundle bundle;
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
         std::this_thread::sleep_for(std::chrono::milliseconds(400));
         bundle.clear_value(); 
         for (int device_count = 1; device_count <= 2; device_count++) { // ADDR1 and ADDR2
-            for (int xor_WIN = 200; xor_WIN <= 204; ++xor_WIN) {
+            for (int xor_WIN = 199; xor_WIN <= 204; ++xor_WIN) {
                 std::fstream serial(serialport, std::ios::in | std::ios::out | std::ios::binary);
                 if (!serial.is_open()) {
                     std::cerr << "Error opening serial port." << std::endl;
@@ -104,10 +104,15 @@ int main(int argc, char* argv[]) {
                 //std::cout << "--------------------------------------------------------------------\n";
 
                 std::string WIN = std::to_string(xor_WIN);
-
+                
                 char xor_WIN1 = WIN[0];
                 char xor_WIN2 = WIN[1];
                 char xor_WIN3 = WIN[2];
+                if (xor_WIN == 199){
+                    xor_WIN1 = 48;
+                    xor_WIN2 = 48;
+                    xor_WIN3 = 48;                
+                }
 
                 char xor_checksum = 30;
                 if (device_count == 1){

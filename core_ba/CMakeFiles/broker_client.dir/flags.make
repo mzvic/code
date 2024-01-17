@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = -DCARES_STATICLIB
 
-CXX_INCLUDES = -I/home/code/Development1/core_ba -I/usr/include/hdf5/serial -isystem /home/code/.local/include
+CXX_INCLUDES = -I/home/code/Development/core_ba -I/usr/include/hdf5/serial -isystem /home/code/.local/include
 
 CXX_FLAGS = -std=gnu++17
 

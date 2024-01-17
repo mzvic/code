@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/code/Development1/core_ba/storage_client.cc" "/home/code/Development1/core_ba/CMakeFiles/storage_client.dir/storage_client.cc.o"
+  "/home/code/Development/core_ba/storage_client.cc" "/home/code/Development/core_ba/CMakeFiles/storage_client.dir/storage_client.cc.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
@@ -22,7 +22,7 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
 
 # Targets to which this target links.
 set(CMAKE_TARGET_LINKED_INFO_FILES
-  "/home/code/Development1/core_ba/CMakeFiles/core_grpc_proto.dir/DependInfo.cmake"
+  "/home/code/Development/core_ba/CMakeFiles/core_grpc_proto.dir/DependInfo.cmake"
   )
 
 # Fortran module output directory.

@@ -33,7 +33,7 @@ counts = []
 freq = []
 magn = []
 
-# List to store monitoring data from TwistTorporsi
+# List to store monitoring data from TwistTorr
 twistorr_subscribing_values = []
 rigol_publishing_values = []
 laser_publishing_values = []
@@ -165,7 +165,7 @@ class UpdateGraph2Thread(QThread):
     def receive_bundles(self, response_stream):
         for bundle in response_stream:
             fft = []
-            fft[:] = bundle2.value  # Copy the bundle value to the fft list
+            fft[:] = bundle.value  # Copy the bundle value to the fft list
             half_length = len(fft) // 2  # Calculate half length of the fft data
             freq[:] = fft[:half_length]  # Copy first half of fft data to freq list
             magn[:] = fft[half_length:]  # Copy second half of fft data to magn list
@@ -390,7 +390,7 @@ class MainWindow(QMainWindow):
         self.showWarningSignal.connect(self.show_warning_message)
 
         #path = os.getcwd()
-        path = '/home/code/Development1'
+        path = '/home/code/Development'
         
         # Paths to c++ processes
         self.binary_paths = [
@@ -407,7 +407,9 @@ class MainWindow(QMainWindow):
             path + '/core_ba/bin/TwisTorrSetter_code_sw',
             path + '/core_ba/bin/TwisTorrMonitor_code_sw',            
             path + '/core_ba/bin/storage',
-            path + '/core_ba/bin/recorder'         
+            path + '/core_ba/bin/recorder',
+            path + '/core_ba/bin/TwisTorrSS1_code_sw',
+            path + '/core_ba/bin/TwisTorrSS2_code_sw'          
         ]
 
         # Title of the window
@@ -566,7 +568,7 @@ class MainWindow(QMainWindow):
         # Set names to tabs    
         self.tab_widget.addTab(self.tab1, "APD")
         self.tab_widget.addTab(self.tab2, "Vacuum")
-        self.tab_widget.addTab(self.tab3, "ESI")
+        self.tab_widget.addTab(self.tab3, "Electron gun")
         self.tab_widget.addTab(self.tab4, "Particle trap")
 #        self.tab_widget.addTab(self.tab5, "Temperature")
         self.tab_widget.addTab(self.tab6, "Data processing")
@@ -855,10 +857,17 @@ class MainWindow(QMainWindow):
         label_parameter2.setStyleSheet("font-weight: bold;")
         label_monitor2.setStyleSheet("font-weight: bold;")
 
+        self.btn_tt_startstop1 = QPushButton("Start/Stop")
+        self.btn_tt_startstop1.setCheckable(True)  
+        self.btn_tt_startstop1.setStyleSheet("background-color: 53, 53, 53;")  
+        self.btn_tt_startstop1.clicked.connect(self.tt_startstop1_button)
+        self.btn_tt_startstop1.setFixedWidth(500) 
+        self.layout2.addWidget(self.btn_tt_startstop1, 1, 0, 1, 2) 
+
         # Set row index order for the titles
-        self.layout2.addWidget(label_parameter, 1, 0)
-        self.layout2.addWidget(label_monitor, 1, 1)
-        #self.layout2.addWidget(label_setpoint, 0, 2)
+        self.layout2.addWidget(label_parameter, 2, 0)
+        self.layout2.addWidget(label_monitor, 2, 1)
+        #self.layout2.addWidget(label_setpoint, 0, 2)   
         
         # Setpoint field for vacuum pressure
         self.monitor_vacuum_current = QLabel("N/C")
@@ -866,8 +875,8 @@ class MainWindow(QMainWindow):
         #self.set_vacuum_pressure.setText("1002") # Default value
         #self.set_vacuum_pressure.setFixedWidth(100)
         #btn_vacuum_pressure = QPushButton("Set")
-        self.layout2.addWidget(QLabel("Pump current:"), 2, 0)
-        self.layout2.addWidget(self.monitor_vacuum_current, 2, 1)
+        self.layout2.addWidget(QLabel("Pump current:"), 3, 0)
+        self.layout2.addWidget(self.monitor_vacuum_current, 3, 1)
         #self.layout2.addWidget(self.set_vacuum_pressure, 1, 2)
         #self.layout2.addWidget(btn_vacuum_pressure, 1, 3)
 
@@ -877,8 +886,8 @@ class MainWindow(QMainWindow):
         #self.set_speed_motor.setText("5000") # Default value
         #self.set_speed_motor.setFixedWidth(100)
         #btn_speed_motor = QPushButton("Set")
-        self.layout2.addWidget(QLabel("Pump voltage:"), 3, 0)
-        self.layout2.addWidget(self.monitor_vacuum_voltage, 3, 1)
+        self.layout2.addWidget(QLabel("Pump voltage:"), 4, 0)
+        self.layout2.addWidget(self.monitor_vacuum_voltage, 4, 1)
         #self.layout2.addWidget(self.set_speed_motor, 2, 2)
         #self.layout2.addWidget(btn_speed_motor, 2, 3)
 
@@ -888,24 +897,32 @@ class MainWindow(QMainWindow):
         #self.set_valve_state.setText("1") # Default value
         #self.set_valve_state.setFixedWidth(100)
         #btn_valve_state = QPushButton("Set")
-        self.layout2.addWidget(QLabel("Pump power:"), 4, 0)
-        self.layout2.addWidget(self.monitor_vacuum_power, 4, 1)
+        self.layout2.addWidget(QLabel("Pump power:"), 5, 0)
+        self.layout2.addWidget(self.monitor_vacuum_power, 5, 1)
         #self.layout2.addWidget(self.set_valve_state, 3, 2)
         #self.layout2.addWidget(btn_valve_state, 3, 3)
 
         # For monitoring bomb power variable
         self.monitor_vacuum_frequency = QLabel("N/C")
-        self.layout2.addWidget(QLabel("Pump frequency:"), 5, 0)
-        self.layout2.addWidget(self.monitor_vacuum_frequency, 5, 1)
+        self.layout2.addWidget(QLabel("Pump frequency:"), 6, 0)
+        self.layout2.addWidget(self.monitor_vacuum_frequency, 6, 1)
 
         # For monitoring temperature variable
         self.monitor_vacuum_temperature = QLabel("N/C")
-        self.layout2.addWidget(QLabel("Pump temperature:"), 6, 0)
-        self.layout2.addWidget(self.monitor_vacuum_temperature, 6, 1)
+        self.layout2.addWidget(QLabel("Pump temperature:"), 7, 0)
+        self.layout2.addWidget(self.monitor_vacuum_temperature, 7, 1)
 
+
+        self.btn_tt_startstop2 = QPushButton("Start/Stop")
+        self.btn_tt_startstop2.setCheckable(True)  
+        self.btn_tt_startstop2.setStyleSheet("background-color: 53, 53, 53;")  
+        self.btn_tt_startstop2.clicked.connect(self.tt_startstop2_button) 
+        self.btn_tt_startstop2.setFixedWidth(500) 
+        self.layout2.addWidget(self.btn_tt_startstop2, 1, 2, 1, 2) 
+        
         # Set row index order for the titles
-        self.layout2.addWidget(label_parameter2, 1, 2)
-        self.layout2.addWidget(label_monitor2, 1, 3)
+        self.layout2.addWidget(label_parameter2, 2, 2)
+        self.layout2.addWidget(label_monitor2, 2, 3)
         #self.layout2.addWidget(label_setpoint, 0, 2)
 
         # Setpoint field for vacuum pressure
@@ -914,8 +931,8 @@ class MainWindow(QMainWindow):
         #self.set_vacuum_pressure.setText("1002") # Default value
         #self.set_vacuum_pressure.setFixedWidth(100)
         #btn_vacuum_pressure = QPushButton("Set")
-        self.layout2.addWidget(QLabel("Pump current:"), 2, 2)
-        self.layout2.addWidget(self.monitor_vacuum_current2, 2, 3)
+        self.layout2.addWidget(QLabel("Pump current:"), 3, 2)
+        self.layout2.addWidget(self.monitor_vacuum_current2, 3, 3)
         #self.layout2.addWidget(self.set_vacuum_pressure, 1, 2)
         #self.layout2.addWidget(btn_vacuum_pressure, 1, 3)
 
@@ -925,8 +942,8 @@ class MainWindow(QMainWindow):
         #self.set_speed_motor.setText("5000") # Default value
         #self.set_speed_motor.setFixedWidth(100)
         #btn_speed_motor = QPushButton("Set")
-        self.layout2.addWidget(QLabel("Pump voltage:"), 3, 2)
-        self.layout2.addWidget(self.monitor_vacuum_voltage2, 3, 3)
+        self.layout2.addWidget(QLabel("Pump voltage:"), 4, 2)
+        self.layout2.addWidget(self.monitor_vacuum_voltage2, 4, 3)
         #self.layout2.addWidget(self.set_speed_motor, 2, 2)
         #self.layout2.addWidget(btn_speed_motor, 2, 3)
 
@@ -936,26 +953,26 @@ class MainWindow(QMainWindow):
         #self.set_valve_state.setText("1") # Default value
         #self.set_valve_state.setFixedWidth(100)
         #btn_valve_state = QPushButton("Set")
-        self.layout2.addWidget(QLabel("Pump power:"), 4, 2)
-        self.layout2.addWidget(self.monitor_vacuum_power2, 4, 3)
+        self.layout2.addWidget(QLabel("Pump power:"), 5, 2)
+        self.layout2.addWidget(self.monitor_vacuum_power2, 5, 3)
         #self.layout2.addWidget(self.set_valve_state, 3, 2)
         #self.layout2.addWidget(btn_valve_state, 3, 3)
 
         # For monitoring bomb power variable
         self.monitor_vacuum_frequency2 = QLabel("N/C")
-        self.layout2.addWidget(QLabel("Pump frequency:"), 5, 2)
-        self.layout2.addWidget(self.monitor_vacuum_frequency2, 5, 3)
+        self.layout2.addWidget(QLabel("Pump frequency:"), 6, 2)
+        self.layout2.addWidget(self.monitor_vacuum_frequency2, 6, 3)
 
         # For monitoring temperature variable
         self.monitor_vacuum_temperature2 = QLabel("N/C")
-        self.layout2.addWidget(QLabel("Pump temperature:"), 6, 2)
-        self.layout2.addWidget(self.monitor_vacuum_temperature2, 6, 3)        
+        self.layout2.addWidget(QLabel("Pump temperature:"), 7, 2)
+        self.layout2.addWidget(self.monitor_vacuum_temperature2, 7, 3)        
     
         self.btn_vacuum_monitor = QPushButton("Start reading from TwisTorr")
         self.btn_vacuum_monitor.setCheckable(True)  
         self.btn_vacuum_monitor.setStyleSheet("background-color: 53, 53, 53;")  
         self.btn_vacuum_monitor.clicked.connect(self.execute_twistorr_btn) 
-        self.layout2.addWidget(self.btn_vacuum_monitor, 7, 0, 1, 4)
+        self.layout2.addWidget(self.btn_vacuum_monitor, 8, 0, 1, 4)
 
         #self.graph_pressure_vacuum = pg.PlotWidget(axisItems={'left': DateAxis(orientation='left')})
         #self.layout2.addWidget(self.graph_pressure_vacuum, 8, 0, 1, 4)
@@ -970,7 +987,7 @@ class MainWindow(QMainWindow):
         #btn_speed_motor.clicked.connect(lambda: self.execute_twistorr_set_motor_speed())
         #btn_valve_state.clicked.connect(lambda: self.execute_twistorr_set_valve_state())
         
-        self.layout2.setRowStretch(7, 1)
+        self.layout2.setRowStretch(8, 1)
 
 
         # ------------------------------------------------------------------------------------------- #
@@ -1225,17 +1242,17 @@ class MainWindow(QMainWindow):
         apd_data_group = QtWidgets.QGroupBox("APD data:")
         apd_data_grid_layout = QGridLayout()
         
-        self.apd_1_checkbox = QCheckBox("APD Counts @1kHz")
-        self.apd_1_checkbox.setChecked(False)
-        apd_data_grid_layout.addWidget(self.apd_1_checkbox, 1, 0)
+        #self.apd_1_checkbox = QCheckBox("APD Counts @1kHz")
+        #self.apd_1_checkbox.setChecked(False)
+        #apd_data_grid_layout.addWidget(self.apd_1_checkbox, 1, 0)
 
         self.apd_2_checkbox = QCheckBox("APD Counts @100kHz")
         self.apd_2_checkbox.setChecked(False)
         apd_data_grid_layout.addWidget(self.apd_2_checkbox, 2, 0)
 
-        self.apd_3_checkbox = QCheckBox("APD FFT @0.1Hz resolution")
-        self.apd_3_checkbox.setChecked(False)
-        apd_data_grid_layout.addWidget(self.apd_3_checkbox, 3, 0)
+        #self.apd_3_checkbox = QCheckBox("APD FFT @0.1Hz resolution")
+        #self.apd_3_checkbox.setChecked(False)
+        #apd_data_grid_layout.addWidget(self.apd_3_checkbox, 3, 0)
 
         self.apd_4_checkbox = QCheckBox("APD FFT @0.01Hz resolution")
         self.apd_4_checkbox.setChecked(False)
@@ -1403,8 +1420,6 @@ class MainWindow(QMainWindow):
         self.storage_filename_group.setLayout(self.storage_filename_grid_layout)
         self.layout7.addWidget(self.storage_filename_group, 9, 0, 1, 2)
 
-
-
         storage_button_group = QtWidgets.QGroupBox("Data logging (files stored in /home/code folder):")
         storage_button_grid_layout = QGridLayout()      
 
@@ -1437,8 +1452,10 @@ class MainWindow(QMainWindow):
         # --------------------------#
         # Filename and checkbox verification #
         if not (self.laser_1_checkbox.isChecked() or self.laser_2_checkbox.isChecked() or
-                self.apd_1_checkbox.isChecked() or self.apd_2_checkbox.isChecked() or
-                self.apd_3_checkbox.isChecked() or self.apd_4_checkbox.isChecked() or
+                #self.apd_1_checkbox.isChecked() or 
+                self.apd_2_checkbox.isChecked() or
+                #self.apd_3_checkbox.isChecked() or 
+                self.apd_4_checkbox.isChecked() or
                 self.twistorr_1_checkbox.isChecked() or self.twistorr_2_checkbox.isChecked() or
                 self.twistorr_3_checkbox.isChecked() or self.twistorr_4_checkbox.isChecked() or
                 self.twistorr_5_checkbox.isChecked() or #self.twistorr_6_checkbox.isChecked() or #error_comentado
@@ -1456,8 +1473,10 @@ class MainWindow(QMainWindow):
             self.begin_logging_button.setChecked(False)
 
         if (self.laser_1_checkbox.isChecked() or self.laser_2_checkbox.isChecked() or
-                self.apd_1_checkbox.isChecked() or self.apd_2_checkbox.isChecked() or
-                self.apd_3_checkbox.isChecked() or self.apd_4_checkbox.isChecked() or
+                #self.apd_1_checkbox.isChecked() or
+                self.apd_2_checkbox.isChecked() or
+                #self.apd_3_checkbox.isChecked() or
+                self.apd_4_checkbox.isChecked() or
                 self.twistorr_1_checkbox.isChecked() or self.twistorr_2_checkbox.isChecked() or
                 self.twistorr_3_checkbox.isChecked() or self.twistorr_4_checkbox.isChecked() or
                 self.twistorr_5_checkbox.isChecked() or #self.twistorr_6_checkbox.isChecked() or #error_comentado
@@ -1487,15 +1506,15 @@ class MainWindow(QMainWindow):
                     print("Ejecutando recorder 'Laser state'")
                 # --------------------------#
                 # APD #
-                if self.apd_1_checkbox.isChecked():
-                    storage_list.append("apd_counts_partial") 
-                    print("Ejecutando recorder 'APD Counts @1kHz'")
+                #if self.apd_1_checkbox.isChecked():
+                #    storage_list.append("apd_counts_partial") 
+                #    print("Ejecutando recorder 'APD Counts @1kHz'")
                 if self.apd_2_checkbox.isChecked():
                     storage_list.append("apd_counts_full") 
                     print("Ejecutando recorder 'APD Counts @100kHz'")
-                if self.apd_3_checkbox.isChecked():
-                    storage_list.append("apd_fft_partial") 
-                    print("Ejecutando recorder 'APD FFT @0.1Hz resolution'")
+                #if self.apd_3_checkbox.isChecked():
+                #    storage_list.append("apd_fft_partial") 
+                #    print("Ejecutando recorder 'APD FFT @0.1Hz resolution'")
                 if self.apd_4_checkbox.isChecked():
                     storage_list.append("apd_fft_full") 
                     print("Ejecutando recorder 'APD FFT @0.01Hz resolution'")       
@@ -1588,13 +1607,15 @@ class MainWindow(QMainWindow):
                     
                     # Execute storage with all elements of storage_list as arguments
                     self.processes[12] = subprocess.Popen(storage_command)
+                    self.processes[8] = subprocess.Popen([self.binary_paths[8]])
 
                 record_list = []
                 if (self.laser_1_checkbox.isChecked() or self.laser_2_checkbox.isChecked()):
                     record_list.append("DATA_LASER_MON")  
                 if (self.apd_2_checkbox.isChecked()):   
                     record_list.append("DATA_APD_FULL")
-                if (self.apd_3_checkbox.isChecked() or self.apd_4_checkbox.isChecked()):     
+                #if (self.apd_3_checkbox.isChecked() or self.apd_4_checkbox.isChecked()):     
+                if (self.apd_4_checkbox.isChecked()):     
                     record_list.append("DATA_FFT_FULL")   
                 if (self.twistorr_1_checkbox.isChecked() or self.twistorr_2_checkbox.isChecked() or
                         self.twistorr_3_checkbox.isChecked() or self.twistorr_4_checkbox.isChecked() or
@@ -1645,15 +1666,15 @@ class MainWindow(QMainWindow):
         self.laser_2_checkbox.setChecked(False)
 
     def mark_all_apd_checkboxes(self):
-        self.apd_1_checkbox.setChecked(True)
+        #self.apd_1_checkbox.setChecked(True)
         self.apd_2_checkbox.setChecked(True)
-        self.apd_3_checkbox.setChecked(True)
+        #self.apd_3_checkbox.setChecked(True)
         self.apd_4_checkbox.setChecked(True)
 
     def unmark_all_apd_checkboxes(self):
-        self.apd_1_checkbox.setChecked(False)
+        #self.apd_1_checkbox.setChecked(False)
         self.apd_2_checkbox.setChecked(False)
-        self.apd_3_checkbox.setChecked(False)
+        #self.apd_3_checkbox.setChecked(False)
         self.apd_4_checkbox.setChecked(False)    
 
     def mark_all_twistorr_checkboxes(self):
@@ -1716,6 +1737,7 @@ class MainWindow(QMainWindow):
             self.logging_button.setText("Data logging")
             self.stop_logging_button.setChecked(False)
             ### KIL STORAGE
+            subprocess.run(['pkill', '-f', self.processes[8].args[0]], check=True)
             subprocess.run(['pkill', '-f', self.processes[12].args[0]], check=True)
             subprocess.run(['pkill', '-f', self.processes[13].args[0]], check=True)
 
@@ -1737,7 +1759,6 @@ class MainWindow(QMainWindow):
             self.buttons[2].setChecked(False)
             self.buttons[2].setStyleSheet("background-color: 53, 53, 53;")
             self.apd_button.setText("APD")
-
 
     # Start asking for data to rigol
     def toggle_rigol_connect(self):
@@ -1901,6 +1922,47 @@ class MainWindow(QMainWindow):
     def kill_twistorr_monitor(self):
         subprocess.run(['pkill', '-f', self.processes[11].args[0]], check=True)
 
+    def tt_startstop1_button(self):
+        if self.btn_vacuum_monitor.isChecked():
+            if self.btn_tt_startstop1.isChecked():
+                self.btn_tt_startstop1.setStyleSheet("background-color: darkblue;")
+                self.execute_twistorr_ss1("1")  
+                time.sleep(0.1) 
+            else:
+                self.btn_tt_startstop1.setStyleSheet("background-color: 53, 53, 53;")
+                self.execute_twistorr_ss1("0")  
+                time.sleep(0.1)
+
+    def execute_twistorr_ss1(self, start_stop1):
+        subprocess.run(['pkill', '-f', self.processes[11].args[0]], check=True)
+        time.sleep(0.1)
+        command_ss1 = [self.binary_paths[14], str(start_stop1)]
+        self.processes[14] = subprocess.Popen(command_ss1)
+        time.sleep(0.1)
+        subprocess.run(['pkill', '-f', self.processes[14].args[0]], check=True)  
+        self.processes[11] = subprocess.Popen([self.binary_paths[11]])
+        time.sleep(0.1)
+
+    def tt_startstop2_button(self):
+        if self.btn_vacuum_monitor.isChecked():
+            if self.btn_tt_startstop2.isChecked():
+                self.btn_tt_startstop2.setStyleSheet("background-color: darkblue;")
+                self.execute_twistorr_ss2("1") 
+                time.sleep(0.1)  
+            else:
+                self.btn_tt_startstop2.setStyleSheet("background-color: 53, 53, 53;")
+                self.execute_twistorr_ss2("0")  
+                time.sleep(0.1)
+
+    def execute_twistorr_ss2(self, start_stop2):
+        subprocess.run(['pkill', '-f', self.processes[11].args[0]], check=True)
+        time.sleep(0.1)
+        command_ss2 = [self.binary_paths[15], str(start_stop2)]
+        self.processes[15] = subprocess.Popen(command_ss2)
+        time.sleep(0.1)
+        subprocess.run(['pkill', '-f', self.processes[15].args[0]], check=True)   
+        self.processes[11] = subprocess.Popen([self.binary_paths[11]])   
+        time.sleep(0.1)    
 
     def execute_twistorr_set_pressure(self):
         # Execute the TwisTorr Setter binary with pressure, motor, and valve parameters
@@ -1926,17 +1988,19 @@ class MainWindow(QMainWindow):
         #self.motor = self.set_speed_motor.text()
         #self.valve = self.set_valve_state.text()
         if self.btn_vacuum_monitor.isChecked():
-            if len(twistorr_subscribing_values) >= 5:
-                vacuum_current = str(int(twistorr_subscribing_values[0]))
-                vacuum_voltage = str(int(twistorr_subscribing_values[1]))
-                vacuum_power = str(int(twistorr_subscribing_values[2]))
-                vacuum_frequency = str(int(twistorr_subscribing_values[3]))
-                vacuum_temperature = str(int(twistorr_subscribing_values[4]))
-                vacuum_current2 = str(int(twistorr_subscribing_values[5]))
-                vacuum_voltage2 = str(int(twistorr_subscribing_values[6]))
-                vacuum_power2 = str(int(twistorr_subscribing_values[7]))
-                vacuum_frequency2 = str(int(twistorr_subscribing_values[8]))
-                vacuum_temperature2 = str(int(twistorr_subscribing_values[9]))                
+            if len(twistorr_subscribing_values) >= 12:
+                vacuum_status = int(twistorr_subscribing_values[0])
+                vacuum_current = str(int(twistorr_subscribing_values[1]))
+                vacuum_voltage = str(int(twistorr_subscribing_values[2]))
+                vacuum_power = str(int(twistorr_subscribing_values[3]))
+                vacuum_frequency = str(int(twistorr_subscribing_values[4]))
+                vacuum_temperature = str(int(twistorr_subscribing_values[5]))
+                vacuum_status2 = int(twistorr_subscribing_values[6])
+                vacuum_current2 = str(int(twistorr_subscribing_values[7]))
+                vacuum_voltage2 = str(int(twistorr_subscribing_values[8]))
+                vacuum_power2 = str(int(twistorr_subscribing_values[9]))
+                vacuum_frequency2 = str(int(twistorr_subscribing_values[10]))
+                vacuum_temperature2 = str(int(twistorr_subscribing_values[11]))                
 
                 # Update the labels with the vacuum-related values
                 self.monitor_vacuum_current.setText(vacuum_current+" [mA]")
@@ -1951,6 +2015,20 @@ class MainWindow(QMainWindow):
                 self.monitor_vacuum_frequency2.setText(vacuum_frequency2+" [Hz]")
                 self.monitor_vacuum_temperature2.setText(vacuum_temperature2+" [°C]")
                 self.vacuum_frequency2.setText(vacuum_frequency2+" [Hz]")
+
+                if (vacuum_status == 1):
+                    self.btn_tt_startstop1.setChecked(True)
+                    self.btn_tt_startstop1.setStyleSheet("background-color: darkblue;")
+                else:
+                    self.btn_tt_startstop1.setChecked(False)
+                    self.btn_tt_startstop1.setStyleSheet("background-color: 53, 53, 53;") 
+
+                if (vacuum_status2 == 1):
+                    self.btn_tt_startstop2.setChecked(True)
+                    self.btn_tt_startstop2.setStyleSheet("background-color: darkblue;")
+                else:
+                    self.btn_tt_startstop2.setChecked(False)
+                    self.btn_tt_startstop2.setStyleSheet("background-color: 53, 53, 53;")                                        
         else:        
             self.monitor_vacuum_current.setText("N/C")
             self.monitor_vacuum_voltage.setText("N/C")
@@ -1963,9 +2041,13 @@ class MainWindow(QMainWindow):
             self.monitor_vacuum_power2.setText("N/C")
             self.monitor_vacuum_frequency2.setText("N/C")
             self.monitor_vacuum_temperature2.setText("N/C")
-            self.vacuum_frequency2.setText("N/C")            
+            self.vacuum_frequency2.setText("N/C")  
+            self.btn_tt_startstop1.setChecked(False)
+            self.btn_tt_startstop1.setStyleSheet("background-color: 53, 53, 53;") 
+            self.btn_tt_startstop2.setChecked(False)
+            self.btn_tt_startstop2.setStyleSheet("background-color: 53, 53, 53;")                        
         # Sleep briefly to avoid excessive updates
-        time.sleep(0.001)
+        time.sleep(0.01)
 
     def start_update_tt_timer(self):
         # Start a QTimer to periodically update vacuum-related values
