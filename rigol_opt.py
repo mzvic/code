@@ -41,6 +41,11 @@ laser_publishing_values = []
 rigol_pub_size = 5
 laser_pub_size = 2  
 
+#Setting vacuum equipment to serial instead of remote controller
+os.system('python /home/code/Development/305_008.py')
+
+os.system('python /home/code/Development/74_008.py')
+
 # Custom Axis class to display timestamps as dates
 class DateAxis(pg.AxisItem):
     def tickStrings(self, values, scale, spacing):
@@ -926,7 +931,7 @@ class MainWindow(QMainWindow):
         avg_time_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.avg_time_input = QLineEdit(self)
         self.avg_time_input.setFixedWidth(30) 
-        self.avg_time_input.setText("120") # Default value       
+        self.avg_time_input.setText("1") # Default value       
         third_layout_1.addWidget(avg_time_label)
         third_layout_1.addWidget(self.avg_time_input)     
 
