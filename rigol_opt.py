@@ -816,7 +816,7 @@ class MainWindow(QMainWindow):
 
         # Plot 3 height
         self.color_map.setMinimumHeight(180)
-        self.color_map.setMaximumHeight(300)
+        self.color_map.setMaximumHeight(400)
 
         # Some parameters and settings for plot 3
         self.color_map.setColorMap(pg.colormap.get('plasma')) # Histogram color setting
@@ -859,25 +859,27 @@ class MainWindow(QMainWindow):
 
         # FPGA serial port select (first_layout_1)
         serialPortsLabel = QLabel("FPGA serial port:")
-        serialPortsLabel.setFixedWidth(100)
+        serialPortsLabel.setFixedWidth(150)
         self.serialPortsCombobox = QComboBox(self)
         self.update_serial_ports()
         index_p = self.serialPortsCombobox.findText('usb-Digilent_Digilent_USB_Device_210319B58455-if01-port0', QtCore.Qt.MatchFixedString) # Default value
         if index_p >= 0:
              self.serialPortsCombobox.setCurrentIndex(index_p)        
-        self.serialPortsCombobox.setMaximumWidth(120)
+        self.serialPortsCombobox.setMaximumWidth(150)
         first_layout_1.addWidget(serialPortsLabel)
         first_layout_1.addWidget(self.serialPortsCombobox)
-        
+
+
+                
         # FFT window type select (second_layout_1)
         windowTypeLabel = QLabel("FFT Window Type:")
-        windowTypeLabel.setFixedWidth(100)
+        windowTypeLabel.setFixedWidth(150)
         self.windowTypeCombobox = QComboBox(self)
         self.windowTypeCombobox.addItems(['Hamming', 'Hann', 'Blackman-Harris 4', 'Blackman-Harris 7', 'No window'])
         index_w = self.windowTypeCombobox.findText('No window', QtCore.Qt.MatchFixedString) # Default value
         if index_w >= 0:
              self.windowTypeCombobox.setCurrentIndex(index_w)
-        self.windowTypeCombobox.setMaximumWidth(120) 
+        self.windowTypeCombobox.setMaximumWidth(150) 
         second_layout_1.addWidget(windowTypeLabel)
         second_layout_1.addWidget(self.windowTypeCombobox)
         
@@ -888,6 +890,15 @@ class MainWindow(QMainWindow):
             3: 4,  # 'Blackmann-Harris 7'
             4: 5,  # 'No window'
         } 
+
+        # Time axis lenght for counts vs. time plot in 'first_layout_1'  
+        self.apd_counts_secs_label = QLabel("T-axis length in counts:")
+        self.apd_counts_secs_label.setFixedWidth(195)
+        self.apd_counts_secs_input = QLineEdit(self)
+        self.apd_counts_secs_input.setFixedWidth(150)
+        self.apd_counts_secs_input.setText("10") # Default value      
+        second_layout_1.addWidget(self.apd_counts_secs_label)
+        second_layout_1.addWidget(self.apd_counts_secs_input)
 
         # Buttons creation (button_names_1a/b)     
         self.buttons = []
@@ -905,32 +916,27 @@ class MainWindow(QMainWindow):
             start_stop_button = QPushButton(button_names_1b[i - 2])
             start_stop_button.setCheckable(True)
             start_stop_button.toggled.connect(lambda checked, i=i: self.toggle_process(i, checked))
-            if i==2 or i==4 or i ==5 :
+            if i==2 or i==3: #or i==4 or i ==5 :
                 first_layout_1.addWidget(start_stop_button)
             else:
-                second_layout_1.addWidget(start_stop_button)
+                if i==4 or i==5 or i==6 or i==7:
+                    pass
+                else:
+                    second_layout_1.addWidget(start_stop_button)
+
             self.buttons.append(start_stop_button) 
         
-        # Time axis lenght for counts vs. time plot in 'first_layout_1' (we only update the width of this field because of the buttons/inputs distribution of the firts row)  
-        self.resizeEvent = self.update_input_width  
-        self.apd_counts_secs_label = QLabel("T-axis length in counts:")
-        self.apd_counts_secs_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.apd_counts_secs_input = QLineEdit(self)
-        self.apd_counts_secs_input.setText("10") # Default value      
-        first_layout_1.addWidget(self.apd_counts_secs_label)
-        first_layout_1.addWidget(self.apd_counts_secs_input)
-
         # Shows a yellow bar to see the magnitude of the frequency below the mouse cursor (in 'second_layout_1')
         self.toggle_button = QPushButton("Peak ID with cursor")
         self.toggle_button.setCheckable(True) 
         self.toggle_button.clicked.connect(self.toggle_cursor)
-        second_layout_1.addWidget(self.toggle_button)                                       
+        first_layout_1.addWidget(self.toggle_button)                                       
 
         # Averaging period for the FFTs in seconds (in 'third_layout_1')
         avg_time_label = QLabel("Averaging period in spectrometer (s):")
         avg_time_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.avg_time_input = QLineEdit(self)
-        self.avg_time_input.setFixedWidth(30) 
+        self.avg_time_input.setFixedWidth(90) 
         self.avg_time_input.setText("1") # Default value       
         third_layout_1.addWidget(avg_time_label)
         third_layout_1.addWidget(self.avg_time_input)     
@@ -939,7 +945,7 @@ class MainWindow(QMainWindow):
         spectrum_amount_label = QLabel("Periods to show in spectrometer:")
         spectrum_amount_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.spectrum_amount_input = QLineEdit(self)
-        self.spectrum_amount_input.setFixedWidth(40) 
+        self.spectrum_amount_input.setFixedWidth(90) 
         self.spectrum_amount_input.setText("120") # Default value      
         third_layout_1.addWidget(spectrum_amount_label)
         third_layout_1.addWidget(self.spectrum_amount_input)   
@@ -948,27 +954,27 @@ class MainWindow(QMainWindow):
         self.toggle_button_spec = QPushButton("Show spectrum averages")
         self.toggle_button_spec.setCheckable(True)  # Enables alternancy
         self.toggle_button_spec.clicked.connect(self.toggle_spec)
-        third_layout_1.addWidget(self.toggle_button_spec)
+        second_layout_1.addWidget(self.toggle_button_spec)
         
         # Button to clean spectrometer (in 'third_layout_1')
         self.toggle_button_clean_spec = QPushButton("Clean spectrometer")
         self.toggle_button_clean_spec.clicked.connect(self.toggle_clean_spec)
-        third_layout_1.addWidget(self.toggle_button_clean_spec)
+        second_layout_1.addWidget(self.toggle_button_clean_spec)
         
         # Start of the frequency range of interest (in 'third_layout_1')
-        f_i_label = QLabel("FFT initial freq:")
+        f_i_label = QLabel("FFT initial frequency:")
         f_i_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.f_i_input = QLineEdit(self)
-        self.f_i_input.setFixedWidth(60) 
+        self.f_i_input.setFixedWidth(90) 
         self.f_i_input.setText("10") # Default value    
         third_layout_1.addWidget(f_i_label)
         third_layout_1.addWidget(self.f_i_input) 
 
         # End of the frequency range of interest (in 'third_layout_1')
-        f_f_label = QLabel("FFT final freq:")
+        f_f_label = QLabel("FFT final frequency:")
         f_f_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.f_f_input = QLineEdit(self)
-        self.f_f_input.setFixedWidth(60) 
+        self.f_f_input.setFixedWidth(90) 
         self.f_f_input.setText("150") # Default value     
         third_layout_1.addWidget(f_f_label)
         third_layout_1.addWidget(self.f_f_input)  
@@ -2211,14 +2217,6 @@ class MainWindow(QMainWindow):
         # Stop the QTimer used for updating vacuum-related values
         if hasattr(self, 'timer'):
             self.timer.stop()
-
-    def update_input_width(self, event=None):
-        # Update the width of input fields based on the window size
-        window_width = self.width() - 260  # Adjust for layout
-        input_width = window_width // 24
-        self.apd_counts_secs_label.setFixedWidth(input_width * 4)
-        self.apd_counts_secs_input.setFixedWidth(input_width * 2)
-        self.update()
 
     def update_serial_ports(self):
         # Update the available serial ports in the ComboBox
