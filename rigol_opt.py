@@ -891,9 +891,11 @@ class MainWindow(QMainWindow):
             4: 5,  # 'No window'
         } 
 
-        # Time axis lenght for counts vs. time plot in 'first_layout_1'  
+        # Time axis lenght for counts vs. time plot in 'first_layout_1' (we only update the width of this field because of the buttons/inputs distribution of the firts row)  
+        self.resizeEvent = self.update_input_width  
         self.apd_counts_secs_label = QLabel("T-axis length in counts:")
-        self.apd_counts_secs_label.setFixedWidth(195)
+        #self.apd_counts_secs_label.setFixedWidth(195)
+        self.apd_counts_secs_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.apd_counts_secs_input = QLineEdit(self)
         self.apd_counts_secs_input.setFixedWidth(150)
         self.apd_counts_secs_input.setText("10") # Default value      
@@ -2217,6 +2219,14 @@ class MainWindow(QMainWindow):
         # Stop the QTimer used for updating vacuum-related values
         if hasattr(self, 'timer'):
             self.timer.stop()
+
+    def update_input_width(self, event=None):
+        # Update the width of input fields based on the window size
+        x = self.width()  
+        y = -680.107 + 0.693 * x - 0.0001 * x ** 2
+        y_rounded = round(y) 
+        self.apd_counts_secs_label.setFixedWidth(y_rounded)
+        self.update()
 
     def update_serial_ports(self):
         # Update the available serial ports in the ComboBox
