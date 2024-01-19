@@ -1394,7 +1394,41 @@ class MainWindow(QMainWindow):
         # Registers TAB
         # ------------------------------------------------------------------------------------------- #
         self.layout7 = QGridLayout(self.tab7)
-        
+
+
+        # -------------------------------------------------------------------- #
+        # Rigol #
+        rigol_data_group = QtWidgets.QGroupBox("Rigol MSO 5074 data:")
+        rigol_data_grid_layout = QGridLayout()           
+
+        self.rigol_1_checkbox = QCheckBox("Particle trap voltage")
+        self.rigol_1_checkbox.setChecked(False)
+        rigol_data_grid_layout.addWidget(self.rigol_1_checkbox, 1, 0)
+
+        self.rigol_2_checkbox = QCheckBox("Particle trap offset voltage")
+        self.rigol_2_checkbox.setChecked(False)
+        rigol_data_grid_layout.addWidget(self.rigol_2_checkbox, 2, 0)
+
+        self.rigol_3_checkbox = QCheckBox("Particle trap frequency")
+        self.rigol_3_checkbox.setChecked(False)
+        rigol_data_grid_layout.addWidget(self.rigol_3_checkbox, 3, 0)
+
+        self.rigol_4_checkbox = QCheckBox("Particle trap function")
+        self.rigol_4_checkbox.setChecked(False)
+        rigol_data_grid_layout.addWidget(self.rigol_4_checkbox, 4, 0)
+
+        self.rigol_5_checkbox = QCheckBox("Particle trap function generator status")
+        self.rigol_5_checkbox.setChecked(False)
+        rigol_data_grid_layout.addWidget(self.rigol_5_checkbox, 5, 0)  
+
+        mark_all_rigol_button = QPushButton("Check all")
+        mark_all_rigol_button.clicked.connect(self.mark_all_rigol_checkboxes)
+
+        unmark_all_rigol_button = QPushButton("Uncheck all")
+        unmark_all_rigol_button.clicked.connect(self.unmark_all_rigol_checkboxes)
+  
+        rigol_data_grid_layout.addWidget(mark_all_rigol_button, 6, 0)
+        rigol_data_grid_layout.addWidget(unmark_all_rigol_button, 6, 1)        
         # -------------------------------------------------------------------- #
         # Laser #        
         laser_data_group = QtWidgets.QGroupBox("Laser data:")
@@ -1415,13 +1449,14 @@ class MainWindow(QMainWindow):
         unmark_all_laser_button.clicked.connect(self.unmark_all_laser_checkboxes)
   
         laser_data_grid_layout.addWidget(mark_all_laser_button, 3, 0)
-        laser_data_grid_layout.addWidget(unmark_all_laser_button, 3, 1)
+        laser_data_grid_layout.addWidget(unmark_all_laser_button, 3, 1)   
 
         # -------------------------------------------------------------------- #
+        
         # APD #
         apd_data_group = QtWidgets.QGroupBox("APD data:")
         apd_data_grid_layout = QGridLayout()
-        
+
         #self.apd_1_checkbox = QCheckBox("APD Counts @1kHz")
         #self.apd_1_checkbox.setChecked(False)
         #apd_data_grid_layout.addWidget(self.apd_1_checkbox, 1, 0)
@@ -1444,8 +1479,8 @@ class MainWindow(QMainWindow):
         unmark_all_apd_button = QPushButton("Uncheck all")
         unmark_all_apd_button.clicked.connect(self.unmark_all_apd_checkboxes)
   
-        apd_data_grid_layout.addWidget(mark_all_apd_button, 5, 0)
-        apd_data_grid_layout.addWidget(unmark_all_apd_button, 5, 1)
+        apd_data_grid_layout.addWidget(mark_all_apd_button, 8, 0)
+        apd_data_grid_layout.addWidget(unmark_all_apd_button, 8, 1)
 
         # -------------------------------------------------------------------- #
         # Twistorr #
@@ -1505,39 +1540,7 @@ class MainWindow(QMainWindow):
         twistorr_data_grid_layout.addWidget(mark_all_twistorr_button, 7, 0)
         twistorr_data_grid_layout.addWidget(unmark_all_twistorr_button, 7, 1)
 
-        # -------------------------------------------------------------------- #
-        # Rigol #
-        rigol_data_group = QtWidgets.QGroupBox("Rigol MSO 5074 data:")
-        rigol_data_grid_layout = QGridLayout()           
 
-        self.rigol_1_checkbox = QCheckBox("Particle trap voltage")
-        self.rigol_1_checkbox.setChecked(False)
-        rigol_data_grid_layout.addWidget(self.rigol_1_checkbox, 1, 0)
-
-        self.rigol_2_checkbox = QCheckBox("Particle trap offset voltage")
-        self.rigol_2_checkbox.setChecked(False)
-        rigol_data_grid_layout.addWidget(self.rigol_2_checkbox, 2, 0)
-
-        self.rigol_3_checkbox = QCheckBox("Particle trap frequency")
-        self.rigol_3_checkbox.setChecked(False)
-        rigol_data_grid_layout.addWidget(self.rigol_3_checkbox, 3, 0)
-
-        self.rigol_4_checkbox = QCheckBox("Particle trap function")
-        self.rigol_4_checkbox.setChecked(False)
-        rigol_data_grid_layout.addWidget(self.rigol_4_checkbox, 4, 0)
-
-        self.rigol_5_checkbox = QCheckBox("Particle trap function generator status")
-        self.rigol_5_checkbox.setChecked(False)
-        rigol_data_grid_layout.addWidget(self.rigol_5_checkbox, 5, 0)        
-
-        mark_all_rigol_button = QPushButton("Check all")
-        mark_all_rigol_button.clicked.connect(self.mark_all_rigol_checkboxes)
-
-        unmark_all_rigol_button = QPushButton("Uncheck all")
-        unmark_all_rigol_button.clicked.connect(self.unmark_all_rigol_checkboxes)
-  
-        rigol_data_grid_layout.addWidget(mark_all_rigol_button, 6, 0)
-        rigol_data_grid_layout.addWidget(unmark_all_rigol_button, 6, 1)
 
         # -------------------------------------------------------------------- #
         # Electron gun #
@@ -1569,18 +1572,41 @@ class MainWindow(QMainWindow):
         eg_data_grid_layout.addWidget(mark_all_eg_button, 5, 0)
         eg_data_grid_layout.addWidget(unmark_all_eg_button, 5, 1)
 
-                        
-        laser_data_group.setLayout(laser_data_grid_layout)
-        apd_data_group.setLayout(apd_data_grid_layout)
+        # -------------------------------------------------------------------- #
+        # FFT AVG #
+        fft_data_group = QtWidgets.QGroupBox()
+        fft_data_grid_layout = QGridLayout()      
+
+        avg_fft_label = QLabel("Number of FFTs to average:")
+        avg_fft_label.setFixedWidth(650) 
+        #avg_fft_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.avg_fft_input = QLineEdit(self)
+        self.avg_fft_input.setFixedWidth(60) 
+        self.avg_fft_input.setText("5") # Default value  
+        #self.avg_fft_input.setPlaceholderText("Number of FFTs to average")     
+        fft_data_grid_layout.addWidget(avg_fft_label, 1, 0)
+        fft_data_grid_layout.addWidget(self.avg_fft_input, 1, 1)   
+
+        self.fft_note = QtWidgets.QLabel("Important: Consider that each FFT is obtained with a window of 100 seconds, i.e., if the field contains a '5', a record of the average of the FFTs obtained in a window of 500 seconds will be generated.")
+        self.fft_note.setWordWrap(True) 
+        self.fft_note.setStyleSheet("font-weight: bold;")
+        #self.fft_note.setFixedWidth(300) 
+        fft_data_grid_layout.addWidget(self.fft_note, 2, 0, 1, 2)
+
         twistorr_data_group.setLayout(twistorr_data_grid_layout)
         rigol_data_group.setLayout(rigol_data_grid_layout)    
+        laser_data_group.setLayout(laser_data_grid_layout)
+        apd_data_group.setLayout(apd_data_grid_layout)
         eg_data_group.setLayout(eg_data_grid_layout)
+        fft_data_group.setFixedWidth(750) 
+        fft_data_group.setLayout(fft_data_grid_layout)
 
-        self.layout7.addWidget(laser_data_group, 0, 0)
-        self.layout7.addWidget(apd_data_group, 0, 1)
-        self.layout7.addWidget(twistorr_data_group, 1, 0)
-        self.layout7.addWidget(rigol_data_group, 1, 1)
-        self.layout7.addWidget(eg_data_group, 2, 0)
+        self.layout7.addWidget(laser_data_group, 1, 0)
+        self.layout7.addWidget(apd_data_group, 2, 0)
+        self.layout7.addWidget(twistorr_data_group, 0, 0)
+        self.layout7.addWidget(rigol_data_group, 0, 1)
+        self.layout7.addWidget(eg_data_group, 1, 1)
+        self.layout7.addWidget(fft_data_group, 2, 1)
 
 
         self.storage_filename_group = QtWidgets.QGroupBox("Storage filename:")
@@ -1776,7 +1802,12 @@ class MainWindow(QMainWindow):
                     # Execute storage with all elements of storage_list as arguments
                     self.processes[12] = subprocess.Popen(storage_command)
                     if self.apd_4_checkbox.isChecked():
-                        self.processes[8] = subprocess.Popen([self.binary_paths[8]])
+                        if int(self.avg_fft_input.text()) >= 1:
+                            print(int(self.avg_fft_input.text()))                           
+                            command_fft_avg = [self.binary_paths[8], str(int(self.avg_fft_input.text()))]
+                            self.processes[8] = subprocess.Popen(command_fft_avg)
+                        else:
+                            self.showWarningSignal.emit("Error: 'Number of FFTs to average' must be an integer greater than or equal to 1. Please stop data logging, set a valid number and try again.")
 
                 record_list = []
                 if (self.laser_1_checkbox.isChecked() or self.laser_2_checkbox.isChecked()):

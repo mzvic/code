@@ -3,6 +3,8 @@
 #include <fftw3.h>
 //#include <boost/asio.hpp>
 #include <boost/circular_buffer.hpp>
+#include <cstdlib> 
+#include <iostream>
 
 #include "core.grpc.pb.h"
 #include "broker_client.h"
@@ -12,7 +14,9 @@ using namespace std::chrono;
 using namespace google::protobuf;
 
 #define BUFFER_SIZE 10000000    // 0.01 Hz resolution at a sampling frequency of 100000
-#define AVERAGE_COUNT 5        // Number of FFTs to average and send
+//#define AVERAGE_COUNT 5        // Number of FFTs to average and send
+
+int AVERAGE_COUNT = 5;
 
 unique_ptr<Bundle> publishing_bundle;
 unique_ptr<PublisherClient> publisher_client;
@@ -148,7 +152,21 @@ void HandleSignal(int) {
   signal_cv.notify_one();
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+  
+    if (argc != 2) {
+        std::cerr << "Uso: " << argv[0] << " <AVERAGE_COUNT>" << std::endl;
+        return 1;     }
+
+    AVERAGE_COUNT = std::atoi(argv[1]);
+
+    if (AVERAGE_COUNT < 1) {
+        std::cerr << "AVERAGE_COUNT must be a positive integer." << std::endl;
+        return 1; 
+    }
+    
+  
+  
   unique_lock<mutex> slck(signal_mutex);
 
 //  publisher_client = new PublisherClient();
@@ -162,7 +180,7 @@ int main() {
   publishing_bundle = make_unique<Bundle>();
 
   publishing_bundle->set_type(DATA_FFT_FULL);
-
+  
   // Register handler
   std::signal(SIGINT, HandleSignal);
 
