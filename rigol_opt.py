@@ -443,7 +443,7 @@ class RigolDataThread(QThread):
                 rigol_frequency = float(scope.query(":FREQ?"))
                 rigol_function = str(scope.query(":FUNC?"))
                 rigol_voltscale = float(scope.query(f":CHAN{channel}:SCAL?"))
-                rigol_voltoffset = float(scope.query(f":CHAN{channel}:OFFS?"))
+                rigol_voltoffset = float(scope.query(f":SOUR{channel}:VOLT:OFFS?"))
                 rigol_attenuation = float(scope.query(f":CHAN{channel}:PROB?")) 
                 rigol_instance = RigolDataThread.get_instance() 
                 
@@ -490,9 +490,9 @@ class RigolDataThread(QThread):
                         rigol_instance.set_rigol_function(0, function_V)  
                     elif (voltage_offset == 1):
                         #scope.write(":OFFS 0")
-                        #scope.write(f":SOUR1:VOLT:OFFS {voltage_offset_V}")
-                        scope.write(":CHAN1:OFFS 0")
-                        scope.write(f":OFFS {voltage_offset_V}")                     
+                        scope.write(f":SOUR1:VOLT:OFFS {voltage_offset_V}")
+                        #scope.write(":CHAN1:OFFS 0")
+                        #scope.write(f":OFFS {voltage_offset_V}")                     
                         rigol_instance.set_rigol_voltage_offset(0, voltage_offset_V)   
                     elif (attenuation == 1):
                         scope.write(f":CHAN{channel}:PROB {attenuation_V}")
@@ -541,6 +541,8 @@ class RigolDataThread(QThread):
              print("Error:", str(e))
              return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0
         finally:
+            if scope is not None:
+                scope.close()            
             if (status == 1 or g2_V == 1):
                 scope.close()
             elif (status == 2 and g2_V == 0):
@@ -1662,20 +1664,17 @@ class MainWindow(QMainWindow):
         # --------------------------#
         # Filename and checkbox verification #
         if not (self.laser_1_checkbox.isChecked() or self.laser_2_checkbox.isChecked() or
-                #self.apd_1_checkbox.isChecked() or 
-                self.apd_2_checkbox.isChecked() or
-                #self.apd_3_checkbox.isChecked() or 
-                self.apd_4_checkbox.isChecked() or
+                self.apd_2_checkbox.isChecked() or self.apd_4_checkbox.isChecked() or
                 self.twistorr_1_checkbox.isChecked() or self.twistorr_2_checkbox.isChecked() or
                 self.twistorr_3_checkbox.isChecked() or self.twistorr_4_checkbox.isChecked() or
-                self.twistorr_5_checkbox.isChecked() or #self.twistorr_6_checkbox.isChecked() or #error_comentado
-                self.twistorr_6_checkbox.isChecked() or self.twistorr_7_checkbox.isChecked() or
-                self.twistorr_8_checkbox.isChecked() or self.twistorr_9_checkbox.isChecked() or
-                self.twistorr_10_checkbox.isChecked() or 
+                self.twistorr_5_checkbox.isChecked() or self.twistorr_6_checkbox.isChecked() or 
+                self.twistorr_7_checkbox.isChecked() or self.twistorr_8_checkbox.isChecked() or
+                self.twistorr_9_checkbox.isChecked() or self.twistorr_10_checkbox.isChecked() or 
                 self.rigol_1_checkbox.isChecked() or self.rigol_2_checkbox.isChecked() or
-                self.rigol_3_checkbox.isChecked() or self.rigol_4_checkbox.isChecked() or rigol_5_checkbox.isChecked() or
-                self.eg_1_checkbox.isChecked() or self.eg_2_checkbox.isChecked() or
-                self.eg_3_checkbox.isChecked() or self.eg_4_checkbox.isChecked()):
+                self.rigol_3_checkbox.isChecked() or self.rigol_4_checkbox.isChecked() or
+                self.rigol_5_checkbox.isChecked() or self.eg_1_checkbox.isChecked() or
+                self.eg_2_checkbox.isChecked() or self.eg_3_checkbox.isChecked() or
+                self.eg_4_checkbox.isChecked()):
             self.showWarningSignal.emit("Select the variables to record before begin data logging...")
             self.begin_logging_button.setChecked(False)
         if not self.storage_line_edit.text():
@@ -1683,20 +1682,17 @@ class MainWindow(QMainWindow):
             self.begin_logging_button.setChecked(False)
 
         if (self.laser_1_checkbox.isChecked() or self.laser_2_checkbox.isChecked() or
-                #self.apd_1_checkbox.isChecked() or
-                self.apd_2_checkbox.isChecked() or
-                #self.apd_3_checkbox.isChecked() or
-                self.apd_4_checkbox.isChecked() or
+                self.apd_2_checkbox.isChecked() or self.apd_4_checkbox.isChecked() or
                 self.twistorr_1_checkbox.isChecked() or self.twistorr_2_checkbox.isChecked() or
                 self.twistorr_3_checkbox.isChecked() or self.twistorr_4_checkbox.isChecked() or
-                self.twistorr_5_checkbox.isChecked() or #self.twistorr_6_checkbox.isChecked() or #error_comentado
-                self.twistorr_6_checkbox.isChecked() or self.twistorr_7_checkbox.isChecked() or
-                self.twistorr_8_checkbox.isChecked() or self.twistorr_9_checkbox.isChecked() or
-                self.twistorr_10_checkbox.isChecked() or 
+                self.twistorr_5_checkbox.isChecked() or self.twistorr_6_checkbox.isChecked() or 
+                self.twistorr_7_checkbox.isChecked() or self.twistorr_8_checkbox.isChecked() or
+                self.twistorr_9_checkbox.isChecked() or self.twistorr_10_checkbox.isChecked() or 
                 self.rigol_1_checkbox.isChecked() or self.rigol_2_checkbox.isChecked() or
-                self.rigol_3_checkbox.isChecked() or self.rigol_4_checkbox.isChecked() or rigol_5_checkbox.isChecked() or
-                self.eg_1_checkbox.isChecked() or self.eg_2_checkbox.isChecked() or
-                self.eg_3_checkbox.isChecked() or self.eg_4_checkbox.isChecked()) and (self.storage_line_edit.text()):   
+                self.rigol_3_checkbox.isChecked() or self.rigol_4_checkbox.isChecked() or
+                self.rigol_5_checkbox.isChecked() or self.eg_1_checkbox.isChecked() or
+                self.eg_2_checkbox.isChecked() or self.eg_3_checkbox.isChecked() or
+                self.eg_4_checkbox.isChecked()) and (self.storage_line_edit.text()):   
 
             if self.begin_logging_button.isChecked():
                 self.begin_logging_button.setStyleSheet("background-color: darkblue;")
