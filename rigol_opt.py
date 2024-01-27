@@ -148,6 +148,32 @@ class UpdatePlot1Thread(QThread):
             # Pause the thread for a short time
             time.sleep(0.1)
 
+
+# Definition of a custom thread class for updating plot 1 data
+class UpdatePressurePlotThread(QThread):
+    # Signal to emit updated plot data
+    plot_signal = pyqtSignal(list)
+    
+    # Constructor for the thread class
+    def __init__(self):
+        super(UpdatePressurePlotThread, self).__init__()
+        self.data_queue = queue.Queue()  # Initialize a queue for data
+    
+    # Run method for the thread
+    def run(self):
+        while True:
+            # Get data from the queue (blocking operation)
+            [self.pressure_time, self.pressure_data] = self.data_queue.get()
+            
+            # Emit a signal with the updated data for plot 1
+            self.plot_signal.emit([self.pressure_time, self.pressure_data])
+            
+            # Empty the queue by consuming all remaining items
+            while not self.data_queue.empty():
+                self.data_queue.get()
+            
+            # Pause the thread for a short time
+            time.sleep(1)
                   
 # Definition of a custom thread class for updating graph 2 data
 class UpdateGraph2Thread(QThread):
@@ -779,7 +805,7 @@ class MainWindow(QMainWindow):
         
         # List to be displayed in plot 1
         self.data1 = []
-        self.times1 = []
+        self.times1 = []      
 
         # Plot 2 object 
         self.graph2 = pg.PlotWidget()
@@ -832,14 +858,19 @@ class MainWindow(QMainWindow):
         self.update_graph1_thread = UpdateGraph1Thread()
         self.update_graph1_thread.update_signal.connect(self.update_graph1)
 
-        # Connect UpdatePlot1Thread() to a thread (display the counts vs. data in plot 1 [APD])
+        # Connect UpdatePlot1Thread() to a thread (display the counts vs. time in plot 1 [APD])
         self.update_plot1_thread = UpdatePlot1Thread()
         self.update_plot1_thread.plot_signal.connect(self.update_plot1)
         self.update_plot1_thread.start()
-        
+
         # Connect UpdateGraph2Thread() to a thread (receives and display fft data in plot 2 [APD])
         self.update_graph2_thread = UpdateGraph2Thread()
         self.update_graph2_thread.update_signal.connect(self.update_graph2)
+         
+        # Connect UpdatePressurePlotThread() to a thread (display the pressure vs. time [XGS600])
+        self.update_pressure_plot_thread = UpdatePressurePlotThread()
+        self.update_pressure_plot_thread.plot_signal.connect(self.update_pressure_plot)
+        self.update_pressure_plot_thread.start()
 
         self.rigolpublish2broker = RigolPublish2Broker()
         self.rigolpublish2broker.send_signal.connect(self.send_rigol_publishing_values)
@@ -1043,7 +1074,7 @@ class MainWindow(QMainWindow):
         self.btn_tt_startstop1.setCheckable(True)  
         self.btn_tt_startstop1.setStyleSheet("background-color: 53, 53, 53;")  
         self.btn_tt_startstop1.clicked.connect(self.tt_startstop1_button)
-        self.btn_tt_startstop1.setFixedWidth(500) 
+        self.btn_tt_startstop1.setFixedWidth(300) 
         self.layout2.addWidget(self.btn_tt_startstop1, 1, 0, 1, 2) 
 
         # Set row index order for the titles
@@ -1099,7 +1130,7 @@ class MainWindow(QMainWindow):
         self.btn_tt_startstop2.setCheckable(True)  
         self.btn_tt_startstop2.setStyleSheet("background-color: 53, 53, 53;")  
         self.btn_tt_startstop2.clicked.connect(self.tt_startstop2_button) 
-        self.btn_tt_startstop2.setFixedWidth(500) 
+        self.btn_tt_startstop2.setFixedWidth(300) 
         self.layout2.addWidget(self.btn_tt_startstop2, 1, 2, 1, 2) 
         
         # Set row index order for the titles
@@ -1150,26 +1181,64 @@ class MainWindow(QMainWindow):
         self.layout2.addWidget(QLabel("Pump temperature:"), 7, 2)
         self.layout2.addWidget(self.monitor_vacuum_temperature2, 7, 3)        
     
-        self.btn_vacuum_monitor = QPushButton("Start reading from TwisTorr")
+        # Labels for the column titles
+        label_pressure = QLabel("Pressure measurements")
+        label_pressure.setStyleSheet("text-decoration: underline; font-weight: bold;")
+
+        # Set row index order for the titles
+        self.layout2.addWidget(label_pressure, 0, 4, 1, 2)
+
+        self.pressure_plotting_state = 0
+
+        self.btn_pressure = QPushButton("Show pressure data")
+        self.btn_pressure.setCheckable(True)  
+        self.btn_pressure.setStyleSheet("background-color: 53, 53, 53;")  
+        self.btn_pressure.clicked.connect(self.pressure_plot_button) 
+        self.btn_pressure.setFixedWidth(300) 
+        self.layout2.addWidget(self.btn_pressure, 1, 4, 1, 2) 
+
+        self.pressure1_checkbox = QCheckBox("FRG-702")
+        self.pressure1_checkbox.setChecked(False)
+        self.layout2.addWidget(self.pressure1_checkbox, 2, 4)
+
+        self.pressure2_checkbox = QCheckBox("CDG-500")
+        self.pressure2_checkbox.setChecked(False)
+        self.layout2.addWidget(self.pressure2_checkbox, 2, 5)
+
+        self.pressure_secs_label = QLabel("T-axis length (in seconds):")
+        #self.apd_counts_secs_label.setFixedWidth(195)
+        #self.pressure_secs_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.pressure_secs_input = QLineEdit(self)
+        self.pressure_secs_input.setFixedWidth(150)
+        self.pressure_secs_input.setText("600") # Default value      
+        self.layout2.addWidget(self.pressure_secs_label, 3, 4)
+        self.layout2.addWidget(self.pressure_secs_input, 3, 5)
+
+        self.graph_pressure_vacuum = pg.PlotWidget(axisItems={'left': DateAxis(orientation='left')})
+
+        self.graph_pressure_vacuum.invertY()
+        
+        self.graph_pressure_vacuum.showGrid(x=True, y=True, alpha=1)           
+        self.graph_pressure_vacuum.setLabel('left', 'Time', units='hh:mm:ss.µµµµµµ')
+        self.graph_pressure_vacuum.setLabel('bottom', 'Pressure [Torr]')
+        self.pressure_data = []
+        self.pressure_time = []          
+        self.layout2.addWidget(self.graph_pressure_vacuum, 8, 0, 1, 6) 
+        
+        ## Initial data for plot 1
+        self.pressure_plot = self.graph_pressure_vacuum.plot([0,1,2,3], [1,1,1,1], pen=pg.mkPen(color=(255, 0, 0)))
+
+        self.btn_vacuum_monitor = QPushButton("Connect to equipment")
         self.btn_vacuum_monitor.setCheckable(True)  
         self.btn_vacuum_monitor.setStyleSheet("background-color: 53, 53, 53;")  
         self.btn_vacuum_monitor.clicked.connect(self.execute_twistorr_btn) 
-        self.layout2.addWidget(self.btn_vacuum_monitor, 8, 0, 1, 4)
-
-        #self.graph_pressure_vacuum = pg.PlotWidget(axisItems={'left': DateAxis(orientation='left')})
-        #self.layout2.addWidget(self.graph_pressure_vacuum, 8, 0, 1, 4)
-        #self.graph_pressure_vacuum.invertY()
-        
-        #self.graph_pressure_vacuum.showGrid(x=True, y=True, alpha=1)           
-        #self.graph_pressure_vacuum.setLabel('left', 'Time', units='hh:mm:ss.µµµµµµ')
-        #self.graph_pressure_vacuum.setLabel('bottom', 'Pressure [Torr]')
-
+        self.layout2.addWidget(self.btn_vacuum_monitor, 11, 0, 1, 6)
         # Connect any set button with execute_twistorr_set() function
         #btn_vacuum_pressure.clicked.connect(lambda: self.execute_twistorr_set_pressure())
         #btn_speed_motor.clicked.connect(lambda: self.execute_twistorr_set_motor_speed())
         #btn_valve_state.clicked.connect(lambda: self.execute_twistorr_set_valve_state())
         
-        self.layout2.setRowStretch(8, 1)
+        #self.layout2.setRowStretch(8, 1)
 
 
         # ------------------------------------------------------------------------------------------- #
@@ -2151,6 +2220,16 @@ class MainWindow(QMainWindow):
         self.processes[11] = subprocess.Popen([self.binary_paths[11]])   
         time.sleep(0.1)    
 
+    def pressure_plot_button(self):
+        if self.btn_pressure.isChecked():
+            self.btn_pressure.setStyleSheet("background-color: darkblue;")
+            self.pressure_plotting_state = 1 
+            time.sleep(0.1) 
+        else:
+            self.btn_pressure.setStyleSheet("background-color: 53, 53, 53;")
+            self.pressure_plotting_state = 0 
+            time.sleep(0.1)
+
     def execute_twistorr_set_pressure(self):
         # Execute the TwisTorr Setter binary with pressure, motor, and valve parameters
         self.processes[10] = subprocess.Popen([self.binary_paths[10], str(self.pressure), str("0")])
@@ -2203,6 +2282,8 @@ class MainWindow(QMainWindow):
                 self.monitor_vacuum_temperature2.setText(vacuum_temperature2+" [°C]")
                 self.vacuum_frequency2.setText(vacuum_frequency2+" [Hz]")
 
+                self.update_graph_pressure()
+                
                 if (vacuum_status == 1):
                     self.btn_tt_startstop1.setChecked(True)
                     self.btn_tt_startstop1.setStyleSheet("background-color: darkblue;")
@@ -2475,6 +2556,29 @@ class MainWindow(QMainWindow):
             self.color_map.setImage(self.pm)
             self.color_map.getView().setRange(xRange=(self.f_i * 10, self.f_f * 10))
             self.t_fft = int(time.time())
+
+    def update_graph_pressure(self):
+        if (self.pressure_plotting_state == 1):
+            timestamp = float(time.time())  # Extract timestamp from data
+            value = float(int(twistorr_subscribing_values[1]))  # Extract value from data
+            self.pressure_time.append(timestamp)  # Add timestamp to times1 list
+            self.pressure_data.append(value)  # Add value to data1 list
+
+            # Calculate the cut-off time based on the input value
+            current_time = time.time()
+            cut_off_time = current_time - int(self.pressure_secs_input.text())
+
+            # Keep only the data within the specified time range
+            self.pressure_time = [t for t in self.pressure_time if t >= cut_off_time]
+            self.pressure_data = self.pressure_data[-len(self.pressure_time):]
+            # Put the updated data into the data_queue for plotting
+            self.update_pressure_plot_thread.data_queue.put([self.pressure_data, self.pressure_time])
+
+    def update_pressure_plot(self, data):
+        # Update the plot with the new data
+        #print(self.pressure_time,self.pressure_data)
+        self.pressure_plot.setData(self.pressure_data, self.pressure_time)
+        time.sleep(0.5)
 
     def send_rigol_publishing_values(self):#, values):
         global rigol_publishing_values
