@@ -33,7 +33,7 @@ counts = []
 freq = []
 magn = []
 
-# List to store monitoring data from TwistTorporsi
+# List to store monitoring data from TwistTorr
 twistorr_subscribing_values = []
 rigol_publishing_values = []
 laser_publishing_values = []
@@ -163,10 +163,10 @@ class UpdatePressurePlotThread(QThread):
     def run(self):
         while True:
             # Get data from the queue (blocking operation)
-            [self.pressure_time, self.pressure_data] = self.data_queue.get()
+            [self.pressure_time, self.pressure_data1, self.pressure_data2] = self.data_queue.get()
             
             # Emit a signal with the updated data for plot 1
-            self.plot_signal.emit([self.pressure_time, self.pressure_data])
+            self.plot_signal.emit([self.pressure_time, self.pressure_data1, self.pressure_data2])
             
             # Empty the queue by consuming all remaining items
             while not self.data_queue.empty():
@@ -293,32 +293,33 @@ class LaserPublish2Broker(QThread):
         yield bundle
 
 # Rigol initial settings
-try:
-    os.system('usbreset 1ab1:0515')
-    rm1 = pyvisa.ResourceManager('@py')
-    scope_usb = rm1.open_resource('USB0::6833::1301::MS5A242205632::0::INSTR', timeout = 5000)
-    scope_usb.write(":RUN")
-    scope_usb.write(":TIM:MODE MAIN")
-    scope_usb.write(":CHAN1:DISP 1")
-    scope_usb.write(":CHAN2:DISP 1")
-    scope_usb.write(":CHAN1:PROB 1")
-    scope_usb.write(":CHAN2:PROB 1")
-    scope_usb.write(":TRIG:COUP AC")
-    scope_usb.write(":LAN:AUT 0")
-    scope_usb.write(":LAN:MAN 1")
-    scope_usb.write(":LAN:DHCP 1")
-    scope_usb.write(":LAN:SMAS 225.225.225.0")
-    scope_usb.write(":LAN:GAT 152.74.216.1")
-    scope_usb.write(":LAN:IPAD 152.74.216.91")
-    scope_usb.write(":LAN:DNS 152.74.16.14")
-    #scope_usb.write(":LAN:APPL")
-    rigol_ip = scope_usb.query(':LAN:VISA?').strip()
-    print(rigol_ip)
-    scope_usb.close()
-except ValueError as ve:
-    print("Rigol MSO5074:", ve)
-    rigol_ip = "no"
-    scope_usb = None
+#try:
+#    os.system('usbreset 1ab1:0515')
+#    rm1 = pyvisa.ResourceManager('@py')
+#    scope_usb = rm1.open_resource('USB0::6833::1301::MS5A242205632::0::INSTR', timeout = 5000)
+#    scope_usb.write(":RUN")
+#    scope_usb.write(":TIM:MODE MAIN")
+#    scope_usb.write(":CHAN1:DISP 1")
+#    scope_usb.write(":CHAN2:DISP 1")
+#    scope_usb.write(":CHAN1:PROB 1")
+#    scope_usb.write(":CHAN2:PROB 1")
+#    scope_usb.write(":TRIG:COUP AC")
+#    scope_usb.write(":LAN:AUT 0")
+#    scope_usb.write(":LAN:MAN 1")
+#    scope_usb.write(":LAN:DHCP 1")
+#    scope_usb.write(":LAN:SMAS 225.225.225.0")
+#    scope_usb.write(":LAN:GAT 152.74.216.1")
+#    scope_usb.write(":LAN:IPAD 152.74.216.91")
+#    scope_usb.write(":LAN:DNS 152.74.16.14")
+#    #scope_usb.write(":LAN:APPL")
+#    rigol_ip = scope_usb.query(':LAN:VISA?').strip()
+#    print(rigol_ip)
+#    scope_usb.close()
+#except ValueError as ve:
+#    print("Rigol MSO5074:", ve)
+#    rigol_ip = "no"
+#    scope_usb = None
+rigol_ip = "no"
 
 # Definition of a custom thread class for updating Rigol data        
 class RigolDataThread(QThread):
@@ -1221,14 +1222,15 @@ class MainWindow(QMainWindow):
         self.graph_pressure_vacuum.showGrid(x=True, y=True, alpha=1)           
         self.graph_pressure_vacuum.setLabel('left', 'Time', units='hh:mm:ss.µµµµµµ')
         self.graph_pressure_vacuum.setLabel('bottom', 'Pressure [Torr]')
-        self.pressure_data = []
+        self.pressure_data1 = []
+        self.pressure_data2 = []
         self.pressure_time = []          
         self.layout2.addWidget(self.graph_pressure_vacuum, 8, 0, 1, 6) 
         
         ## Initial data for plot 1
-        self.pressure_plot = self.graph_pressure_vacuum.plot([0,1,2,3], [1,1,1,1], pen=pg.mkPen(color=(255, 0, 0)))
-
-        self.btn_vacuum_monitor = QPushButton("Connect to equipment")
+        self.pressure_plot1 = self.graph_pressure_vacuum.plot([0,0,0,0], [time.time()-3,time.time()-2,time.time()-1,time.time()], pen=pg.mkPen(color=(255, 0, 0)))
+        self.pressure_plot2 = self.graph_pressure_vacuum.plot([0,0,0,0], [time.time()-3,time.time()-2,time.time()-1,time.time()], pen=pg.mkPen(color=(0, 255, 0)))
+        self.btn_vacuum_monitor = QPushButton("Connect to vacuum equipment")
         self.btn_vacuum_monitor.setCheckable(True)  
         self.btn_vacuum_monitor.setStyleSheet("background-color: 53, 53, 53;")  
         self.btn_vacuum_monitor.clicked.connect(self.execute_twistorr_btn) 
@@ -2315,7 +2317,7 @@ class MainWindow(QMainWindow):
             self.btn_tt_startstop2.setChecked(False)
             self.btn_tt_startstop2.setStyleSheet("background-color: 53, 53, 53;")                        
         # Sleep briefly to avoid excessive updates
-        time.sleep(0.01)
+        #time.sleep(0.01)
 
     def start_update_tt_timer(self):
         # Start a QTimer to periodically update vacuum-related values
@@ -2560,9 +2562,11 @@ class MainWindow(QMainWindow):
     def update_graph_pressure(self):
         if (self.pressure_plotting_state == 1):
             timestamp = float(time.time())  # Extract timestamp from data
-            value = float(int(twistorr_subscribing_values[1]))  # Extract value from data
+            value1 = float(int(twistorr_subscribing_values[1]))  # Extract value from data
+            value2 = float(int(twistorr_subscribing_values[2]))  # Extract value from data
             self.pressure_time.append(timestamp)  # Add timestamp to times1 list
-            self.pressure_data.append(value)  # Add value to data1 list
+            self.pressure_data1.append(value1)  # Add value to data1 list
+            self.pressure_data2.append(value2)  # Add value to data2 list
 
             # Calculate the cut-off time based on the input value
             current_time = time.time()
@@ -2570,15 +2574,33 @@ class MainWindow(QMainWindow):
 
             # Keep only the data within the specified time range
             self.pressure_time = [t for t in self.pressure_time if t >= cut_off_time]
-            self.pressure_data = self.pressure_data[-len(self.pressure_time):]
+            self.pressure_data1 = self.pressure_data1[-len(self.pressure_time):]
+            self.pressure_data2 = self.pressure_data2[-len(self.pressure_time):]
+            if (self.pressure1_checkbox.isChecked() and self.pressure2_checkbox.isChecked()):
+                pass
+            elif (self.pressure1_checkbox.isChecked()):
+                self.pressure_data2 = [np.nan] * len(self.pressure_time)
+            elif (self.pressure2_checkbox.isChecked()):
+                self.pressure_data1 = [np.nan] * len(self.pressure_time)
+            else:
+                self.pressure_data1 = [np.nan] * len(self.pressure_time)
+                self.pressure_data2 = [np.nan] * len(self.pressure_time)         
             # Put the updated data into the data_queue for plotting
-            self.update_pressure_plot_thread.data_queue.put([self.pressure_data, self.pressure_time])
+            self.update_pressure_plot_thread.data_queue.put([self.pressure_data1, self.pressure_data2, self.pressure_time])
 
     def update_pressure_plot(self, data):
         # Update the plot with the new data
-        #print(self.pressure_time,self.pressure_data)
-        self.pressure_plot.setData(self.pressure_data, self.pressure_time)
-        time.sleep(0.5)
+        #self.graph_pressure_vacuum.clear()
+        if (self.pressure1_checkbox.isChecked() and self.pressure2_checkbox.isChecked()):
+            self.pressure_plot1.setData(self.pressure_data1, self.pressure_time)
+            self.pressure_plot2.setData(self.pressure_data2, self.pressure_time)
+        elif (self.pressure1_checkbox.isChecked()):
+            self.pressure_plot1.setData(self.pressure_data1, self.pressure_time)
+            self.pressure_plot2.setData(self.pressure_data2, self.pressure_time)
+        elif (self.pressure2_checkbox.isChecked()):
+            self.pressure_plot1.setData(self.pressure_data1, self.pressure_time)
+            self.pressure_plot2.setData(self.pressure_data2, self.pressure_time)
+        #time.sleep(0.5)
 
     def send_rigol_publishing_values(self):#, values):
         global rigol_publishing_values
@@ -2616,6 +2638,7 @@ class MainWindow(QMainWindow):
                 pg.TextItem(f"Attenuation: x{rigol_attenuation}", anchor=(0, 0)),
                 pg.TextItem(f"Voltage scale: {rigol_voltscale} V", anchor=(0, 0)),
                 pg.TextItem(f"Coupling: {rigol_coupling}", anchor=(0, 0)),
+                pg.TextItem(""),
                 pg.TextItem("Particle trap settings:", anchor=(0, 0)),
                 pg.TextItem(f"Voltage: {rigol_voltage} Vpp", anchor=(0, 0)),
                 pg.TextItem(f"Voltage offset: {rigol_voltoffset} V", anchor=(0, 0)),
