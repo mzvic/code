@@ -1557,7 +1557,7 @@ class MainWindow(QMainWindow):
 
         # -------------------------------------------------------------------- #
         # Twistorr #
-        twistorr_data_group = QtWidgets.QGroupBox("TwisTorr pumps data:")
+        twistorr_data_group = QtWidgets.QGroupBox("Vacuum data:")
         twistorr_data_grid_layout = QGridLayout()   
 
         self.twistorr_1_checkbox = QCheckBox("Pump current (305FS)")
@@ -1580,6 +1580,10 @@ class MainWindow(QMainWindow):
         self.twistorr_5_checkbox.setChecked(False)
         twistorr_data_grid_layout.addWidget(self.twistorr_5_checkbox, 5, 0) 
 
+        self.pressure_1_checkbox = QCheckBox("Pressure (FRG-702)")
+        self.pressure_1_checkbox.setChecked(False)
+        twistorr_data_grid_layout.addWidget(self.pressure_1_checkbox, 6, 0)         
+
         self.twistorr_6_checkbox = QCheckBox("Pump current (74FS)")
         self.twistorr_6_checkbox.setChecked(False)
         twistorr_data_grid_layout.addWidget(self.twistorr_6_checkbox, 1, 1)
@@ -1599,6 +1603,10 @@ class MainWindow(QMainWindow):
         self.twistorr_10_checkbox = QCheckBox("Pump temperature (74FS)")
         self.twistorr_10_checkbox.setChecked(False)
         twistorr_data_grid_layout.addWidget(self.twistorr_10_checkbox, 5, 1)             
+
+        self.pressure_2_checkbox = QCheckBox("Pressure (CDG-500)")
+        self.pressure_2_checkbox.setChecked(False)
+        twistorr_data_grid_layout.addWidget(self.pressure_2_checkbox, 6, 1)   
 
         #self.twistorr_6_checkbox = QCheckBox("TwisTorr 305 FS error code") #error_comentado
         #self.twistorr_6_checkbox.setChecked(False)
@@ -1740,7 +1748,8 @@ class MainWindow(QMainWindow):
                 self.twistorr_3_checkbox.isChecked() or self.twistorr_4_checkbox.isChecked() or
                 self.twistorr_5_checkbox.isChecked() or self.twistorr_6_checkbox.isChecked() or 
                 self.twistorr_7_checkbox.isChecked() or self.twistorr_8_checkbox.isChecked() or
-                self.twistorr_9_checkbox.isChecked() or self.twistorr_10_checkbox.isChecked() or 
+                self.twistorr_9_checkbox.isChecked() or self.twistorr_10_checkbox.isChecked() or
+                self.pressure_1_checkbox.isChecked() or self.pressure_2_checkbox.isChecked() or  
                 self.rigol_1_checkbox.isChecked() or self.rigol_2_checkbox.isChecked() or
                 self.rigol_3_checkbox.isChecked() or self.rigol_4_checkbox.isChecked() or
                 self.rigol_5_checkbox.isChecked() or self.eg_1_checkbox.isChecked() or
@@ -1759,6 +1768,7 @@ class MainWindow(QMainWindow):
                 self.twistorr_5_checkbox.isChecked() or self.twistorr_6_checkbox.isChecked() or 
                 self.twistorr_7_checkbox.isChecked() or self.twistorr_8_checkbox.isChecked() or
                 self.twistorr_9_checkbox.isChecked() or self.twistorr_10_checkbox.isChecked() or 
+                self.pressure_1_checkbox.isChecked() or self.pressure_2_checkbox.isChecked() or
                 self.rigol_1_checkbox.isChecked() or self.rigol_2_checkbox.isChecked() or
                 self.rigol_3_checkbox.isChecked() or self.rigol_4_checkbox.isChecked() or
                 self.rigol_5_checkbox.isChecked() or self.eg_1_checkbox.isChecked() or
@@ -1830,6 +1840,12 @@ class MainWindow(QMainWindow):
                 if self.twistorr_10_checkbox.isChecked():
                     storage_list.append("pump2_temperature") 
                     print("Ejecutando recorder '74FS temperature'")
+                if self.pressure_1_checkbox.isChecked():
+                    storage_list.append("pressure_1") 
+                    print("Ejecutando recorder 'FRG-702'")
+                if self.pressure_2_checkbox.isChecked():
+                    storage_list.append("pressure_2") 
+                    print("Ejecutando recorder 'CDG-500'")                                        
                 # --------------------------#
                 # Rigol #
                 if self.rigol_1_checkbox.isChecked():
@@ -1888,7 +1904,8 @@ class MainWindow(QMainWindow):
                         self.twistorr_3_checkbox.isChecked() or self.twistorr_4_checkbox.isChecked() or
                         self.twistorr_5_checkbox.isChecked() or self.twistorr_6_checkbox.isChecked() or
                         self.twistorr_7_checkbox.isChecked() or self.twistorr_8_checkbox.isChecked() or
-                        self.twistorr_9_checkbox.isChecked() or self.twistorr_10_checkbox.isChecked()): 
+                        self.twistorr_9_checkbox.isChecked() or self.twistorr_10_checkbox.isChecked() or
+                        self.pressure_1_checkbox.isChecked() or self.pressure_2_checkbox.isChecked()): 
                     record_list.append("DATA_TT_MON")    
                 if (self.rigol_1_checkbox.isChecked() or self.rigol_2_checkbox.isChecked() or
                         self.rigol_3_checkbox.isChecked() or self.rigol_4_checkbox.isChecked()):   
@@ -1937,7 +1954,8 @@ class MainWindow(QMainWindow):
         self.twistorr_8_checkbox.setChecked(True)
         self.twistorr_9_checkbox.setChecked(True)
         self.twistorr_10_checkbox.setChecked(True)
-
+        self.pressure_1_checkbox.setChecked(True)
+        self.pressure_2_checkbox.setChecked(True)
         #self.twistorr_6_checkbox.setChecked(True)  #error_comentado      
 
     def unmark_all_twistorr_checkboxes(self):
@@ -1951,6 +1969,8 @@ class MainWindow(QMainWindow):
         self.twistorr_8_checkbox.setChecked(False)
         self.twistorr_9_checkbox.setChecked(False)
         self.twistorr_10_checkbox.setChecked(False)
+        self.pressure_1_checkbox.setChecked(False)
+        self.pressure_2_checkbox.setChecked(False)        
         #self.twistorr_6_checkbox.setChecked(False)  #error_comentado   
 
     def mark_all_rigol_checkboxes(self):

@@ -56,6 +56,8 @@ typedef struct {
   uint32_t pump2_power_mon;
   uint32_t pump2_frequency_mon;
   uint32_t pump2_temperature_mon;
+  double pressure_1;
+  double pressure_2;
 } TwisTorrMonitorEntry;
 
 typedef struct {
@@ -83,7 +85,7 @@ typedef struct {
 
 std::array<std::string, 1> counts_param = {"apd_counts_full"};
 std::array<std::string, 1> fft_param = {"apd_fft_full"};
-std::array<std::string, 10> twistorr_param = {"pump1_current", "pump1_voltage", "pump1_power", "pump1_frequency", "pump1_temperature","pump2_current", "pump2_voltage", "pump2_power", "pump2_frequency", "pump2_temperature",};
+std::array<std::string, 12> twistorr_param = {"pump1_current", "pump1_voltage", "pump1_power", "pump1_frequency", "pump1_temperature","pump2_current", "pump2_voltage", "pump2_power", "pump2_frequency", "pump2_temperature", "pressure_1", "pressure_2"};
 std::array<std::string, 5> rigol_param = {"rigol_voltage", "rigol_voltage_offset", "rigol_frequency", "rigol_function", "rigol_status"};
 std::array<std::string, 2> laser_param = {"laser_voltage", "laser_state"};
 std::array<std::string, 4> electron_gun_param = {"eg_var1", "eg_var2", "eg_var3", "eg_var4"};
@@ -205,7 +207,9 @@ void WriteData(const Bundle &bundle) {
 		  twistorr_monitor_entry->pump2_voltage_mon = kValue.Get(8);
 		  twistorr_monitor_entry->pump2_power_mon = kValue.Get(9);
 		  twistorr_monitor_entry->pump2_frequency_mon = kValue.Get(10);
-		  twistorr_monitor_entry->pump2_temperature_mon = kValue.Get(11);			    	  
+		  twistorr_monitor_entry->pump2_temperature_mon = kValue.Get(11);
+		  twistorr_monitor_entry->pressure_1 = kValue.Get(1);
+		  twistorr_monitor_entry->pressure_2 = kValue.Get(2);			    	  
 		  LOG("Parsing done");
 		  if (H5PTappend(twistorr_monitor_ptable, 1, twistorr_monitor_entry.get()) < 0)
 			LOG("Error appending entry");
@@ -440,6 +444,16 @@ static hid_t MakeTwisTorrMonitorEntryType() {
     } else if (id == "pump2_temperature") {
       if (H5Tinsert(type_id_tt, "74FS_Temperature", HOFFSET(TwisTorrMonitorEntry, pump2_temperature_mon), H5T_NATIVE_INT32) < 0){
 				H5Tclose(type_id_tt);
+        return H5I_INVALID_HID;
+      }
+    } else if (id == "pressure_1") {
+      if (H5Tinsert(type_id_tt, "FRG-702_Pressure", HOFFSET(TwisTorrMonitorEntry, pressure_1), H5T_NATIVE_DOUBLE) < 0){
+      	H5Tclose(type_id_tt);
+        return H5I_INVALID_HID;
+      }
+    } else if (id == "pressure_2") {
+      if (H5Tinsert(type_id_tt, "CDG-500_Pressure", HOFFSET(TwisTorrMonitorEntry, pressure_2), H5T_NATIVE_DOUBLE) < 0){
+      	H5Tclose(type_id_tt);
         return H5I_INVALID_HID;
       }
     }
