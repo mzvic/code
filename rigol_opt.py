@@ -1198,11 +1198,11 @@ class MainWindow(QMainWindow):
         self.btn_pressure.setFixedWidth(300) 
         self.layout2.addWidget(self.btn_pressure, 1, 4, 1, 2) 
 
-        self.pressure1_checkbox = QCheckBox("FRG-702")
+        self.pressure1_checkbox = QCheckBox("FRG-702 (Red)")
         self.pressure1_checkbox.setChecked(False)
         self.layout2.addWidget(self.pressure1_checkbox, 2, 4)
 
-        self.pressure2_checkbox = QCheckBox("CDG-500")
+        self.pressure2_checkbox = QCheckBox("CDG-500 (Green)")
         self.pressure2_checkbox.setChecked(False)
         self.layout2.addWidget(self.pressure2_checkbox, 2, 5)
 
