@@ -77,10 +77,18 @@ typedef struct {
 
 typedef struct {
   double timestamp_;
-  double eg_var1_mon;
-  double eg_var2_mon;
-  double eg_var3_mon;
-  double eg_var4_mon;
+  float energy_voltage;
+  float focus_voltage;
+  float wehnelt_voltage;
+  float emission_current;
+  uint16_t time_per_dot;
+  float pos_x;
+  float pos_y;
+  float area_x;
+  float area_y;
+  float grid_x;
+  float grid_y;    
+  
 } ElectronGunMonitorEntry;
 
 std::array<std::string, 1> counts_param = {"apd_counts_full"};
@@ -88,7 +96,7 @@ std::array<std::string, 1> fft_param = {"apd_fft_full"};
 std::array<std::string, 12> twistorr_param = {"pump1_current", "pump1_voltage", "pump1_power", "pump1_frequency", "pump1_temperature","pump2_current", "pump2_voltage", "pump2_power", "pump2_frequency", "pump2_temperature", "pressure_1", "pressure_2"};
 std::array<std::string, 5> rigol_param = {"rigol_voltage", "rigol_voltage_offset", "rigol_frequency", "rigol_function", "rigol_status"};
 std::array<std::string, 2> laser_param = {"laser_voltage", "laser_state"};
-std::array<std::string, 4> electron_gun_param = {"eg_var1", "eg_var2", "eg_var3", "eg_var4"};
+std::array<std::string, 11> electron_gun_param = {"energy_voltage", "focus_voltage", "wehnelt_voltage", "emission_current", "time_per_dot", "pos_x", "pos_y", "area_x", "area_y", "grid_x", "grid_y"};
 
 
 bool exit_flag = false;
@@ -286,10 +294,17 @@ void WriteData(const Bundle &bundle) {
 		  LOG("Writing electron gun monitor record");
 		  // Create entry
 		  electron_gun_monitor_entry->timestamp_ = (double) bundle.timestamp().seconds() + (double) bundle.timestamp().nanos() / 1000000000L;
-		  electron_gun_monitor_entry->eg_var1_mon = kValue.Get(0);
-		  electron_gun_monitor_entry->eg_var2_mon = kValue.Get(1);
-		  electron_gun_monitor_entry->eg_var3_mon = kValue.Get(2);
-		  electron_gun_monitor_entry->eg_var4_mon = kValue.Get(3); 
+		  electron_gun_monitor_entry->energy_voltage = kValue.Get(0);
+		  electron_gun_monitor_entry->focus_voltage = kValue.Get(1);
+		  electron_gun_monitor_entry->wehnelt_voltage = kValue.Get(2);
+		  electron_gun_monitor_entry->emission_current = kValue.Get(3);
+    	  electron_gun_monitor_entry->time_per_dot = kValue.Get(4);
+		  electron_gun_monitor_entry->pos_x = kValue.Get(5);
+		  electron_gun_monitor_entry->pos_y = kValue.Get(6);
+		  electron_gun_monitor_entry->area_x = kValue.Get(7);
+		  electron_gun_monitor_entry->area_y = kValue.Get(8);
+		  electron_gun_monitor_entry->grid_x = kValue.Get(9);
+		  electron_gun_monitor_entry->grid_y = kValue.Get(10); 
 		  LOG("Parsing done");
 		  if (H5PTappend(electron_gun_monitor_ptable, 1, electron_gun_monitor_entry.get()) < 0)
 			LOG("Error appending entry");
@@ -563,23 +578,58 @@ static hid_t MakeElectronGunMonitorEntryType() {
 	}
   // Insert other parameters
   for (const auto &id : data_ids) {
-    if (id == "eg_var1") {
-		  if (H5Tinsert(type_id_eg, "ElectronGun_Var1", HOFFSET(ElectronGunMonitorEntry, eg_var1_mon), H5T_NATIVE_DOUBLE) < 0){
+    if (id == "energy_voltage") {
+		  if (H5Tinsert(type_id_eg, "Energy_voltage", HOFFSET(ElectronGunMonitorEntry, energy_voltage), H5T_NATIVE_FLOAT) < 0){
 		  	H5Tclose(type_id_eg);
 				return H5I_INVALID_HID;
 		  }
-    } else if (id == "eg_var2") {
-	  	if (H5Tinsert(type_id_eg, "ElectronGun_Var2", HOFFSET(ElectronGunMonitorEntry, eg_var2_mon), H5T_NATIVE_DOUBLE) < 0){
+    } else if (id == "focus_voltage") {
+	  	if (H5Tinsert(type_id_eg, "Focus_voltage", HOFFSET(ElectronGunMonitorEntry, focus_voltage), H5T_NATIVE_FLOAT) < 0){
 	  		H5Tclose(type_id_eg);
 				return H5I_INVALID_HID;
 	  	}
-    } else if (id == "eg_var3") {
-		  if (H5Tinsert(type_id_eg, "ElectronGun_Var3", HOFFSET(ElectronGunMonitorEntry, eg_var3_mon), H5T_NATIVE_DOUBLE) < 0){
+    } else if (id == "wehnelt_voltage") {
+		  if (H5Tinsert(type_id_eg, "Wehnelt_voltage", HOFFSET(ElectronGunMonitorEntry, wehnelt_voltage), H5T_NATIVE_FLOAT) < 0){
 		  	H5Tclose(type_id_eg);
 				return H5I_INVALID_HID;
 		  }
-    } else if (id == "eg_var4") {
-		  if (H5Tinsert(type_id_eg, "ElectronGun_Var4", HOFFSET(ElectronGunMonitorEntry, eg_var4_mon), H5T_NATIVE_DOUBLE) < 0){
+    } else if (id == "emission_current") {
+		  if (H5Tinsert(type_id_eg, "Emission_current", HOFFSET(ElectronGunMonitorEntry, emission_current), H5T_NATIVE_FLOAT) < 0){
+		  	H5Tclose(type_id_eg);
+				return H5I_INVALID_HID;
+		  }
+    } else if (id == "time_per_dot") {
+		  if (H5Tinsert(type_id_eg, "Time_per_dot", HOFFSET(ElectronGunMonitorEntry, time_per_dot), H5T_NATIVE_INT16) < 0){
+		  	H5Tclose(type_id_eg);
+				return H5I_INVALID_HID;
+		  }
+    } else if (id == "pos_x") {
+		  if (H5Tinsert(type_id_eg, "Scan_position_X", HOFFSET(ElectronGunMonitorEntry, pos_x), H5T_NATIVE_FLOAT) < 0){
+		  	H5Tclose(type_id_eg);
+				return H5I_INVALID_HID;
+		  }
+    } else if (id == "pos_y") {
+		  if (H5Tinsert(type_id_eg, "Scan_position_Y", HOFFSET(ElectronGunMonitorEntry, pos_y), H5T_NATIVE_FLOAT) < 0){
+		  	H5Tclose(type_id_eg);
+				return H5I_INVALID_HID;
+		  }
+    } else if (id == "area_x") {
+		  if (H5Tinsert(type_id_eg, "Scan_area_X", HOFFSET(ElectronGunMonitorEntry, area_x), H5T_NATIVE_FLOAT) < 0){
+		  	H5Tclose(type_id_eg);
+				return H5I_INVALID_HID;
+		  }
+    } else if (id == "area_y") {
+		  if (H5Tinsert(type_id_eg, "Scan_area_Y", HOFFSET(ElectronGunMonitorEntry, area_y), H5T_NATIVE_FLOAT) < 0){
+		  	H5Tclose(type_id_eg);
+				return H5I_INVALID_HID;
+		  }
+    } else if (id == "grid_x") {
+		  if (H5Tinsert(type_id_eg, "Scan_grid_X", HOFFSET(ElectronGunMonitorEntry, grid_x), H5T_NATIVE_FLOAT) < 0){
+		  	H5Tclose(type_id_eg);
+				return H5I_INVALID_HID;
+		  }
+    } else if (id == "grid_y") {
+		  if (H5Tinsert(type_id_eg, "Scan_grid_Y", HOFFSET(ElectronGunMonitorEntry, grid_y), H5T_NATIVE_FLOAT) < 0){
 		  	H5Tclose(type_id_eg);
 				return H5I_INVALID_HID;
 		  }
@@ -588,6 +638,7 @@ static hid_t MakeElectronGunMonitorEntryType() {
 
   return type_id_eg;
 }
+
 
 int OpenDataStorage() {
   hid_t plist_id;

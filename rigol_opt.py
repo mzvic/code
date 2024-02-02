@@ -42,9 +42,9 @@ rigol_pub_size = 5
 laser_pub_size = 2  
 
 #Setting vacuum equipment to serial instead of remote controller
-os.system('python /home/code/Development/305_008.py')
+#os.system('python /home/code/Development/305_008.py')
 
-os.system('python /home/code/Development/74_008.py')
+#os.system('python /home/code/Development/74_008.py')
 
 # Custom Axis class to display timestamps as dates
 class DateAxis(pg.AxisItem):
@@ -293,33 +293,33 @@ class LaserPublish2Broker(QThread):
         yield bundle
 
 # Rigol initial settings
-#try:
-#    os.system('usbreset 1ab1:0515')
-#    rm1 = pyvisa.ResourceManager('@py')
-#    scope_usb = rm1.open_resource('USB0::6833::1301::MS5A242205632::0::INSTR', timeout = 5000)
-#    scope_usb.write(":RUN")
-#    scope_usb.write(":TIM:MODE MAIN")
-#    scope_usb.write(":CHAN1:DISP 1")
-#    scope_usb.write(":CHAN2:DISP 1")
-#    scope_usb.write(":CHAN1:PROB 1")
-#    scope_usb.write(":CHAN2:PROB 1")
-#    scope_usb.write(":TRIG:COUP AC")
-#    scope_usb.write(":LAN:AUT 0")
-#    scope_usb.write(":LAN:MAN 1")
-#    scope_usb.write(":LAN:DHCP 1")
-#    scope_usb.write(":LAN:SMAS 225.225.225.0")
-#    scope_usb.write(":LAN:GAT 152.74.216.1")
-#    scope_usb.write(":LAN:IPAD 152.74.216.91")
-#    scope_usb.write(":LAN:DNS 152.74.16.14")
-#    #scope_usb.write(":LAN:APPL")
-#    rigol_ip = scope_usb.query(':LAN:VISA?').strip()
-#    print(rigol_ip)
-#    scope_usb.close()
-#except ValueError as ve:
-#    print("Rigol MSO5074:", ve)
-#    rigol_ip = "no"
-#    scope_usb = None
-rigol_ip = "no"
+try:
+    os.system('usbreset 1ab1:0515')
+    rm1 = pyvisa.ResourceManager('@py')
+    scope_usb = rm1.open_resource('USB0::6833::1301::MS5A242205632::0::INSTR', timeout = 5000)
+    scope_usb.write(":RUN")
+    scope_usb.write(":TIM:MODE MAIN")
+    scope_usb.write(":CHAN1:DISP 1")
+    scope_usb.write(":CHAN2:DISP 1")
+    scope_usb.write(":CHAN1:PROB 1")
+    scope_usb.write(":CHAN2:PROB 1")
+    scope_usb.write(":TRIG:COUP AC")
+    scope_usb.write(":LAN:AUT 0")
+    scope_usb.write(":LAN:MAN 1")
+    scope_usb.write(":LAN:DHCP 1")
+    scope_usb.write(":LAN:SMAS 225.225.225.0")
+    scope_usb.write(":LAN:GAT 152.74.216.1")
+    scope_usb.write(":LAN:IPAD 152.74.216.91")
+    scope_usb.write(":LAN:DNS 152.74.16.14")
+    #scope_usb.write(":LAN:APPL")
+    rigol_ip = scope_usb.query(':LAN:VISA?').strip()
+    print(rigol_ip)
+    scope_usb.close()
+except ValueError as ve:
+    print("Rigol MSO5074:", ve)
+    rigol_ip = "no"
+    scope_usb = None
+#rigol_ip = "no"
 
 # Definition of a custom thread class for updating Rigol data        
 class RigolDataThread(QThread):
@@ -628,7 +628,7 @@ class MainWindow(QMainWindow):
         self.tab3 = QWidget()
         self.tab4 = QWidget()
 #        self.tab5 = QWidget()
-        self.tab6 = QWidget()
+#        self.tab6 = QWidget()
         self.tab7 = QWidget()
 
         # Add lateral view to the window for monitoring data
@@ -772,7 +772,7 @@ class MainWindow(QMainWindow):
         self.tab_widget.addTab(self.tab3, "Electron gun")
         self.tab_widget.addTab(self.tab4, "Particle trap")
 #        self.tab_widget.addTab(self.tab5, "Temperature")
-        self.tab_widget.addTab(self.tab6, "Data processing")
+        #self.tab_widget.addTab(self.tab6, "Data processing")
         self.tab_widget.addTab(self.tab7, "Data logging")                
 
         # Amont of processes depends on amount of c++ processes indicated earlier
@@ -1051,15 +1051,7 @@ class MainWindow(QMainWindow):
         self.twistorrSubs2Broker.update_signal.connect(self.update_vacuum_values)
         self.twistorrSubs2Broker.start()        
 
-        # Labels for the column titles
-        label_305FS = QLabel("TwisTorr 305 FS")
-        label_74FS = QLabel("TwisTorr 74 FS")
-        label_305FS.setStyleSheet("text-decoration: underline; font-weight: bold;")
-        label_74FS.setStyleSheet("text-decoration: underline; font-weight: bold;")
 
-        # Set row index order for the titles
-        self.layout2.addWidget(label_305FS, 0, 0, 1, 2)
-        self.layout2.addWidget(label_74FS, 0, 2, 1, 2)
 
         # Labels for the column titles
         label_parameter = QLabel("Parameter")
@@ -1183,7 +1175,7 @@ class MainWindow(QMainWindow):
         self.layout2.addWidget(self.monitor_vacuum_temperature2, 7, 3)        
     
         # Labels for the column titles
-        label_pressure = QLabel("Pressure measurements")
+        label_pressure = QLabel("XGS-600")
         label_pressure.setStyleSheet("text-decoration: underline; font-weight: bold;")
 
         # Set row index order for the titles
@@ -1242,6 +1234,206 @@ class MainWindow(QMainWindow):
         
         #self.layout2.setRowStretch(8, 1)
 
+
+        # ------------------------------------------------------------------------------------------- #
+        # Electron gun TAB
+        # ------------------------------------------------------------------------------------------- #
+        
+        self.layout3 = QGridLayout(self.tab3)
+
+        # Labels for the column titles
+        eg_label1 = QLabel("Parameter")
+        eg_label2 = QLabel("ES40 reading")
+        eg_label3 = QLabel("Set value")
+        eg_label4 = QLabel("Set button")
+        eg_label1.setStyleSheet("font-weight: bold;")
+        eg_label2.setStyleSheet("font-weight: bold;")
+        eg_label3.setStyleSheet("font-weight: bold;")
+        eg_label4.setStyleSheet("font-weight: bold;")
+
+        self.eg_connection_btn = QPushButton("Connect to ES40")
+        self.eg_connection_btn.setCheckable(True)  
+        self.eg_connection_btn.setStyleSheet("background-color: 53, 53, 53;")  
+        #self.eg_connection_btn.clicked.connect()
+        #self.eg_connection_btn.setFixedWidth(300) 
+        self.layout3.addWidget(self.eg_connection_btn, 0, 0, 1, 5) 
+
+        # Set row index order for the titles
+        self.layout3.addWidget(eg_label1, 1, 0)
+        self.layout3.addWidget(eg_label2, 1, 1)
+        self.layout3.addWidget(eg_label3, 1, 2)#, 1, 2)
+        self.layout3.addWidget(eg_label4, 1, 4)
+        
+        # Temporales
+        test_value = str(int("0"))
+        #self.eg_read_energy_voltage.setText(test_value+" [V]")
+        #self.eg_read_focus_voltage.setText(test_value+" []")
+        #self.eg_read_wehnelt_volatge.setText(test_value+" [V]")
+        #self.eg_read_emission_current.setText(test_value+" [µA]")
+        #self.eg_read_tpd.setText(test_value+" [µs]")
+        #self.eg_read_position_x.setText(test_value+" [mm]")
+        #self.eg_read_position_y.setText(test_value+" [mm]")
+        #self.eg_read_area_x.setText(test_value+" [mm]")
+        #self.eg_read_area_y.setText(test_value+" [mm]")
+        #self.eg_read_grid_x.setText(test_value+" [mm]")
+        #self.eg_read_grid_y.setText(test_value+" [mm]")
+
+        self.eg_read_energy_voltage = QLabel("N/C")
+        self.eg_read_focus_voltage = QLabel("N/C")
+        self.eg_read_wehnelt_voltage = QLabel("N/C")
+        self.eg_read_emission_current = QLabel("N/C")
+        self.eg_read_tpd = QLabel("N/C")
+        self.eg_read_position_x = QLabel("N/C")
+        self.eg_read_position_y = QLabel("N/C")
+        self.eg_read_area_x = QLabel("N/C")
+        self.eg_read_area_y = QLabel("N/C")
+        self.eg_read_grid_x = QLabel("N/C")
+        self.eg_read_grid_y = QLabel("N/C")
+    
+        # Energy voltage
+        self.eg_energy_voltage_setval = QLineEdit()
+        self.eg_energy_voltage_setval.setText("0") #self.eg_energy_voltage_setval.setFixedWidth(220) 
+        self.eg_energy_voltage_setbtn = QPushButton("Set") #self.eg_energy_voltage_setbtn.clicked.connect(func_eg_energy_voltage_setval)
+        self.eg_energy_voltage_setval.setFixedWidth(200)
+        self.eg_energy_voltage_setbtn.setFixedWidth(150) 
+
+        self.layout3.addWidget(QLabel("Energy voltage:"), 2, 0) 
+        self.layout3.addWidget(self.eg_read_energy_voltage, 2, 1)
+        self.layout3.addWidget(self.eg_energy_voltage_setval, 2, 2)
+        self.layout3.addWidget(QLabel("[V]"), 2, 3)
+        self.layout3.addWidget(self.eg_energy_voltage_setbtn, 2, 4) 
+
+        # Focus voltage
+        self.eg_focus_voltage_setval = QLineEdit()
+        self.eg_focus_voltage_setval.setText("0") #self.eg_focus_voltage_setval.setFixedWidth(220)
+        self.eg_focus_voltage_setbtn = QPushButton("Set") #self.eg_focus_voltage_setbtn.clicked.connect(func_eg_focus_voltage_setval)
+        self.eg_focus_voltage_setval.setFixedWidth(200)
+        self.eg_focus_voltage_setbtn.setFixedWidth(150) 
+
+        self.layout3.addWidget(QLabel("Focus voltage:"), 3, 0) 
+        self.layout3.addWidget(self.eg_read_focus_voltage, 3, 1)
+        self.layout3.addWidget(self.eg_focus_voltage_setval, 3, 2)
+        self.layout3.addWidget(QLabel("[V]"), 3, 3)
+        self.layout3.addWidget(self.eg_focus_voltage_setbtn, 3, 4) 
+
+        # Wehnelt voltage
+        self.eg_wehnelt_voltage_setval = QLineEdit()
+        self.eg_wehnelt_voltage_setval.setText("0") #self.eg_wehnelt_voltage_setval.setFixedWidth(220)
+        self.eg_wehnelt_voltage_setbtn = QPushButton("Set") #self.eg_wehnelt_voltage_setbtn.clicked.connect(func_eg_wehnelt_voltage_setval)
+        self.eg_wehnelt_voltage_setval.setFixedWidth(200)
+        self.eg_wehnelt_voltage_setbtn.setFixedWidth(150) 
+
+        self.layout3.addWidget(QLabel("Wehnelt voltage:"), 4, 0) 
+        self.layout3.addWidget(self.eg_read_wehnelt_voltage, 4, 1)
+        self.layout3.addWidget(self.eg_wehnelt_voltage_setval, 4, 2)
+        self.layout3.addWidget(QLabel("[V]"), 4, 3)
+        self.layout3.addWidget(self.eg_wehnelt_voltage_setbtn, 4, 4)  
+
+        # Emission current
+        self.eg_emission_current_setval = QLineEdit()
+        self.eg_emission_current_setval.setText("0") #self.eg_emission_current_setval.setFixedWidth(220)
+        self.eg_emission_current_setbtn = QPushButton("Set") #self.eg_emission_current_setbtn.clicked.connect(func_eg_emission_current_setval)
+        self.eg_emission_current_setval.setFixedWidth(200)
+        self.eg_emission_current_setbtn.setFixedWidth(150) 
+
+        self.layout3.addWidget(QLabel("Emission current:"), 5, 0) 
+        self.layout3.addWidget(self.eg_read_emission_current, 5, 1)
+        self.layout3.addWidget(self.eg_emission_current_setval, 5, 2)
+        self.layout3.addWidget(QLabel("[µA]"), 5, 3)
+        self.layout3.addWidget(self.eg_emission_current_setbtn, 5, 4)  
+
+        # Time per dot
+        self.eg_tpd_setval = QLineEdit()
+        self.eg_tpd_setval.setText("0") #self.eg_tpd_setval.setFixedWidth(220)
+        self.eg_tpd_setbtn = QPushButton("Set") #self.eg_tpd_setbtn.clicked.connect(func_eg_tpd_setval)
+        self.eg_tpd_setval.setFixedWidth(200)
+        self.eg_tpd_setbtn.setFixedWidth(150) 
+
+        self.layout3.addWidget(QLabel("Time per dot:"), 6, 0) 
+        self.layout3.addWidget(self.eg_read_tpd, 6, 1)
+        self.layout3.addWidget(self.eg_tpd_setval, 6, 2)
+        self.layout3.addWidget(QLabel("[µs]"), 6, 3)
+        self.layout3.addWidget(self.eg_tpd_setbtn, 6, 4)    
+
+        # Scan position X
+        self.eg_position_x_setval = QLineEdit()
+        self.eg_position_x_setval.setText("0") #self.eg_position_x_setval.setFixedWidth(220)
+        self.eg_position_x_setbtn = QPushButton("Set") #self.eg_position_x_setbtn.clicked.connect(func_eg_position_x_setval)
+        self.eg_position_x_setval.setFixedWidth(200)
+        self.eg_position_x_setbtn.setFixedWidth(150) 
+
+        self.layout3.addWidget(QLabel("Scan position X:"), 7, 0) 
+        self.layout3.addWidget(self.eg_read_position_x, 7, 1)
+        self.layout3.addWidget(self.eg_position_x_setval, 7, 2)
+        self.layout3.addWidget(QLabel("[mm]"), 7, 3)
+        self.layout3.addWidget(self.eg_position_x_setbtn, 7, 4) 
+
+        # Scan position Y
+        self.eg_position_y_setval = QLineEdit()
+        self.eg_position_y_setval.setText("0") #self.eg_position_y_setval.setFixedWidth(220)
+        self.eg_position_y_setbtn = QPushButton("Set") #self.eg_position_y_setbtn.clicked.connect(func_eg_position_y_setval)
+        self.eg_position_y_setval.setFixedWidth(200)
+        self.eg_position_y_setbtn.setFixedWidth(150) 
+
+        self.layout3.addWidget(QLabel("Scan position Y:"), 8, 0) 
+        self.layout3.addWidget(self.eg_read_position_y, 8, 1)
+        self.layout3.addWidget(self.eg_position_y_setval, 8, 2)
+        self.layout3.addWidget(QLabel("[mm]"), 8, 3)
+        self.layout3.addWidget(self.eg_position_y_setbtn, 8, 4)                                         
+
+        # Scan area X
+        self.eg_area_x_setval = QLineEdit()
+        self.eg_area_x_setval.setText("0") #self.eg_area_x_setval.setFixedWidth(220)
+        self.eg_area_x_setbtn = QPushButton("Set") #self.eg_area_x_setbtn.clicked.connect(func_eg_area_x_setval)
+        self.eg_area_x_setval.setFixedWidth(200)
+        self.eg_area_x_setbtn.setFixedWidth(150) 
+
+        self.layout3.addWidget(QLabel("Scan area X:"), 9, 0) 
+        self.layout3.addWidget(self.eg_read_area_x, 9, 1)
+        self.layout3.addWidget(self.eg_area_x_setval, 9, 2)
+        self.layout3.addWidget(QLabel("[mm]"), 9, 3)
+        self.layout3.addWidget(self.eg_area_x_setbtn, 9, 4) 
+
+        # Scan area Y
+        self.eg_area_y_setval = QLineEdit()
+        self.eg_area_y_setval.setText("0") #self.eg_area_y_setval.setFixedWidth(220)
+        self.eg_area_y_setbtn = QPushButton("Set") #self.eg_area_y_setbtn.clicked.connect(func_eg_area_y_setval)
+        self.eg_area_y_setval.setFixedWidth(200)
+        self.eg_area_y_setbtn.setFixedWidth(150) 
+
+        self.layout3.addWidget(QLabel("Scan area Y:"), 10, 0) 
+        self.layout3.addWidget(self.eg_read_area_y, 10, 1)
+        self.layout3.addWidget(self.eg_area_y_setval, 10, 2)
+        self.layout3.addWidget(QLabel("[mm]"), 10, 3)
+        self.layout3.addWidget(self.eg_area_y_setbtn, 10, 4)  
+
+        # Scan grid X
+        self.eg_grid_x_setval = QLineEdit()
+        self.eg_grid_x_setval.setText("0") #self.eg_grid_x_setval.setFixedWidth(220)
+        self.eg_grid_x_setbtn = QPushButton("Set") #self.eg_grid_x_setbtn.clicked.connect(func_eg_grid_x_setval)
+        self.eg_grid_x_setval.setFixedWidth(200)
+        self.eg_grid_x_setbtn.setFixedWidth(150) 
+
+        self.layout3.addWidget(QLabel("Scan grid X:"), 11, 0) 
+        self.layout3.addWidget(self.eg_read_grid_x, 11, 1)
+        self.layout3.addWidget(self.eg_grid_x_setval, 11, 2)
+        self.layout3.addWidget(QLabel("[mm]"), 11, 3)
+        self.layout3.addWidget(self.eg_grid_x_setbtn, 11, 4) 
+
+        # Scan grid Y
+        self.eg_grid_y_setval = QLineEdit()
+        self.eg_grid_y_setval.setText("0") #self.eg_grid_y_setval.setFixedWidth(220)
+        self.eg_grid_y_setbtn = QPushButton("Set") #self.eg_grid_y_setbtn.clicked.connect(func_eg_grid_y_setval)
+        self.eg_grid_y_setval.setFixedWidth(200)
+        self.eg_grid_y_setbtn.setFixedWidth(150) 
+
+        self.layout3.addWidget(QLabel("Scan grid Y:"), 12, 0) 
+        self.layout3.addWidget(self.eg_read_grid_y, 12, 1)
+        self.layout3.addWidget(self.eg_grid_y_setval, 12, 2)
+        self.layout3.addWidget(QLabel("[mm]"), 12, 3)
+        self.layout3.addWidget(self.eg_grid_y_setbtn, 12, 4) 
+
+        self.layout3.setRowStretch(15, 5)
 
         # ------------------------------------------------------------------------------------------- #
         # ESI TAB
@@ -1628,21 +1820,49 @@ class MainWindow(QMainWindow):
         eg_data_group = QtWidgets.QGroupBox("Electron gun data:")
         eg_data_grid_layout = QGridLayout()      
 
-        self.eg_1_checkbox = QCheckBox("Electron gun variable 1")
+        self.eg_1_checkbox = QCheckBox("Energy voltage")
         self.eg_1_checkbox.setChecked(False)
-        eg_data_grid_layout.addWidget(self.eg_1_checkbox, 1, 0)
+        eg_data_grid_layout.addWidget(self.eg_1_checkbox, 1, 1)
 
-        self.eg_2_checkbox = QCheckBox("Electron gun variable 2")
+        self.eg_2_checkbox = QCheckBox("Focus voltage")
         self.eg_2_checkbox.setChecked(False)
-        eg_data_grid_layout.addWidget(self.eg_2_checkbox, 2, 0)
+        eg_data_grid_layout.addWidget(self.eg_2_checkbox, 2, 1)
 
-        self.eg_3_checkbox = QCheckBox("Electron gun variable 3")
+        self.eg_3_checkbox = QCheckBox("Wehnelt voltage")
         self.eg_3_checkbox.setChecked(False)
-        eg_data_grid_layout.addWidget(self.eg_3_checkbox, 3, 0)
+        eg_data_grid_layout.addWidget(self.eg_3_checkbox, 3, 1)
 
-        self.eg_4_checkbox = QCheckBox("Electron gun variable 4")
+        self.eg_4_checkbox = QCheckBox("Emission current")
         self.eg_4_checkbox.setChecked(False)
-        eg_data_grid_layout.addWidget(self.eg_4_checkbox, 4, 0)
+        eg_data_grid_layout.addWidget(self.eg_4_checkbox, 4, 1)
+
+        self.eg_5_checkbox = QCheckBox("Time per dot")
+        self.eg_5_checkbox.setChecked(False)
+        eg_data_grid_layout.addWidget(self.eg_5_checkbox, 5, 1)
+
+        self.eg_6_checkbox = QCheckBox("Scan position X")
+        self.eg_6_checkbox.setChecked(False)
+        eg_data_grid_layout.addWidget(self.eg_6_checkbox, 1, 0)
+
+        self.eg_7_checkbox = QCheckBox("Scan position Y")
+        self.eg_7_checkbox.setChecked(False)
+        eg_data_grid_layout.addWidget(self.eg_7_checkbox, 2, 0)
+
+        self.eg_8_checkbox = QCheckBox("Scan area X")
+        self.eg_8_checkbox.setChecked(False)
+        eg_data_grid_layout.addWidget(self.eg_8_checkbox, 3, 0)
+
+        self.eg_9_checkbox = QCheckBox("Scan area Y")
+        self.eg_9_checkbox.setChecked(False)
+        eg_data_grid_layout.addWidget(self.eg_9_checkbox, 4, 0)
+
+        self.eg_10_checkbox = QCheckBox("Scan grid X")
+        self.eg_10_checkbox.setChecked(False)
+        eg_data_grid_layout.addWidget(self.eg_10_checkbox, 5, 0)
+
+        self.eg_11_checkbox = QCheckBox("Scan grid Y")
+        self.eg_11_checkbox.setChecked(False)
+        eg_data_grid_layout.addWidget(self.eg_11_checkbox, 6, 0)               
 
         mark_all_eg_button = QPushButton("Check all")
         mark_all_eg_button.clicked.connect(self.mark_all_eg_checkboxes)
@@ -1650,8 +1870,8 @@ class MainWindow(QMainWindow):
         unmark_all_eg_button = QPushButton("Uncheck all")
         unmark_all_eg_button.clicked.connect(self.unmark_all_eg_checkboxes)
   
-        eg_data_grid_layout.addWidget(mark_all_eg_button, 5, 0)
-        eg_data_grid_layout.addWidget(unmark_all_eg_button, 5, 1)
+        eg_data_grid_layout.addWidget(mark_all_eg_button, 7, 0)
+        eg_data_grid_layout.addWidget(unmark_all_eg_button, 7, 1)
 
         # -------------------------------------------------------------------- #
         # FFT AVG #
@@ -1685,8 +1905,8 @@ class MainWindow(QMainWindow):
         self.layout7.addWidget(laser_data_group, 1, 0)
         self.layout7.addWidget(apd_data_group, 2, 0)
         self.layout7.addWidget(twistorr_data_group, 0, 0)
-        self.layout7.addWidget(rigol_data_group, 0, 1)
-        self.layout7.addWidget(eg_data_group, 1, 1)
+        self.layout7.addWidget(rigol_data_group, 1, 1)
+        self.layout7.addWidget(eg_data_group, 0, 1)
         self.layout7.addWidget(fft_data_group, 2, 1)
 
 
@@ -1754,7 +1974,10 @@ class MainWindow(QMainWindow):
                 self.rigol_3_checkbox.isChecked() or self.rigol_4_checkbox.isChecked() or
                 self.rigol_5_checkbox.isChecked() or self.eg_1_checkbox.isChecked() or
                 self.eg_2_checkbox.isChecked() or self.eg_3_checkbox.isChecked() or
-                self.eg_4_checkbox.isChecked()):
+                self.eg_4_checkbox.isChecked() or self.eg_5_checkbox.isChecked() or
+                self.eg_6_checkbox.isChecked() or self.eg_7_checkbox.isChecked() or
+                self.eg_8_checkbox.isChecked() or self.eg_9_checkbox.isChecked() or 
+                self.eg_10_checkbox.isChecked() or self.eg_11_checkbox.isChecked()):
             self.showWarningSignal.emit("Select the variables to record before begin data logging...")
             self.begin_logging_button.setChecked(False)
         if not self.storage_line_edit.text():
@@ -1773,7 +1996,10 @@ class MainWindow(QMainWindow):
                 self.rigol_3_checkbox.isChecked() or self.rigol_4_checkbox.isChecked() or
                 self.rigol_5_checkbox.isChecked() or self.eg_1_checkbox.isChecked() or
                 self.eg_2_checkbox.isChecked() or self.eg_3_checkbox.isChecked() or
-                self.eg_4_checkbox.isChecked()) and (self.storage_line_edit.text()):   
+                self.eg_4_checkbox.isChecked() or self.eg_5_checkbox.isChecked() or
+                self.eg_6_checkbox.isChecked() or self.eg_7_checkbox.isChecked() or
+                self.eg_8_checkbox.isChecked() or self.eg_9_checkbox.isChecked() or 
+                self.eg_10_checkbox.isChecked() or self.eg_11_checkbox.isChecked()) and (self.storage_line_edit.text()):   
 
             if self.begin_logging_button.isChecked():
                 self.begin_logging_button.setStyleSheet("background-color: darkblue;")
@@ -1866,17 +2092,38 @@ class MainWindow(QMainWindow):
                 # --------------------------#
                 # Electron gun #
                 if self.eg_1_checkbox.isChecked():
-                    storage_list.append("eg_var1") 
-                    print("Ejecutando recorder 'Electron gun variable 1'")
+                    storage_list.append("energy_voltage") 
+                    print("Ejecutando recorder 'Energy voltage'")
                 if self.eg_2_checkbox.isChecked():
-                    storage_list.append("eg_var2") 
-                    print("Ejecutando recorder 'Electron gun variable 2'")
+                    storage_list.append("focus_voltage") 
+                    print("Ejecutando recorder 'Focus voltage'")
                 if self.eg_3_checkbox.isChecked():
-                    storage_list.append("eg_var3") 
-                    print("Ejecutando recorder 'Electron gun variable 3'")
+                    storage_list.append("wehnelt_voltage") 
+                    print("Ejecutando recorder 'Wehnelt voltage'")
                 if self.eg_4_checkbox.isChecked():
-                    storage_list.append("eg_var4") 
-                    print("Ejecutando recorder 'Electron gun variable 4'") 
+                    storage_list.append("emission_current") 
+                    print("Ejecutando recorder 'Emission current'") 
+                if self.eg_5_checkbox.isChecked():
+                    storage_list.append("time_per_dot") 
+                    print("Ejecutando recorder 'Time per dot'")
+                if self.eg_6_checkbox.isChecked():
+                    storage_list.append("pos_x") 
+                    print("Ejecutando recorder 'Scan position X'")
+                if self.eg_7_checkbox.isChecked():
+                    storage_list.append("pos_y") 
+                    print("Ejecutando recorder 'Scan position Y'") 
+                if self.eg_8_checkbox.isChecked():
+                    storage_list.append("area_x") 
+                    print("Ejecutando recorder 'Scan area X'") 
+                if self.eg_9_checkbox.isChecked():
+                    storage_list.append("area_y") 
+                    print("Ejecutando recorder 'Scan area Y'")
+                if self.eg_10_checkbox.isChecked():
+                    storage_list.append("grid_x") 
+                    print("Ejecutando recorder 'Scan grid X'")
+                if self.eg_11_checkbox.isChecked():
+                    storage_list.append("grid_y") 
+                    print("Ejecutando recorder 'Scan grid Y'")                                         
 
                 if storage_list:
                     storage_command = [self.binary_paths[12]] + [str(stg_arg) for stg_arg in storage_list]
@@ -1973,6 +2220,33 @@ class MainWindow(QMainWindow):
         self.pressure_2_checkbox.setChecked(False)        
         #self.twistorr_6_checkbox.setChecked(False)  #error_comentado   
 
+
+    def mark_all_eg_checkboxes(self):
+        self.eg_1_checkbox.setChecked(True)
+        self.eg_2_checkbox.setChecked(True)
+        self.eg_3_checkbox.setChecked(True)
+        self.eg_4_checkbox.setChecked(True)
+        self.eg_5_checkbox.setChecked(True)
+        self.eg_6_checkbox.setChecked(True)
+        self.eg_7_checkbox.setChecked(True)
+        self.eg_8_checkbox.setChecked(True)
+        self.eg_9_checkbox.setChecked(True)
+        self.eg_10_checkbox.setChecked(True)
+        self.eg_11_checkbox.setChecked(True) 
+
+    def unmark_all_eg_checkboxes(self):
+        self.eg_1_checkbox.setChecked(False)
+        self.eg_2_checkbox.setChecked(False)
+        self.eg_3_checkbox.setChecked(False)
+        self.eg_4_checkbox.setChecked(False)
+        self.eg_5_checkbox.setChecked(False)
+        self.eg_6_checkbox.setChecked(False)
+        self.eg_7_checkbox.setChecked(False)
+        self.eg_8_checkbox.setChecked(False)
+        self.eg_9_checkbox.setChecked(False)
+        self.eg_10_checkbox.setChecked(False)
+        self.eg_11_checkbox.setChecked(False)     
+
     def mark_all_rigol_checkboxes(self):
         self.rigol_1_checkbox.setChecked(True)
         self.rigol_2_checkbox.setChecked(True)
@@ -1986,18 +2260,6 @@ class MainWindow(QMainWindow):
         self.rigol_3_checkbox.setChecked(False)
         self.rigol_4_checkbox.setChecked(False)
         self.rigol_5_checkbox.setChecked(False) 
-
-    def mark_all_eg_checkboxes(self):
-        self.eg_1_checkbox.setChecked(True)
-        self.eg_2_checkbox.setChecked(True)
-        self.eg_3_checkbox.setChecked(True)
-        self.eg_4_checkbox.setChecked(True)
-
-    def unmark_all_eg_checkboxes(self):
-        self.eg_1_checkbox.setChecked(False)
-        self.eg_2_checkbox.setChecked(False)
-        self.eg_3_checkbox.setChecked(False)
-        self.eg_4_checkbox.setChecked(False)                              
 
     def logging_disconnect(self):
         if self.stop_logging_button.isChecked():
