@@ -42,9 +42,9 @@ rigol_pub_size = 5
 laser_pub_size = 2  
 
 #Setting vacuum equipment to serial instead of remote controller
-#os.system('python /home/code/Development/305_008.py')
+os.system('python /home/code/Development/305_008.py')
 
-#os.system('python /home/code/Development/74_008.py')
+os.system('python /home/code/Development/74_008.py')
 
 # Custom Axis class to display timestamps as dates
 class DateAxis(pg.AxisItem):
@@ -1063,6 +1063,13 @@ class MainWindow(QMainWindow):
         label_parameter2.setStyleSheet("font-weight: bold;")
         label_monitor2.setStyleSheet("font-weight: bold;")
 
+
+        # Labels for the column titles
+        label_305fs = QLabel("TwisTorr 305FS")
+        label_305fs.setStyleSheet("text-decoration: underline; font-weight: bold;")
+
+        # Set row index order for the titles
+        self.layout2.addWidget(label_305fs, 0, 0, 1, 2)
         self.btn_tt_startstop1 = QPushButton("Start/Stop")
         self.btn_tt_startstop1.setCheckable(True)  
         self.btn_tt_startstop1.setStyleSheet("background-color: 53, 53, 53;")  
@@ -1118,6 +1125,13 @@ class MainWindow(QMainWindow):
         self.layout2.addWidget(QLabel("Pump temperature:"), 7, 0)
         self.layout2.addWidget(self.monitor_vacuum_temperature, 7, 1)
 
+
+        # Labels for the column titles
+        label_74fs = QLabel("TwisTorr 74FS")
+        label_74fs.setStyleSheet("text-decoration: underline; font-weight: bold;")
+
+        # Set row index order for the titles
+        self.layout2.addWidget(label_74fs, 0, 2, 1, 2)
 
         self.btn_tt_startstop2 = QPushButton("Start/Stop")
         self.btn_tt_startstop2.setCheckable(True)  
