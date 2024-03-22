@@ -42,9 +42,9 @@ rigol_pub_size = 5
 laser_pub_size = 2  
 
 #Setting vacuum equipment to serial instead of remote controller
-os.system('python /home/code/Development/305_008.py')
+#os.system('python /home/code/Development/305_008.py')
 
-os.system('python /home/code/Development/74_008.py')
+#os.system('python /home/code/Development/74_008.py')
 
 # Custom Axis class to display timestamps as dates
 class DateAxis(pg.AxisItem):
