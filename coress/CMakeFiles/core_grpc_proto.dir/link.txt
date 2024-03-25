@@ -1,2 +1,0 @@
-/usr/bin/ar qc libcore_grpc_proto.a CMakeFiles/core_grpc_proto.dir/core.grpc.pb.cc.o CMakeFiles/core_grpc_proto.dir/core.pb.cc.o
-/usr/bin/ranlib libcore_grpc_proto.a

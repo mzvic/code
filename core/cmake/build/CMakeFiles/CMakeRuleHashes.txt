@@ -1,2 +1,0 @@
-# Hashes of file build rules.
-8f1db8e1aefee5f0f9dbfc69f43db15e core.pb.cc

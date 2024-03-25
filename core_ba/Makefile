@@ -182,45 +182,6 @@ TwisTorrMonitor_code_sw/fast:
 .PHONY : TwisTorrMonitor_code_sw/fast
 
 #=============================================================================
-# Target rules for targets named TwisTorrSetter_code_sw
-
-# Build rule for target.
-TwisTorrSetter_code_sw: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 TwisTorrSetter_code_sw
-.PHONY : TwisTorrSetter_code_sw
-
-# fast build rule for target.
-TwisTorrSetter_code_sw/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter_code_sw.dir/build.make CMakeFiles/TwisTorrSetter_code_sw.dir/build
-.PHONY : TwisTorrSetter_code_sw/fast
-
-#=============================================================================
-# Target rules for targets named TwisTorrSS2_code_sw
-
-# Build rule for target.
-TwisTorrSS2_code_sw: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 TwisTorrSS2_code_sw
-.PHONY : TwisTorrSS2_code_sw
-
-# fast build rule for target.
-TwisTorrSS2_code_sw/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSS2_code_sw.dir/build.make CMakeFiles/TwisTorrSS2_code_sw.dir/build
-.PHONY : TwisTorrSS2_code_sw/fast
-
-#=============================================================================
-# Target rules for targets named TwisTorrIO_code_sw
-
-# Build rule for target.
-TwisTorrIO_code_sw: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 TwisTorrIO_code_sw
-.PHONY : TwisTorrIO_code_sw
-
-# fast build rule for target.
-TwisTorrIO_code_sw/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrIO_code_sw.dir/build.make CMakeFiles/TwisTorrIO_code_sw.dir/build
-.PHONY : TwisTorrIO_code_sw/fast
-
-#=============================================================================
 # Target rules for targets named APD_broker2_code_sw
 
 # Build rule for target.
@@ -232,19 +193,6 @@ APD_broker2_code_sw: cmake_check_build_system
 APD_broker2_code_sw/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_broker2_code_sw.dir/build.make CMakeFiles/APD_broker2_code_sw.dir/build
 .PHONY : APD_broker2_code_sw/fast
-
-#=============================================================================
-# Target rules for targets named APD_reg_zero_code_sw
-
-# Build rule for target.
-APD_reg_zero_code_sw: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg_zero_code_sw
-.PHONY : APD_reg_zero_code_sw
-
-# fast build rule for target.
-APD_reg_zero_code_sw/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero_code_sw.dir/build.make CMakeFiles/APD_reg_zero_code_sw.dir/build
-.PHONY : APD_reg_zero_code_sw/fast
 
 #=============================================================================
 # Target rules for targets named broker_client
@@ -260,19 +208,6 @@ broker_client/fast:
 .PHONY : broker_client/fast
 
 #=============================================================================
-# Target rules for targets named APD_reg_proc_code_sw
-
-# Build rule for target.
-APD_reg_proc_code_sw: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg_proc_code_sw
-.PHONY : APD_reg_proc_code_sw
-
-# fast build rule for target.
-APD_reg_proc_code_sw/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc_code_sw.dir/build.make CMakeFiles/APD_reg_proc_code_sw.dir/build
-.PHONY : APD_reg_proc_code_sw/fast
-
-#=============================================================================
 # Target rules for targets named core_grpc_proto
 
 # Build rule for target.
@@ -284,6 +219,19 @@ core_grpc_proto: cmake_check_build_system
 core_grpc_proto/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/core_grpc_proto.dir/build.make CMakeFiles/core_grpc_proto.dir/build
 .PHONY : core_grpc_proto/fast
+
+#=============================================================================
+# Target rules for targets named APD_fft_partial_code_sw
+
+# Build rule for target.
+APD_fft_partial_code_sw: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_fft_partial_code_sw
+.PHONY : APD_fft_partial_code_sw
+
+# fast build rule for target.
+APD_fft_partial_code_sw/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft_partial_code_sw.dir/build.make CMakeFiles/APD_fft_partial_code_sw.dir/build
+.PHONY : APD_fft_partial_code_sw/fast
 
 #=============================================================================
 # Target rules for targets named APD_fft_full_code_sw
@@ -312,32 +260,6 @@ storage_client/fast:
 .PHONY : storage_client/fast
 
 #=============================================================================
-# Target rules for targets named APD_fft_partial_code_sw
-
-# Build rule for target.
-APD_fft_partial_code_sw: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_fft_partial_code_sw
-.PHONY : APD_fft_partial_code_sw
-
-# fast build rule for target.
-APD_fft_partial_code_sw/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_fft_partial_code_sw.dir/build.make CMakeFiles/APD_fft_partial_code_sw.dir/build
-.PHONY : APD_fft_partial_code_sw/fast
-
-#=============================================================================
-# Target rules for targets named APD_reg_fft_01_code_sw
-
-# Build rule for target.
-APD_reg_fft_01_code_sw: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg_fft_01_code_sw
-.PHONY : APD_reg_fft_01_code_sw
-
-# fast build rule for target.
-APD_reg_fft_01_code_sw/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_01_code_sw.dir/build.make CMakeFiles/APD_reg_fft_01_code_sw.dir/build
-.PHONY : APD_reg_fft_01_code_sw/fast
-
-#=============================================================================
 # Target rules for targets named APD_plot_cvt_code_sw
 
 # Build rule for target.
@@ -349,6 +271,19 @@ APD_plot_cvt_code_sw: cmake_check_build_system
 APD_plot_cvt_code_sw/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_plot_cvt_code_sw.dir/build.make CMakeFiles/APD_plot_cvt_code_sw.dir/build
 .PHONY : APD_plot_cvt_code_sw/fast
+
+#=============================================================================
+# Target rules for targets named TwisTorrSetter_code_sw
+
+# Build rule for target.
+TwisTorrSetter_code_sw: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 TwisTorrSetter_code_sw
+.PHONY : TwisTorrSetter_code_sw
+
+# fast build rule for target.
+TwisTorrSetter_code_sw/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSetter_code_sw.dir/build.make CMakeFiles/TwisTorrSetter_code_sw.dir/build
+.PHONY : TwisTorrSetter_code_sw/fast
 
 #=============================================================================
 # Target rules for targets named APD_publisher_code_sw
@@ -364,17 +299,30 @@ APD_publisher_code_sw/fast:
 .PHONY : APD_publisher_code_sw/fast
 
 #=============================================================================
-# Target rules for targets named APD_reg_fft_1_code_sw
+# Target rules for targets named TwisTorrSS2_code_sw
 
 # Build rule for target.
-APD_reg_fft_1_code_sw: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 APD_reg_fft_1_code_sw
-.PHONY : APD_reg_fft_1_code_sw
+TwisTorrSS2_code_sw: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 TwisTorrSS2_code_sw
+.PHONY : TwisTorrSS2_code_sw
 
 # fast build rule for target.
-APD_reg_fft_1_code_sw/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_1_code_sw.dir/build.make CMakeFiles/APD_reg_fft_1_code_sw.dir/build
-.PHONY : APD_reg_fft_1_code_sw/fast
+TwisTorrSS2_code_sw/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrSS2_code_sw.dir/build.make CMakeFiles/TwisTorrSS2_code_sw.dir/build
+.PHONY : TwisTorrSS2_code_sw/fast
+
+#=============================================================================
+# Target rules for targets named TwisTorrIO_code_sw
+
+# Build rule for target.
+TwisTorrIO_code_sw: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 TwisTorrIO_code_sw
+.PHONY : TwisTorrIO_code_sw
+
+# fast build rule for target.
+TwisTorrIO_code_sw/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TwisTorrIO_code_sw.dir/build.make CMakeFiles/TwisTorrIO_code_sw.dir/build
+.PHONY : TwisTorrIO_code_sw/fast
 
 APD_broker2_code_sw.o: APD_broker2_code_sw.cc.o
 
@@ -510,114 +458,6 @@ APD_publisher_code_sw.s: APD_publisher_code_sw.cc.s
 APD_publisher_code_sw.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_publisher_code_sw.dir/build.make CMakeFiles/APD_publisher_code_sw.dir/APD_publisher_code_sw.cc.s
 .PHONY : APD_publisher_code_sw.cc.s
-
-APD_reg_fft_01_code_sw.o: APD_reg_fft_01_code_sw.cc.o
-
-.PHONY : APD_reg_fft_01_code_sw.o
-
-# target to build an object file
-APD_reg_fft_01_code_sw.cc.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_01_code_sw.dir/build.make CMakeFiles/APD_reg_fft_01_code_sw.dir/APD_reg_fft_01_code_sw.cc.o
-.PHONY : APD_reg_fft_01_code_sw.cc.o
-
-APD_reg_fft_01_code_sw.i: APD_reg_fft_01_code_sw.cc.i
-
-.PHONY : APD_reg_fft_01_code_sw.i
-
-# target to preprocess a source file
-APD_reg_fft_01_code_sw.cc.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_01_code_sw.dir/build.make CMakeFiles/APD_reg_fft_01_code_sw.dir/APD_reg_fft_01_code_sw.cc.i
-.PHONY : APD_reg_fft_01_code_sw.cc.i
-
-APD_reg_fft_01_code_sw.s: APD_reg_fft_01_code_sw.cc.s
-
-.PHONY : APD_reg_fft_01_code_sw.s
-
-# target to generate assembly for a file
-APD_reg_fft_01_code_sw.cc.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_01_code_sw.dir/build.make CMakeFiles/APD_reg_fft_01_code_sw.dir/APD_reg_fft_01_code_sw.cc.s
-.PHONY : APD_reg_fft_01_code_sw.cc.s
-
-APD_reg_fft_1_code_sw.o: APD_reg_fft_1_code_sw.cc.o
-
-.PHONY : APD_reg_fft_1_code_sw.o
-
-# target to build an object file
-APD_reg_fft_1_code_sw.cc.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_1_code_sw.dir/build.make CMakeFiles/APD_reg_fft_1_code_sw.dir/APD_reg_fft_1_code_sw.cc.o
-.PHONY : APD_reg_fft_1_code_sw.cc.o
-
-APD_reg_fft_1_code_sw.i: APD_reg_fft_1_code_sw.cc.i
-
-.PHONY : APD_reg_fft_1_code_sw.i
-
-# target to preprocess a source file
-APD_reg_fft_1_code_sw.cc.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_1_code_sw.dir/build.make CMakeFiles/APD_reg_fft_1_code_sw.dir/APD_reg_fft_1_code_sw.cc.i
-.PHONY : APD_reg_fft_1_code_sw.cc.i
-
-APD_reg_fft_1_code_sw.s: APD_reg_fft_1_code_sw.cc.s
-
-.PHONY : APD_reg_fft_1_code_sw.s
-
-# target to generate assembly for a file
-APD_reg_fft_1_code_sw.cc.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_fft_1_code_sw.dir/build.make CMakeFiles/APD_reg_fft_1_code_sw.dir/APD_reg_fft_1_code_sw.cc.s
-.PHONY : APD_reg_fft_1_code_sw.cc.s
-
-APD_reg_proc_code_sw.o: APD_reg_proc_code_sw.cc.o
-
-.PHONY : APD_reg_proc_code_sw.o
-
-# target to build an object file
-APD_reg_proc_code_sw.cc.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc_code_sw.dir/build.make CMakeFiles/APD_reg_proc_code_sw.dir/APD_reg_proc_code_sw.cc.o
-.PHONY : APD_reg_proc_code_sw.cc.o
-
-APD_reg_proc_code_sw.i: APD_reg_proc_code_sw.cc.i
-
-.PHONY : APD_reg_proc_code_sw.i
-
-# target to preprocess a source file
-APD_reg_proc_code_sw.cc.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc_code_sw.dir/build.make CMakeFiles/APD_reg_proc_code_sw.dir/APD_reg_proc_code_sw.cc.i
-.PHONY : APD_reg_proc_code_sw.cc.i
-
-APD_reg_proc_code_sw.s: APD_reg_proc_code_sw.cc.s
-
-.PHONY : APD_reg_proc_code_sw.s
-
-# target to generate assembly for a file
-APD_reg_proc_code_sw.cc.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_proc_code_sw.dir/build.make CMakeFiles/APD_reg_proc_code_sw.dir/APD_reg_proc_code_sw.cc.s
-.PHONY : APD_reg_proc_code_sw.cc.s
-
-APD_reg_zero_code_sw.o: APD_reg_zero_code_sw.cc.o
-
-.PHONY : APD_reg_zero_code_sw.o
-
-# target to build an object file
-APD_reg_zero_code_sw.cc.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero_code_sw.dir/build.make CMakeFiles/APD_reg_zero_code_sw.dir/APD_reg_zero_code_sw.cc.o
-.PHONY : APD_reg_zero_code_sw.cc.o
-
-APD_reg_zero_code_sw.i: APD_reg_zero_code_sw.cc.i
-
-.PHONY : APD_reg_zero_code_sw.i
-
-# target to preprocess a source file
-APD_reg_zero_code_sw.cc.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero_code_sw.dir/build.make CMakeFiles/APD_reg_zero_code_sw.dir/APD_reg_zero_code_sw.cc.i
-.PHONY : APD_reg_zero_code_sw.cc.i
-
-APD_reg_zero_code_sw.s: APD_reg_zero_code_sw.cc.s
-
-.PHONY : APD_reg_zero_code_sw.s
-
-# target to generate assembly for a file
-APD_reg_zero_code_sw.cc.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_reg_zero_code_sw.dir/build.make CMakeFiles/APD_reg_zero_code_sw.dir/APD_reg_zero_code_sw.cc.s
-.PHONY : APD_reg_zero_code_sw.cc.s
 
 TwisTorrIO_code_sw.o: TwisTorrIO_code_sw.cc.o
 
@@ -929,10 +769,6 @@ help:
 	@echo "... APD_fft_partial_code_sw"
 	@echo "... APD_plot_cvt_code_sw"
 	@echo "... APD_publisher_code_sw"
-	@echo "... APD_reg_fft_01_code_sw"
-	@echo "... APD_reg_fft_1_code_sw"
-	@echo "... APD_reg_proc_code_sw"
-	@echo "... APD_reg_zero_code_sw"
 	@echo "... TwisTorrIO_code_sw"
 	@echo "... TwisTorrMonitor_code_sw"
 	@echo "... TwisTorrSS1_code_sw"
@@ -958,18 +794,6 @@ help:
 	@echo "... APD_publisher_code_sw.o"
 	@echo "... APD_publisher_code_sw.i"
 	@echo "... APD_publisher_code_sw.s"
-	@echo "... APD_reg_fft_01_code_sw.o"
-	@echo "... APD_reg_fft_01_code_sw.i"
-	@echo "... APD_reg_fft_01_code_sw.s"
-	@echo "... APD_reg_fft_1_code_sw.o"
-	@echo "... APD_reg_fft_1_code_sw.i"
-	@echo "... APD_reg_fft_1_code_sw.s"
-	@echo "... APD_reg_proc_code_sw.o"
-	@echo "... APD_reg_proc_code_sw.i"
-	@echo "... APD_reg_proc_code_sw.s"
-	@echo "... APD_reg_zero_code_sw.o"
-	@echo "... APD_reg_zero_code_sw.i"
-	@echo "... APD_reg_zero_code_sw.s"
 	@echo "... TwisTorrIO_code_sw.o"
 	@echo "... TwisTorrIO_code_sw.i"
 	@echo "... TwisTorrIO_code_sw.s"

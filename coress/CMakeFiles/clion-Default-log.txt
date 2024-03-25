@@ -1,6 +1,0 @@
-/snap/clion/235/bin/cmake/linux/x64/bin/cmake -S /home/code/Development/core -B /home/code/Development/core
--- Using protobuf 3.21.6.0
--- Using gRPC 1.50.0
--- Configuring done
--- Generating done
--- Build files have been written to: /home/code/Development/core

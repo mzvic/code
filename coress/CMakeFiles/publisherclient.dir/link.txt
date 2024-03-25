@@ -1,2 +1,0 @@
-/usr/bin/ar qc libpublisherclient.a CMakeFiles/publisherclient.dir/publisher_client.cc.o
-/usr/bin/ranlib libpublisherclient.a
