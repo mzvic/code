@@ -1,3 +1,5 @@
+#include <iostream>
+#include <cstring>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,6 +39,10 @@ const char xor_ADDR2 = 129;
 const char xor_WR = 48;
 const char xor_OnOff = 48;
 const char xor_ETX = 3;
+const unsigned char STx = 35;
+const unsigned char _0 = 48;
+const unsigned char _F = 70;
+const unsigned char _CR = 13;
 
 bool exit_flag = false;  // Used to signal the program to exit
 std::mutex signal_mutex; // Mutex for synchronization
@@ -159,6 +165,44 @@ int main(int argc, char* argv[]) {
                 //std::cout << "Rx window " << xor_WIN << ": " << std::fixed << std::setprecision(2) << rx_value << "\n";
             }
         }
+
+        serial.write(reinterpret_cast<const char*>(&STx), 1);
+        serial.write(reinterpret_cast<const char*>(&_0), 1);
+        serial.write(reinterpret_cast<const char*>(&_0), 1);
+        serial.write(reinterpret_cast<const char*>(&_0), 1);
+        serial.write(reinterpret_cast<const char*>(&_F), 1);
+        serial.write(reinterpret_cast<const char*>(&_CR), 1);
+        serial.flush();       
+
+        std::vector<char> response;
+        char currentChar;
+        int responseSize = 0;
+        while (serial.get(currentChar)) {
+            response.push_back(currentChar);
+            if (currentChar == '\r') { 
+                break;
+            }
+        }
+        std::size_t start_index = 0;
+        std::size_t comma_index = 0;
+        for (std::size_t i = 0; i < response.size(); ++i) {
+            if (response[i] == '>') {
+                start_index = i;
+            } else if (response[i] == ',') {
+                comma_index = i;
+                break;             }
+        }
+
+        std::string AUX1 = std::string(response.begin() + start_index + 1, response.begin() + comma_index);
+        std::string AUX2 = std::string(response.begin() + comma_index + 1, response.end());
+
+        // Convertir las cadenas AUX1 y AUX2 a floats
+        float pressure1 = std::stof(AUX1);
+        float pressure2 = std::stof(AUX2);
+   
+        bundle.add_value(pressure1);
+        bundle.add_value(pressure2);
+        
         publisher_client.Publish(bundle);
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }	   

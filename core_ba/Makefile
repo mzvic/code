@@ -221,6 +221,19 @@ core_grpc_proto/fast:
 .PHONY : core_grpc_proto/fast
 
 #=============================================================================
+# Target rules for targets named PrevacMonitor_code_sw
+
+# Build rule for target.
+PrevacMonitor_code_sw: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 PrevacMonitor_code_sw
+.PHONY : PrevacMonitor_code_sw
+
+# fast build rule for target.
+PrevacMonitor_code_sw/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/PrevacMonitor_code_sw.dir/build.make CMakeFiles/PrevacMonitor_code_sw.dir/build
+.PHONY : PrevacMonitor_code_sw/fast
+
+#=============================================================================
 # Target rules for targets named APD_fft_partial_code_sw
 
 # Build rule for target.
@@ -458,6 +471,33 @@ APD_publisher_code_sw.s: APD_publisher_code_sw.cc.s
 APD_publisher_code_sw.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/APD_publisher_code_sw.dir/build.make CMakeFiles/APD_publisher_code_sw.dir/APD_publisher_code_sw.cc.s
 .PHONY : APD_publisher_code_sw.cc.s
+
+PrevacMonitor_code_sw.o: PrevacMonitor_code_sw.cc.o
+
+.PHONY : PrevacMonitor_code_sw.o
+
+# target to build an object file
+PrevacMonitor_code_sw.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/PrevacMonitor_code_sw.dir/build.make CMakeFiles/PrevacMonitor_code_sw.dir/PrevacMonitor_code_sw.cc.o
+.PHONY : PrevacMonitor_code_sw.cc.o
+
+PrevacMonitor_code_sw.i: PrevacMonitor_code_sw.cc.i
+
+.PHONY : PrevacMonitor_code_sw.i
+
+# target to preprocess a source file
+PrevacMonitor_code_sw.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/PrevacMonitor_code_sw.dir/build.make CMakeFiles/PrevacMonitor_code_sw.dir/PrevacMonitor_code_sw.cc.i
+.PHONY : PrevacMonitor_code_sw.cc.i
+
+PrevacMonitor_code_sw.s: PrevacMonitor_code_sw.cc.s
+
+.PHONY : PrevacMonitor_code_sw.s
+
+# target to generate assembly for a file
+PrevacMonitor_code_sw.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/PrevacMonitor_code_sw.dir/build.make CMakeFiles/PrevacMonitor_code_sw.dir/PrevacMonitor_code_sw.cc.s
+.PHONY : PrevacMonitor_code_sw.cc.s
 
 TwisTorrIO_code_sw.o: TwisTorrIO_code_sw.cc.o
 
@@ -769,6 +809,7 @@ help:
 	@echo "... APD_fft_partial_code_sw"
 	@echo "... APD_plot_cvt_code_sw"
 	@echo "... APD_publisher_code_sw"
+	@echo "... PrevacMonitor_code_sw"
 	@echo "... TwisTorrIO_code_sw"
 	@echo "... TwisTorrMonitor_code_sw"
 	@echo "... TwisTorrSS1_code_sw"
@@ -794,6 +835,9 @@ help:
 	@echo "... APD_publisher_code_sw.o"
 	@echo "... APD_publisher_code_sw.i"
 	@echo "... APD_publisher_code_sw.s"
+	@echo "... PrevacMonitor_code_sw.o"
+	@echo "... PrevacMonitor_code_sw.i"
+	@echo "... PrevacMonitor_code_sw.s"
 	@echo "... TwisTorrIO_code_sw.o"
 	@echo "... TwisTorrIO_code_sw.i"
 	@echo "... TwisTorrIO_code_sw.s"

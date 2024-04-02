@@ -42,9 +42,9 @@ rigol_pub_size = 5
 laser_pub_size = 2  
 
 #Setting vacuum equipment to serial instead of remote controller
-#os.system('python /home/code/Development/305_008.py')
+os.system('python /home/code/Development/305_008.py')
 
-#os.system('python /home/code/Development/74_008.py')
+os.system('python /home/code/Development/74_008.py')
 
 # Custom Axis class to display timestamps as dates
 class DateAxis(pg.AxisItem):
@@ -229,6 +229,32 @@ class TwisTorrSubscribe2Broker(QThread):
                 global twistorr_subscribing_values  # Use the global variable for monitoring data
                 twistorr_subscribing_values = []
                 twistorr_subscribing_values[:] = bundle.value  # Copy the bundle value to the twistorr_subscribing_values list
+                self.update_signal.emit()  # Emit a signal to indicate updated data
+
+# Definition of a custom thread class for updating Prevac monitoring data
+class PrevacSubscribe2Broker(QThread):
+    bundle = None
+    update_signal = pyqtSignal()
+    
+    # Run method for the thread
+    def run(self):
+        bundle = core.Bundle()  # Create an empty Bundle object
+        channel = grpc.insecure_channel('localhost:50051')  # Create an insecure channel
+        stub = core_grpc.BrokerStub(channel)  # Create a stub for the Broker service
+        request = core.Interests()  # Create a request object
+        request.types.append(core.DATA_EG_MON)  # Add DATA_EG_MON type to the request
+        response_stream = stub.Subscribe(request)  # Subscribe to the response stream
+        thread = threading.Thread(target=self.receive_bundles, args=(response_stream,))
+        thread.start()  # Start the thread
+        thread.join()  # Wait for the thread to finish
+        
+    # Method to receive bundles from the response stream
+    def receive_bundles(self, response_stream):
+        for bundle in response_stream:
+            if len(bundle.value) > 0:  # Check if the bundle value is not empty
+                global prevac_subscribing_values  # Use the global variable for monitoring data
+                prevac_subscribing_values = []
+                prevac_subscribing_values[:] = bundle.value  # Copy the bundle value to the prevac_subscribing_values list
                 self.update_signal.emit()  # Emit a signal to indicate updated data
 
 class RigolPublish2Broker(QThread):
@@ -610,7 +636,8 @@ class MainWindow(QMainWindow):
             path + '/core_ba/bin/storage',
             path + '/core_ba/bin/recorder',
             path + '/core_ba/bin/TwisTorrSS1_code_sw',
-            path + '/core_ba/bin/TwisTorrSS2_code_sw'          
+            path + '/core_ba/bin/TwisTorrSS2_code_sw',
+            path + '/core_ba/bin/PrevacMonitor_code_sw'          
         ]
 
         # Title of the window
@@ -1049,9 +1076,7 @@ class MainWindow(QMainWindow):
         # Connect TwisTorrSubscribe2Broker() to a thread (receives TwisTorr data [Vacuum])
         self.twistorrSubs2Broker = TwisTorrSubscribe2Broker()
         self.twistorrSubs2Broker.update_signal.connect(self.update_vacuum_values)
-        self.twistorrSubs2Broker.start()        
-
-
+        self.twistorrSubs2Broker.start()     
 
         # Labels for the column titles
         label_parameter = QLabel("Parameter")
@@ -1255,6 +1280,11 @@ class MainWindow(QMainWindow):
         
         self.layout3 = QGridLayout(self.tab3)
 
+        # Connect PrevacSubscribe2Broker() to a thread (receives prevac data [electron gun])
+        self.prevacSubs2Broker = PrevacSubscribe2Broker()
+        self.prevacSubs2Broker.update_signal.connect(self.update_electrongun_values)
+        self.prevacSubs2Broker.start()      
+
         # Labels for the column titles
         eg_label1 = QLabel("Parameter")
         eg_label2 = QLabel("ES40 reading")
@@ -1268,7 +1298,7 @@ class MainWindow(QMainWindow):
         self.eg_connection_btn = QPushButton("Connect to ES40")
         self.eg_connection_btn.setCheckable(True)  
         self.eg_connection_btn.setStyleSheet("background-color: 53, 53, 53;")  
-        #self.eg_connection_btn.clicked.connect()
+        self.eg_connection_btn.clicked.connect(self.execute_electrongun_btn)
         #self.eg_connection_btn.setFixedWidth(300) 
         self.layout3.addWidget(self.eg_connection_btn, 0, 0, 1, 5) 
 
@@ -2552,7 +2582,7 @@ class MainWindow(QMainWindow):
         #self.motor = self.set_speed_motor.text()
         #self.valve = self.set_valve_state.text()
         if self.btn_vacuum_monitor.isChecked():
-            if len(twistorr_subscribing_values) >= 12:
+            if len(twistorr_subscribing_values) >= 14:
                 vacuum_status = int(twistorr_subscribing_values[0])
                 vacuum_current = str(int(twistorr_subscribing_values[1]))
                 vacuum_voltage = str(int(twistorr_subscribing_values[2]))
@@ -2564,7 +2594,9 @@ class MainWindow(QMainWindow):
                 vacuum_voltage2 = str(int(twistorr_subscribing_values[8]))
                 vacuum_power2 = str(int(twistorr_subscribing_values[9]))
                 vacuum_frequency2 = str(int(twistorr_subscribing_values[10]))
-                vacuum_temperature2 = str(int(twistorr_subscribing_values[11]))                
+                vacuum_temperature2 = str(int(twistorr_subscribing_values[11]))  
+                vacuum_pressure1 = str(int(twistorr_subscribing_values[12]))
+                vacuum_pressure2 = str(int(twistorr_subscribing_values[13]))                                
 
                 # Update the labels with the vacuum-related values
                 self.monitor_vacuum_current.setText(vacuum_current+" [mA]")
@@ -2623,6 +2655,79 @@ class MainWindow(QMainWindow):
 
     def stop_update_tt_timer(self):
         # Stop the QTimer used for updating vacuum-related values
+        if hasattr(self, 'timer'):
+            self.timer.stop()
+
+    def execute_electrongun_monitor(self):
+        self.processes[16] = subprocess.Popen([self.binary_paths[16]])
+
+    def kill_electrongun_monitor(self):
+        subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True)
+
+    def execute_electrongun_btn(self):
+        if self.eg_connection_btn.isChecked():
+            self.eg_connection_btn.setStyleSheet("background-color: darkblue;")
+            self.execute_electrongun_monitor()
+        else:
+            self.eg_connection_btn.setStyleSheet("background-color: 53, 53, 53;")
+            self.kill_electrongun_monitor()
+ 
+    def update_electrongun_values(self):
+        if self.eg_connection_btn.isChecked():
+            if len(prevac_subscribing_values) >= 13:
+                prevac_operate = float(prevac_subscribing_values[0])
+                prevac_standby = float(prevac_subscribing_values[1])
+                prevac_energy_voltage = str(round(float(prevac_subscribing_values[2]),3))
+                prevac_focus_voltage = str(round(float(prevac_subscribing_values[3]),3))
+                prevac_wehnelt_voltage = str(round(float(prevac_subscribing_values[4]),3))
+                prevac_emission_current = str(round(float(prevac_subscribing_values[5]),3))
+                prevac_scan_positionX = str(round(float(prevac_subscribing_values[6]),3))
+                prevac_scan_positionY = str(round(float(prevac_subscribing_values[7]),3))
+                prevac_scan_areaX = str(round(float(prevac_subscribing_values[8]),3))
+                prevac_scan_areaY = str(round(float(prevac_subscribing_values[9]),3))
+                prevac_scan_gridX = str(round(float(prevac_subscribing_values[10]),3))
+                prevac_scan_gridY = str(round(float(prevac_subscribing_values[11]),3)) 
+                prevac_time_per_dot = str(round(float(prevac_subscribing_values[12]),3))                
+
+                # Update the labels with the prevac-related values
+                self.eg_read_energy_voltage.setText(prevac_energy_voltage+" [V]")
+                self.eg_read_focus_voltage.setText(prevac_focus_voltage+" [V]")
+                self.eg_read_wehnelt_voltage.setText(prevac_wehnelt_voltage+" [V]")
+                self.eg_read_emission_current.setText(prevac_emission_current+" [µA]")
+                self.eg_read_tpd.setText(prevac_time_per_dot+" [µs]")
+                self.eg_read_position_x.setText(prevac_scan_positionX+" [mm]")
+                self.eg_read_position_y.setText(prevac_scan_positionY+" [mm]")
+                self.eg_read_area_x.setText(prevac_scan_areaX+" [mm]")
+                self.eg_read_area_y.setText(prevac_scan_areaY+" [mm]")
+                self.eg_read_grid_x.setText(prevac_scan_gridX+" [mm]")
+                self.eg_read_grid_y.setText(prevac_scan_gridY+" [mm]")
+
+                print(self.eg_read_energy_voltage, self.eg_read_focus_voltage, self.eg_read_wehnelt_voltage, self.eg_read_emission_current, self.eg_read_tpd, self.eg_read_position_x, self.eg_read_position_y, self.eg_read_area_x, self.eg_read_area_y, self.eg_read_grid_x, self.eg_read_grid_y)
+
+                                     
+        else:        
+            self.eg_read_energy_voltage.setText("N/C")
+            self.eg_read_focus_voltage.setText("N/C")
+            self.eg_read_wehnelt_voltage.setText("N/C")
+            self.eg_read_emission_current.setText("N/C")
+            self.eg_read_tpd.setText("N/C")
+            self.eg_read_position_x.setText("N/C")
+            self.eg_read_position_y.setText("N/C")
+            self.eg_read_area_x.setText("N/C")
+            self.eg_read_area_y.setText("N/C")
+            self.eg_read_grid_x.setText("N/C")
+            self.eg_read_grid_y.setText("N/C")                     
+        # Sleep briefly to avoid excessive updates
+        #time.sleep(0.01)
+
+    def start_update_eg_timer(self):
+        # Start a QTimer to periodically update prevac-related values
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_electrongun_values)
+        self.timer.start(10)  # Update interval for Prevac monitoring
+
+    def stop_update_eg_timer(self):
+        # Stop the QTimer used for updating prevac-related values
         if hasattr(self, 'timer'):
             self.timer.stop()
 
@@ -2858,8 +2963,8 @@ class MainWindow(QMainWindow):
     def update_graph_pressure(self):
         if (self.pressure_plotting_state == 1):
             timestamp = float(time.time())  # Extract timestamp from data
-            value1 = float(int(twistorr_subscribing_values[1]))  # Extract value from data
-            value2 = float(int(twistorr_subscribing_values[2]))  # Extract value from data
+            value1 = float(int(twistorr_subscribing_values[12]))  # Extract value from data
+            value2 = float(int(twistorr_subscribing_values[13]))  # Extract value from data
             self.pressure_time.append(timestamp)  # Add timestamp to times1 list
             self.pressure_data1.append(value1)  # Add value to data1 list
             self.pressure_data2.append(value2)  # Add value to data2 list
@@ -3038,6 +3143,7 @@ class MainWindow(QMainWindow):
                 subprocess.run(['pkill', '-f', process.args[0]], check=True)
 
         self.stop_update_tt_timer()
+        self.stop_update_eg_timer()
         event.accept()
 
     def toggle_cursor(self):
@@ -3118,8 +3224,9 @@ if __name__ == "__main__":
         # Create the main window and display it
         mainWindow = MainWindow()
         mainWindow.show()
-        # Start the update timer for Twistorr monitoring
+        # Start the update timer for Twistorr and Prevac 
         mainWindow.start_update_tt_timer()
+        mainWindow.start_update_eg_timer()
         # Execute the application event loop
         sys.exit(app.exec_())
     except Exception as e:
