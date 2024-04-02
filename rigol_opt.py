@@ -1259,8 +1259,8 @@ class MainWindow(QMainWindow):
         self.layout2.addWidget(self.graph_pressure_vacuum, 8, 0, 1, 6) 
         
         ## Initial data for plot 1
-        self.pressure_plot1 = self.graph_pressure_vacuum.plot([0,0,0,0], [time.time()-3,time.time()-2,time.time()-1,time.time()], pen=pg.mkPen(color=(255, 0, 0)))
-        self.pressure_plot2 = self.graph_pressure_vacuum.plot([0,0,0,0], [time.time()-3,time.time()-2,time.time()-1,time.time()], pen=pg.mkPen(color=(0, 255, 0)))
+        self.pressure_plot1 = self.graph_pressure_vacuum.plot([0,0,0,0], [time.time()-3,time.time()-2,time.time()-1,time.time()], pen=pg.mkPen(color=(255, 0, 0), width=2))
+        self.pressure_plot2 = self.graph_pressure_vacuum.plot([0,0,0,0], [time.time()-3,time.time()-2,time.time()-1,time.time()], pen=pg.mkPen(color=(0, 255, 0), width=2))
         self.btn_vacuum_monitor = QPushButton("Connect to vacuum equipment")
         self.btn_vacuum_monitor.setCheckable(True)  
         self.btn_vacuum_monitor.setStyleSheet("background-color: 53, 53, 53;")  
@@ -2963,8 +2963,8 @@ class MainWindow(QMainWindow):
     def update_graph_pressure(self):
         if (self.pressure_plotting_state == 1):
             timestamp = float(time.time())  # Extract timestamp from data
-            value1 = float(int(twistorr_subscribing_values[12]))  # Extract value from data
-            value2 = float(int(twistorr_subscribing_values[13]))  # Extract value from data
+            value1 = float(twistorr_subscribing_values[12])  # Extract value from data
+            value2 = float(twistorr_subscribing_values[13])  # Extract value from data
             self.pressure_time.append(timestamp)  # Add timestamp to times1 list
             self.pressure_data1.append(value1)  # Add value to data1 list
             self.pressure_data2.append(value2)  # Add value to data2 list
