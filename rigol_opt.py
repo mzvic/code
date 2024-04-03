@@ -24,6 +24,7 @@ import gc
 import os
 import pyvisa
 import psutil
+import struct
 #python -m grpc_tools.protoc -I /home/code/Development1/core_ba/ --python_out=. --grpc_python_out=. /home/code/Development1/core_ba/core.proto
 
 # List to store counts from APD
@@ -35,6 +36,7 @@ magn = []
 
 # List to store monitoring data from TwistTorr
 twistorr_subscribing_values = []
+prevac_subscribing_values = []
 rigol_publishing_values = []
 laser_publishing_values = []
 
@@ -637,7 +639,8 @@ class MainWindow(QMainWindow):
             path + '/core_ba/bin/recorder',
             path + '/core_ba/bin/TwisTorrSS1_code_sw',
             path + '/core_ba/bin/TwisTorrSS2_code_sw',
-            path + '/core_ba/bin/PrevacMonitor_code_sw'          
+            path + '/core_ba/bin/PrevacMonitor_code_sw',
+            path + '/core_ba/bin/PrevacSetter_code_sw'
         ]
 
         # Title of the window
@@ -803,7 +806,7 @@ class MainWindow(QMainWindow):
         self.tab_widget.addTab(self.tab7, "Data logging")                
 
         # Amont of processes depends on amount of c++ processes indicated earlier
-        self.processes = [None] * 17
+        self.processes = [None] * 18
         self.threads = []
         #self.processes[9] = subprocess.Popen([self.binary_paths[9]])
 
@@ -1338,6 +1341,7 @@ class MainWindow(QMainWindow):
         self.eg_energy_voltage_setval = QLineEdit()
         self.eg_energy_voltage_setval.setText("0") #self.eg_energy_voltage_setval.setFixedWidth(220) 
         self.eg_energy_voltage_setbtn = QPushButton("Set") #self.eg_energy_voltage_setbtn.clicked.connect(func_eg_energy_voltage_setval)
+        self.eg_energy_voltage_setbtn.clicked.connect(self.prevac_set_ev)
         self.eg_energy_voltage_setval.setFixedWidth(200)
         self.eg_energy_voltage_setbtn.setFixedWidth(150) 
 
@@ -1350,7 +1354,8 @@ class MainWindow(QMainWindow):
         # Focus voltage
         self.eg_focus_voltage_setval = QLineEdit()
         self.eg_focus_voltage_setval.setText("0") #self.eg_focus_voltage_setval.setFixedWidth(220)
-        self.eg_focus_voltage_setbtn = QPushButton("Set") #self.eg_focus_voltage_setbtn.clicked.connect(func_eg_focus_voltage_setval)
+        self.eg_focus_voltage_setbtn = QPushButton("Set") 
+        self.eg_focus_voltage_setbtn.clicked.connect(self.prevac_set_fv)
         self.eg_focus_voltage_setval.setFixedWidth(200)
         self.eg_focus_voltage_setbtn.setFixedWidth(150) 
 
@@ -1363,7 +1368,8 @@ class MainWindow(QMainWindow):
         # Wehnelt voltage
         self.eg_wehnelt_voltage_setval = QLineEdit()
         self.eg_wehnelt_voltage_setval.setText("0") #self.eg_wehnelt_voltage_setval.setFixedWidth(220)
-        self.eg_wehnelt_voltage_setbtn = QPushButton("Set") #self.eg_wehnelt_voltage_setbtn.clicked.connect(func_eg_wehnelt_voltage_setval)
+        self.eg_wehnelt_voltage_setbtn = QPushButton("Set") 
+        self.eg_wehnelt_voltage_setbtn.clicked.connect(self.prevac_set_wv)
         self.eg_wehnelt_voltage_setval.setFixedWidth(200)
         self.eg_wehnelt_voltage_setbtn.setFixedWidth(150) 
 
@@ -1376,7 +1382,8 @@ class MainWindow(QMainWindow):
         # Emission current
         self.eg_emission_current_setval = QLineEdit()
         self.eg_emission_current_setval.setText("0") #self.eg_emission_current_setval.setFixedWidth(220)
-        self.eg_emission_current_setbtn = QPushButton("Set") #self.eg_emission_current_setbtn.clicked.connect(func_eg_emission_current_setval)
+        self.eg_emission_current_setbtn = QPushButton("Set") 
+        self.eg_emission_current_setbtn.clicked.connect(self.prevac_set_ec)
         self.eg_emission_current_setval.setFixedWidth(200)
         self.eg_emission_current_setbtn.setFixedWidth(150) 
 
@@ -1389,7 +1396,8 @@ class MainWindow(QMainWindow):
         # Time per dot
         self.eg_tpd_setval = QLineEdit()
         self.eg_tpd_setval.setText("0") #self.eg_tpd_setval.setFixedWidth(220)
-        self.eg_tpd_setbtn = QPushButton("Set") #self.eg_tpd_setbtn.clicked.connect(func_eg_tpd_setval)
+        self.eg_tpd_setbtn = QPushButton("Set")
+        self.eg_tpd_setbtn.clicked.connect(self.prevac_set_tpd)
         self.eg_tpd_setval.setFixedWidth(200)
         self.eg_tpd_setbtn.setFixedWidth(150) 
 
@@ -1402,7 +1410,8 @@ class MainWindow(QMainWindow):
         # Scan position X
         self.eg_position_x_setval = QLineEdit()
         self.eg_position_x_setval.setText("0") #self.eg_position_x_setval.setFixedWidth(220)
-        self.eg_position_x_setbtn = QPushButton("Set") #self.eg_position_x_setbtn.clicked.connect(func_eg_position_x_setval)
+        self.eg_position_x_setbtn = QPushButton("Set") 
+        self.eg_position_x_setbtn.clicked.connect(self.prevac_set_px)
         self.eg_position_x_setval.setFixedWidth(200)
         self.eg_position_x_setbtn.setFixedWidth(150) 
 
@@ -1415,7 +1424,8 @@ class MainWindow(QMainWindow):
         # Scan position Y
         self.eg_position_y_setval = QLineEdit()
         self.eg_position_y_setval.setText("0") #self.eg_position_y_setval.setFixedWidth(220)
-        self.eg_position_y_setbtn = QPushButton("Set") #self.eg_position_y_setbtn.clicked.connect(func_eg_position_y_setval)
+        self.eg_position_y_setbtn = QPushButton("Set") 
+        self.eg_position_y_setbtn.clicked.connect(self.prevac_set_py)
         self.eg_position_y_setval.setFixedWidth(200)
         self.eg_position_y_setbtn.setFixedWidth(150) 
 
@@ -1428,7 +1438,8 @@ class MainWindow(QMainWindow):
         # Scan area X
         self.eg_area_x_setval = QLineEdit()
         self.eg_area_x_setval.setText("0") #self.eg_area_x_setval.setFixedWidth(220)
-        self.eg_area_x_setbtn = QPushButton("Set") #self.eg_area_x_setbtn.clicked.connect(func_eg_area_x_setval)
+        self.eg_area_x_setbtn = QPushButton("Set") 
+        self.eg_area_x_setbtn.clicked.connect(self.prevac_set_ax)
         self.eg_area_x_setval.setFixedWidth(200)
         self.eg_area_x_setbtn.setFixedWidth(150) 
 
@@ -1441,7 +1452,8 @@ class MainWindow(QMainWindow):
         # Scan area Y
         self.eg_area_y_setval = QLineEdit()
         self.eg_area_y_setval.setText("0") #self.eg_area_y_setval.setFixedWidth(220)
-        self.eg_area_y_setbtn = QPushButton("Set") #self.eg_area_y_setbtn.clicked.connect(func_eg_area_y_setval)
+        self.eg_area_y_setbtn = QPushButton("Set") 
+        self.eg_area_y_setbtn.clicked.connect(self.prevac_set_ay)
         self.eg_area_y_setval.setFixedWidth(200)
         self.eg_area_y_setbtn.setFixedWidth(150) 
 
@@ -1454,7 +1466,8 @@ class MainWindow(QMainWindow):
         # Scan grid X
         self.eg_grid_x_setval = QLineEdit()
         self.eg_grid_x_setval.setText("0") #self.eg_grid_x_setval.setFixedWidth(220)
-        self.eg_grid_x_setbtn = QPushButton("Set") #self.eg_grid_x_setbtn.clicked.connect(func_eg_grid_x_setval)
+        self.eg_grid_x_setbtn = QPushButton("Set") 
+        self.eg_grid_x_setbtn.clicked.connect(self.prevac_set_gx)
         self.eg_grid_x_setval.setFixedWidth(200)
         self.eg_grid_x_setbtn.setFixedWidth(150) 
 
@@ -1467,7 +1480,8 @@ class MainWindow(QMainWindow):
         # Scan grid Y
         self.eg_grid_y_setval = QLineEdit()
         self.eg_grid_y_setval.setText("0") #self.eg_grid_y_setval.setFixedWidth(220)
-        self.eg_grid_y_setbtn = QPushButton("Set") #self.eg_grid_y_setbtn.clicked.connect(func_eg_grid_y_setval)
+        self.eg_grid_y_setbtn = QPushButton("Set")
+        self.eg_grid_y_setbtn.clicked.connect(self.prevac_set_gy)
         self.eg_grid_y_setval.setFixedWidth(200)
         self.eg_grid_y_setbtn.setFixedWidth(150) 
 
@@ -2662,7 +2676,9 @@ class MainWindow(QMainWindow):
         self.processes[16] = subprocess.Popen([self.binary_paths[16]])
 
     def kill_electrongun_monitor(self):
-        subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True)
+        command = ['pkill', '-f', self.processes[16].args[0]]
+        print("Command to kill process:", command)
+        subprocess.run(command, check=True)
 
     def execute_electrongun_btn(self):
         if self.eg_connection_btn.isChecked():
@@ -2671,7 +2687,169 @@ class MainWindow(QMainWindow):
         else:
             self.eg_connection_btn.setStyleSheet("background-color: 53, 53, 53;")
             self.kill_electrongun_monitor()
- 
+
+    def execute_prevac_setter(self, prevac_arg):
+        prevac_command = [self.binary_paths[17], *prevac_arg.split()]
+        self.processes[17] = subprocess.Popen(prevac_command)
+        print(prevac_command)
+        time.sleep(0.3)
+        #subprocess.run(['pkill', '-f', self.processes[17].args[0]], check=True)  
+        self.processes[16] = subprocess.Popen([self.binary_paths[16]])
+
+    def prevac_set_ev(self):
+        if self.eg_connection_btn.isChecked():
+            subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
+            float_text = self.eg_energy_voltage_setval.text()
+            float_v = float(float_text)
+            hex_v = struct.pack('>f', float_v).hex()
+            hex_part1 = hex_v[:4]
+            hex_part2 = hex_v[4:]
+            decimal_part1 = int(hex_part1, 16)
+            decimal_part2 = int(hex_part2, 16)
+            arg = "0 15 " + str(decimal_part1) + " " + str(decimal_part2)
+            self.execute_prevac_setter(arg)  
+            time.sleep(0.1) 
+
+    def prevac_set_fv(self):
+        if self.eg_connection_btn.isChecked():
+            subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
+            float_text = self.eg_focus_voltage_setval.text()
+            float_v = float(float_text)
+            hex_v = struct.pack('>f', float_v).hex()
+            hex_part1 = hex_v[:4]
+            hex_part2 = hex_v[4:]
+            decimal_part1 = int(hex_part1, 16)
+            decimal_part2 = int(hex_part2, 16)
+            arg = "0 17 " + str(decimal_part1) + " " + str(decimal_part2)
+            self.execute_prevac_setter(arg)  
+            time.sleep(0.1) 
+
+    def prevac_set_wv(self):
+        if self.eg_connection_btn.isChecked():
+            subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
+            float_text = self.eg_wehnelt_voltage_setval.text()
+            float_v = float(float_text)
+            hex_v = struct.pack('>f', float_v).hex()
+            hex_part1 = hex_v[:4]
+            hex_part2 = hex_v[4:]
+            decimal_part1 = int(hex_part1, 16)
+            decimal_part2 = int(hex_part2, 16)
+            arg = "0 19 " + str(decimal_part1) + " " + str(decimal_part2)
+            self.execute_prevac_setter(arg)  
+            time.sleep(0.1) 
+
+    def prevac_set_ec(self):
+        if self.eg_connection_btn.isChecked():
+            subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
+            float_text = self.eg_emission_current_setval.text()
+            float_v = float(float_text)
+            hex_v = struct.pack('>f', float_v).hex()
+            hex_part1 = hex_v[:4]
+            hex_part2 = hex_v[4:]
+            decimal_part1 = int(hex_part1, 16)
+            decimal_part2 = int(hex_part2, 16)
+            arg = "0 21 " + str(decimal_part1) + " " + str(decimal_part2)
+            self.execute_prevac_setter(arg)  
+            time.sleep(0.1) 
+
+    def prevac_set_tpd(self):
+        if self.eg_connection_btn.isChecked():
+            subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
+            float_text = self.eg_tpd_setval.text()
+            float_v = float(float_text)
+            hex_v = struct.pack('>f', float_v).hex()
+            hex_part1 = hex_v[:4]
+            hex_part2 = hex_v[4:]
+            decimal_part1 = int(hex_part1, 16)
+            decimal_part2 = int(hex_part2, 16)
+            arg = "0 37 " + str(decimal_part1) + " " + str(decimal_part2)
+            self.execute_prevac_setter(arg)  
+            time.sleep(0.1) 
+
+    def prevac_set_px(self):
+        if self.eg_connection_btn.isChecked():
+            subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
+            float_text = self.eg_position_x_setval.text()
+            float_v = float(float_text)
+            hex_v = struct.pack('>f', float_v).hex()
+            hex_part1 = hex_v[:4]
+            hex_part2 = hex_v[4:]
+            decimal_part1 = int(hex_part1, 16)
+            decimal_part2 = int(hex_part2, 16)
+            arg = "0 23 " + str(decimal_part1) + " " + str(decimal_part2)
+            self.execute_prevac_setter(arg)  
+            time.sleep(0.1) 
+
+    def prevac_set_py(self):
+        if self.eg_connection_btn.isChecked():
+            subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
+            float_text = self.eg_position_y_setval.text()
+            float_v = float(float_text)
+            hex_v = struct.pack('>f', float_v).hex()
+            hex_part1 = hex_v[:4]
+            hex_part2 = hex_v[4:]
+            decimal_part1 = int(hex_part1, 16)
+            decimal_part2 = int(hex_part2, 16)
+            arg = "0 25 " + str(decimal_part1) + " " + str(decimal_part2)
+            self.execute_prevac_setter(arg)  
+            time.sleep(0.1) 
+
+    def prevac_set_ax(self):
+        if self.eg_connection_btn.isChecked():
+            subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
+            float_text = self.eg_area_x_setval.text()
+            float_v = float(float_text)
+            hex_v = struct.pack('>f', float_v).hex()
+            hex_part1 = hex_v[:4]
+            hex_part2 = hex_v[4:]
+            decimal_part1 = int(hex_part1, 16)
+            decimal_part2 = int(hex_part2, 16)
+            arg = "0 27 " + str(decimal_part1) + " " + str(decimal_part2)
+            self.execute_prevac_setter(arg)  
+            time.sleep(0.1) 
+
+    def prevac_set_ay(self):
+        if self.eg_connection_btn.isChecked():
+            subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
+            float_text = self.eg_area_y_setval.text()
+            float_v = float(float_text)
+            hex_v = struct.pack('>f', float_v).hex()
+            hex_part1 = hex_v[:4]
+            hex_part2 = hex_v[4:]
+            decimal_part1 = int(hex_part1, 16)
+            decimal_part2 = int(hex_part2, 16)
+            arg = "0 29 " + str(decimal_part1) + " " + str(decimal_part2)
+            self.execute_prevac_setter(arg)  
+            time.sleep(0.1) 
+
+    def prevac_set_gx(self):
+        if self.eg_connection_btn.isChecked():
+            subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
+            float_text = self.eg_grid_x_setval.text()
+            float_v = float(float_text)
+            hex_v = struct.pack('>f', float_v).hex()
+            hex_part1 = hex_v[:4]
+            hex_part2 = hex_v[4:]
+            decimal_part1 = int(hex_part1, 16)
+            decimal_part2 = int(hex_part2, 16)
+            arg = "0 31 " + str(decimal_part1) + " " + str(decimal_part2)
+            self.execute_prevac_setter(arg)  
+            time.sleep(0.1) 
+
+    def prevac_set_gy(self):
+        if self.eg_connection_btn.isChecked():
+            subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
+            float_text = self.eg_grid_y_setval.text()
+            float_v = float(float_text)
+            hex_v = struct.pack('>f', float_v).hex()
+            hex_part1 = hex_v[:4]
+            hex_part2 = hex_v[4:]
+            decimal_part1 = int(hex_part1, 16)
+            decimal_part2 = int(hex_part2, 16)
+            arg = "0 33 " + str(decimal_part1) + " " + str(decimal_part2)
+            self.execute_prevac_setter(arg)  
+            time.sleep(0.1) 
+
     def update_electrongun_values(self):
         if self.eg_connection_btn.isChecked():
             if len(prevac_subscribing_values) >= 13:
@@ -2722,14 +2900,14 @@ class MainWindow(QMainWindow):
 
     def start_update_eg_timer(self):
         # Start a QTimer to periodically update prevac-related values
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_electrongun_values)
-        self.timer.start(10)  # Update interval for Prevac monitoring
+        self.timer_prevac = QTimer()
+        self.timer_prevac.timeout.connect(self.update_electrongun_values)
+        self.timer_prevac.start(10)  # Update interval for Prevac monitoring
 
     def stop_update_eg_timer(self):
         # Stop the QTimer used for updating prevac-related values
-        if hasattr(self, 'timer'):
-            self.timer.stop()
+        if hasattr(self, 'timer_prevac'):
+            self.timer_prevac.stop()
 
     def update_input_width(self, event=None):
         # Update the width of input fields based on the window size

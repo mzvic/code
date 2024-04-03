@@ -216,8 +216,8 @@ void WriteData(const Bundle &bundle) {
 		  twistorr_monitor_entry->pump2_power_mon = kValue.Get(9);
 		  twistorr_monitor_entry->pump2_frequency_mon = kValue.Get(10);
 		  twistorr_monitor_entry->pump2_temperature_mon = kValue.Get(11);
-		  twistorr_monitor_entry->pressure_1 = kValue.Get(1);
-		  twistorr_monitor_entry->pressure_2 = kValue.Get(2);			    	  
+		  twistorr_monitor_entry->pressure_1 = kValue.Get(12);
+		  twistorr_monitor_entry->pressure_2 = kValue.Get(13);			    	  
 		  LOG("Parsing done");
 		  if (H5PTappend(twistorr_monitor_ptable, 1, twistorr_monitor_entry.get()) < 0)
 			LOG("Error appending entry");

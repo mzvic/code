@@ -130,6 +130,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named PrevacSetter_code_sw
+
+# Build rule for target.
+PrevacSetter_code_sw: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 PrevacSetter_code_sw
+.PHONY : PrevacSetter_code_sw
+
+# fast build rule for target.
+PrevacSetter_code_sw/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/PrevacSetter_code_sw.dir/build.make CMakeFiles/PrevacSetter_code_sw.dir/build
+.PHONY : PrevacSetter_code_sw/fast
+
+#=============================================================================
 # Target rules for targets named TwisTorrSS1_code_sw
 
 # Build rule for target.
@@ -499,6 +512,33 @@ PrevacMonitor_code_sw.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/PrevacMonitor_code_sw.dir/build.make CMakeFiles/PrevacMonitor_code_sw.dir/PrevacMonitor_code_sw.cc.s
 .PHONY : PrevacMonitor_code_sw.cc.s
 
+PrevacSetter_code_sw.o: PrevacSetter_code_sw.cc.o
+
+.PHONY : PrevacSetter_code_sw.o
+
+# target to build an object file
+PrevacSetter_code_sw.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/PrevacSetter_code_sw.dir/build.make CMakeFiles/PrevacSetter_code_sw.dir/PrevacSetter_code_sw.cc.o
+.PHONY : PrevacSetter_code_sw.cc.o
+
+PrevacSetter_code_sw.i: PrevacSetter_code_sw.cc.i
+
+.PHONY : PrevacSetter_code_sw.i
+
+# target to preprocess a source file
+PrevacSetter_code_sw.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/PrevacSetter_code_sw.dir/build.make CMakeFiles/PrevacSetter_code_sw.dir/PrevacSetter_code_sw.cc.i
+.PHONY : PrevacSetter_code_sw.cc.i
+
+PrevacSetter_code_sw.s: PrevacSetter_code_sw.cc.s
+
+.PHONY : PrevacSetter_code_sw.s
+
+# target to generate assembly for a file
+PrevacSetter_code_sw.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/PrevacSetter_code_sw.dir/build.make CMakeFiles/PrevacSetter_code_sw.dir/PrevacSetter_code_sw.cc.s
+.PHONY : PrevacSetter_code_sw.cc.s
+
 TwisTorrIO_code_sw.o: TwisTorrIO_code_sw.cc.o
 
 .PHONY : TwisTorrIO_code_sw.o
@@ -810,6 +850,7 @@ help:
 	@echo "... APD_plot_cvt_code_sw"
 	@echo "... APD_publisher_code_sw"
 	@echo "... PrevacMonitor_code_sw"
+	@echo "... PrevacSetter_code_sw"
 	@echo "... TwisTorrIO_code_sw"
 	@echo "... TwisTorrMonitor_code_sw"
 	@echo "... TwisTorrSS1_code_sw"
@@ -838,6 +879,9 @@ help:
 	@echo "... PrevacMonitor_code_sw.o"
 	@echo "... PrevacMonitor_code_sw.i"
 	@echo "... PrevacMonitor_code_sw.s"
+	@echo "... PrevacSetter_code_sw.o"
+	@echo "... PrevacSetter_code_sw.i"
+	@echo "... PrevacSetter_code_sw.s"
 	@echo "... TwisTorrIO_code_sw.o"
 	@echo "... TwisTorrIO_code_sw.i"
 	@echo "... TwisTorrIO_code_sw.s"

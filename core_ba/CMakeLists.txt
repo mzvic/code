@@ -69,7 +69,7 @@ find_package(Boost REQUIRED COMPONENTS system iostreams)
 find_package(ZLIB REQUIRED)
 
 foreach (_target
-        APD_broker2_code_sw APD_plot_cvt_code_sw APD_publisher_code_sw APD_fft_partial_code_sw APD_fft_full_code_sw TwisTorrIO_code_sw TwisTorrSetter_code_sw TwisTorrMonitor_code_sw storage recorder TwisTorrSS1_code_sw TwisTorrSS2_code_sw PrevacMonitor_code_sw) 
+        APD_broker2_code_sw APD_plot_cvt_code_sw APD_publisher_code_sw APD_fft_partial_code_sw APD_fft_full_code_sw TwisTorrIO_code_sw TwisTorrSetter_code_sw TwisTorrMonitor_code_sw storage recorder TwisTorrSS1_code_sw TwisTorrSS2_code_sw PrevacMonitor_code_sw PrevacSetter_code_sw) 
     add_executable(${_target} "${_target}.cc")
     target_link_libraries(${_target}
             core_grpc_proto
