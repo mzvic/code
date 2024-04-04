@@ -718,7 +718,7 @@ class MainWindow(QMainWindow):
         self.pressure_frame = QtWidgets.QFrame()
         self.pressure_frame.setFrameShape(QtWidgets.QFrame.Box)
 
-        self.dock_grid.addWidget(self.pressure_frame, 6, 0, 3, 2)
+        self.dock_grid.addWidget(self.pressure_frame, 6, 0, 4, 2)
 
         pressure_layout = QtWidgets.QVBoxLayout(self.pressure_frame)
         self.pressure_frame.setLayout(pressure_layout)
@@ -738,13 +738,18 @@ class MainWindow(QMainWindow):
         self.dock_grid.addWidget(QLabel("       74FS frequency:"), 8, 0)
         self.vacuum_frequency2 = QtWidgets.QLabel("N/C")
         self.dock_grid.addWidget(self.vacuum_frequency2, 8, 1)        
+
+        self.dock_grid.addWidget(QLabel("       FRG-702 Pressure:"), 9, 0)
+        self.FR_pressure = QtWidgets.QLabel("N/C")
+        self.dock_grid.addWidget(self.FR_pressure, 9, 1)        
+
         # ---------------------------------------------
 
         self.laser_frame = QtWidgets.QFrame()
         self.laser_frame.setFrameShape(QtWidgets.QFrame.Box)
-        self.laser_frame.setGeometry(0, 0, 250, 100)  # Establecer posición y tamaño del frame
+        self.laser_frame.setGeometry(0, 0, 250, 130)  # Establecer posición y tamaño del frame
 
-        self.dock_grid.addWidget(self.laser_frame, 9, 0, 3, 2)
+        self.dock_grid.addWidget(self.laser_frame, 10, 0, 3, 2)
 
         self.laser_button = QtWidgets.QPushButton(self.laser_frame)
         self.laser_button.setCheckable(True)
@@ -765,9 +770,9 @@ class MainWindow(QMainWindow):
         self.laser_set_button.setFixedWidth(70)
         self.laser_set_button.move(130, 85)  
 
-        self.dock_grid.addWidget(QLabel("       Laser voltage:"), 11, 0)
+        self.dock_grid.addWidget(QLabel("       Laser voltage:"), 12, 0)
         self.laser_voltage_monitor = QtWidgets.QLabel("N/C")
-        self.dock_grid.addWidget(self.laser_voltage_monitor, 11, 1)
+        self.dock_grid.addWidget(self.laser_voltage_monitor, 12, 1)
 
         # ---------------------------------------------
 
@@ -775,7 +780,7 @@ class MainWindow(QMainWindow):
         self.apd_frame = QtWidgets.QFrame()
         self.apd_frame.setFrameShape(QtWidgets.QFrame.Box)
 
-        self.dock_grid.addWidget(self.apd_frame, 15, 0, 1, 2)
+        self.dock_grid.addWidget(self.apd_frame, 16, 0, 1, 2)
 
         apd_layout = QtWidgets.QVBoxLayout(self.apd_frame)
         self.apd_frame.setLayout(apd_layout)
@@ -1245,7 +1250,7 @@ class MainWindow(QMainWindow):
         #self.pressure_secs_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.pressure_secs_input = QLineEdit(self)
         self.pressure_secs_input.setFixedWidth(150)
-        self.pressure_secs_input.setText("600") # Default value      
+        self.pressure_secs_input.setText("86400") # Default value      
         self.layout2.addWidget(self.pressure_secs_label, 3, 4)
         self.layout2.addWidget(self.pressure_secs_input, 3, 5)
 
@@ -1253,7 +1258,8 @@ class MainWindow(QMainWindow):
 
         self.graph_pressure_vacuum.invertY()
         
-        self.graph_pressure_vacuum.showGrid(x=True, y=True, alpha=1)           
+        self.graph_pressure_vacuum.showGrid(x=True, y=True, alpha=1)  
+        self.graph_pressure_vacuum.plotItem.setLogMode(x=True)         
         self.graph_pressure_vacuum.setLabel('left', 'Time', units='hh:mm:ss.µµµµµµ')
         self.graph_pressure_vacuum.setLabel('bottom', 'Pressure [Torr]')
         self.pressure_data1 = []
@@ -1491,6 +1497,31 @@ class MainWindow(QMainWindow):
         self.layout3.addWidget(QLabel("[mm]"), 12, 3)
         self.layout3.addWidget(self.eg_grid_y_setbtn, 12, 4) 
 
+        # Plot 3 object 
+        self.color_map2 = pg.ImageView(view=pg.PlotItem(axisItems={'bottom': CustomImageAxis(orientation='bottom')}))
+                
+        # Plot 3 displayed in the APD tab
+        plot_item2 = self.color_map2.getView()
+
+        # Plot 3 height
+        self.color_map2.setMinimumHeight(350)
+        self.color_map2.setMaximumHeight(1000)
+
+        # Some parameters and settings for plot 3
+        self.color_map2.setColorMap(pg.colormap.get('plasma')) # Histogram color setting
+        self.fft_magnitudes = 500000
+        self.color_map2.getView().autoRange() 
+        self.avg_count = 0
+        plot_item2.showGrid(x=True, y=True)
+        self.t_fft = int(time.time())
+        
+        # Labels for the column titles
+        eg_plot_label = QLabel("Cascade plot from APD (enable APD readings first)")
+        eg_plot_label.setStyleSheet("font-weight: bold;")
+        self.layout3.addWidget(eg_plot_label,13,0)
+
+        # Plot eg displayed in the APD tab
+        self.layout3.addWidget(self.color_map2,14,0,2,5)
         self.layout3.setRowStretch(15, 5)
 
         # ------------------------------------------------------------------------------------------- #
@@ -2591,10 +2622,7 @@ class MainWindow(QMainWindow):
         # subprocess.run(['pkill', '-f', self.processes[10].args[0]], check=True)                
 
     def update_vacuum_values(self):
-        # Update the vacuum-related values from twistorr_subscribing_values
-        #self.pressure = self.set_vacuum_pressure.text()
-        #self.motor = self.set_speed_motor.text()
-        #self.valve = self.set_valve_state.text()
+        # Update the prevac-related values from twistorr_subscribing_values
         if self.btn_vacuum_monitor.isChecked():
             if len(twistorr_subscribing_values) >= 14:
                 vacuum_status = int(twistorr_subscribing_values[0])
@@ -2609,8 +2637,12 @@ class MainWindow(QMainWindow):
                 vacuum_power2 = str(int(twistorr_subscribing_values[9]))
                 vacuum_frequency2 = str(int(twistorr_subscribing_values[10]))
                 vacuum_temperature2 = str(int(twistorr_subscribing_values[11]))  
-                vacuum_pressure1 = str(int(twistorr_subscribing_values[12]))
-                vacuum_pressure2 = str(int(twistorr_subscribing_values[13]))                                
+
+                pre_vacuum_pressure1 = float(twistorr_subscribing_values[12])
+                pre_vacuum_pressure2 = float(twistorr_subscribing_values[13])                                
+
+                vacuum_pressure1 = str("{:.2E}".format(pre_vacuum_pressure1))
+                vacuum_pressure2 = str("{:.2E}".format(pre_vacuum_pressure2))
 
                 # Update the labels with the vacuum-related values
                 self.monitor_vacuum_current.setText(vacuum_current+" [mA]")
@@ -2625,6 +2657,8 @@ class MainWindow(QMainWindow):
                 self.monitor_vacuum_frequency2.setText(vacuum_frequency2+" [Hz]")
                 self.monitor_vacuum_temperature2.setText(vacuum_temperature2+" [°C]")
                 self.vacuum_frequency2.setText(vacuum_frequency2+" [Hz]")
+                self.FR_pressure.setText(vacuum_pressure1+" [Torr]")
+
 
                 self.update_graph_pressure()
                 
@@ -2654,6 +2688,7 @@ class MainWindow(QMainWindow):
             self.monitor_vacuum_frequency2.setText("N/C")
             self.monitor_vacuum_temperature2.setText("N/C")
             self.vacuum_frequency2.setText("N/C")  
+            self.FR_pressure.setText("N/C")
             self.btn_tt_startstop1.setChecked(False)
             self.btn_tt_startstop1.setStyleSheet("background-color: 53, 53, 53;") 
             self.btn_tt_startstop2.setChecked(False)

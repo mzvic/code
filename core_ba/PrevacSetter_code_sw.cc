@@ -29,7 +29,8 @@
 const unsigned char STx = 1;
 const unsigned char ETx = 0;
 const unsigned char write_function = 6;
-unsigned char w1, w2, val1, val2;
+unsigned char w1, w2;
+uint16_t val1, val2;
 std::vector<unsigned char> crc_data, crc;
 
 
@@ -75,6 +76,13 @@ int main(int argc, char* argv[]) {
     std::cout << "w2: " << static_cast<int>(w2) << std::endl;
     std::cout << "val1: " << static_cast<int>(val1) << std::endl;
     std::cout << "val2: " << static_cast<int>(val2) << std::endl;
+
+    std::cout << "w1: 0x" << std::hex << static_cast<int>(w1) << std::endl;
+    std::cout << "w2: 0x" << std::hex << static_cast<int>(w2) << std::endl;
+    std::cout << "val1: 0x" << std::setw(4) << std::setfill('0') << std::hex << val1 << std::endl;
+    std::cout << "val2: 0x" << std::setw(4) << std::setfill('0') << std::hex << val2 << std::endl;
+
+
     
     int pserial = open(serialport, O_RDWR | O_NOCTTY);
     if (pserial == -1) {
