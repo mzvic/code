@@ -2727,7 +2727,7 @@ class MainWindow(QMainWindow):
         prevac_command = [self.binary_paths[17], *prevac_arg.split()]
         self.processes[17] = subprocess.Popen(prevac_command)
         print(prevac_command)
-        time.sleep(0.3)
+
         #subprocess.run(['pkill', '-f', self.processes[17].args[0]], check=True)  
         self.processes[16] = subprocess.Popen([self.binary_paths[16]])
 
@@ -2736,12 +2736,12 @@ class MainWindow(QMainWindow):
             subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
             float_text = self.eg_energy_voltage_setval.text()
             float_v = float(float_text)
-            hex_v = struct.pack('>f', float_v).hex()
-            hex_part1 = hex_v[:4]
-            hex_part2 = hex_v[4:]
-            decimal_part1 = int(hex_part1, 16)
-            decimal_part2 = int(hex_part2, 16)
-            arg = "0 15 " + str(decimal_part1) + " " + str(decimal_part2)
+            hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
+            hex_1 = hex_str[:4] 
+            hex_2 = hex_str[4:8] 
+            decimal_part1 = int(hex_1, 16)
+            decimal_part2 = int(hex_2, 16)
+            arg = "0 15 " + str(decimal_part1) + " " + str(decimal_part2) 
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
 
@@ -2750,11 +2750,11 @@ class MainWindow(QMainWindow):
             subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
             float_text = self.eg_focus_voltage_setval.text()
             float_v = float(float_text)
-            hex_v = struct.pack('>f', float_v).hex()
-            hex_part1 = hex_v[:4]
-            hex_part2 = hex_v[4:]
-            decimal_part1 = int(hex_part1, 16)
-            decimal_part2 = int(hex_part2, 16)
+            hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
+            hex_1 = hex_str[:4] 
+            hex_2 = hex_str[4:8] 
+            decimal_part1 = int(hex_1, 16)
+            decimal_part2 = int(hex_2, 16)
             arg = "0 17 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2764,11 +2764,11 @@ class MainWindow(QMainWindow):
             subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
             float_text = self.eg_wehnelt_voltage_setval.text()
             float_v = float(float_text)
-            hex_v = struct.pack('>f', float_v).hex()
-            hex_part1 = hex_v[:4]
-            hex_part2 = hex_v[4:]
-            decimal_part1 = int(hex_part1, 16)
-            decimal_part2 = int(hex_part2, 16)
+            hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
+            hex_1 = hex_str[:4] 
+            hex_2 = hex_str[4:8] 
+            decimal_part1 = int(hex_1, 16)
+            decimal_part2 = int(hex_2, 16)
             arg = "0 19 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2778,11 +2778,11 @@ class MainWindow(QMainWindow):
             subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
             float_text = self.eg_emission_current_setval.text()
             float_v = float(float_text)
-            hex_v = struct.pack('>f', float_v).hex()
-            hex_part1 = hex_v[:4]
-            hex_part2 = hex_v[4:]
-            decimal_part1 = int(hex_part1, 16)
-            decimal_part2 = int(hex_part2, 16)
+            hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
+            hex_1 = hex_str[:4] 
+            hex_2 = hex_str[4:8] 
+            decimal_part1 = int(hex_1, 16)
+            decimal_part2 = int(hex_2, 16)
             arg = "0 21 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2792,11 +2792,11 @@ class MainWindow(QMainWindow):
             subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
             float_text = self.eg_tpd_setval.text()
             float_v = float(float_text)
-            hex_v = struct.pack('>f', float_v).hex()
-            hex_part1 = hex_v[:4]
-            hex_part2 = hex_v[4:]
-            decimal_part1 = int(hex_part1, 16)
-            decimal_part2 = int(hex_part2, 16)
+            hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
+            hex_1 = hex_str[:4] 
+            hex_2 = hex_str[4:8] 
+            decimal_part1 = int(hex_1, 16)
+            decimal_part2 = int(hex_2, 16)
             arg = "0 37 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2806,11 +2806,11 @@ class MainWindow(QMainWindow):
             subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
             float_text = self.eg_position_x_setval.text()
             float_v = float(float_text)
-            hex_v = struct.pack('>f', float_v).hex()
-            hex_part1 = hex_v[:4]
-            hex_part2 = hex_v[4:]
-            decimal_part1 = int(hex_part1, 16)
-            decimal_part2 = int(hex_part2, 16)
+            hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
+            hex_1 = hex_str[:4] 
+            hex_2 = hex_str[4:8] 
+            decimal_part1 = int(hex_1, 16)
+            decimal_part2 = int(hex_2, 16)
             arg = "0 23 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2820,11 +2820,11 @@ class MainWindow(QMainWindow):
             subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
             float_text = self.eg_position_y_setval.text()
             float_v = float(float_text)
-            hex_v = struct.pack('>f', float_v).hex()
-            hex_part1 = hex_v[:4]
-            hex_part2 = hex_v[4:]
-            decimal_part1 = int(hex_part1, 16)
-            decimal_part2 = int(hex_part2, 16)
+            hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
+            hex_1 = hex_str[:4] 
+            hex_2 = hex_str[4:8] 
+            decimal_part1 = int(hex_1, 16)
+            decimal_part2 = int(hex_2, 16)
             arg = "0 25 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2834,11 +2834,11 @@ class MainWindow(QMainWindow):
             subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
             float_text = self.eg_area_x_setval.text()
             float_v = float(float_text)
-            hex_v = struct.pack('>f', float_v).hex()
-            hex_part1 = hex_v[:4]
-            hex_part2 = hex_v[4:]
-            decimal_part1 = int(hex_part1, 16)
-            decimal_part2 = int(hex_part2, 16)
+            hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
+            hex_1 = hex_str[:4] 
+            hex_2 = hex_str[4:8] 
+            decimal_part1 = int(hex_1, 16)
+            decimal_part2 = int(hex_2, 16)
             arg = "0 27 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2848,11 +2848,11 @@ class MainWindow(QMainWindow):
             subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
             float_text = self.eg_area_y_setval.text()
             float_v = float(float_text)
-            hex_v = struct.pack('>f', float_v).hex()
-            hex_part1 = hex_v[:4]
-            hex_part2 = hex_v[4:]
-            decimal_part1 = int(hex_part1, 16)
-            decimal_part2 = int(hex_part2, 16)
+            hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
+            hex_1 = hex_str[:4] 
+            hex_2 = hex_str[4:8] 
+            decimal_part1 = int(hex_1, 16)
+            decimal_part2 = int(hex_2, 16)
             arg = "0 29 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2862,11 +2862,11 @@ class MainWindow(QMainWindow):
             subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
             float_text = self.eg_grid_x_setval.text()
             float_v = float(float_text)
-            hex_v = struct.pack('>f', float_v).hex()
-            hex_part1 = hex_v[:4]
-            hex_part2 = hex_v[4:]
-            decimal_part1 = int(hex_part1, 16)
-            decimal_part2 = int(hex_part2, 16)
+            hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
+            hex_1 = hex_str[:4] 
+            hex_2 = hex_str[4:8] 
+            decimal_part1 = int(hex_1, 16)
+            decimal_part2 = int(hex_2, 16)
             arg = "0 31 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2876,11 +2876,11 @@ class MainWindow(QMainWindow):
             subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
             float_text = self.eg_grid_y_setval.text()
             float_v = float(float_text)
-            hex_v = struct.pack('>f', float_v).hex()
-            hex_part1 = hex_v[:4]
-            hex_part2 = hex_v[4:]
-            decimal_part1 = int(hex_part1, 16)
-            decimal_part2 = int(hex_part2, 16)
+            hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
+            hex_1 = hex_str[:4] 
+            hex_2 = hex_str[4:8] 
+            decimal_part1 = int(hex_1, 16)
+            decimal_part2 = int(hex_2, 16)
             arg = "0 33 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
