@@ -28,7 +28,8 @@
 // Global variables
 int STx = 1;
 int ETx = 0;
-int write_function = 16;
+int write_function_1 = 6;
+int write_function_2 = 16;
 int w1, w2;
 int w3 = 0;
 int w4 = 2;
@@ -75,12 +76,15 @@ int main(int argc, char* argv[]) {
     val1 = std::stoi(argv[3]);
     val2 = std::stoi(argv[4]);
 
-        
+    std::cout << "w1: " << w1 << std::endl;
+    std::cout << "w2: " << w2 << std::endl;        
     std::cout << "w1: " << std::hex << static_cast<int>(w1) << std::endl;
     std::cout << "w2: " << std::hex << static_cast<int>(w2) << std::endl;
     std::cout << "val1: " << std::uppercase << std::setw(4) << std::setfill('0') << std::hex << (val1 & 0xFFFF) << std::endl;
     std::cout << "val2: " << std::uppercase << std::setw(4) << std::setfill('0') << std::hex << (val2 & 0xFFFF) << std::endl;
-        
+    
+    
+
     int val1_byte0 = (val1 >> 8) & 0xFF;
     int val1_byte1 = val1 & 0xFF;
     
@@ -109,8 +113,13 @@ int main(int argc, char* argv[]) {
     options.c_cc[VTIME] = 1;
     tcsetattr(pserial, TCSANOW, &options);
     char data = '0';
-    write(pserial, &data, 1);
-    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+    
+    // Write the data multiple times
+    for (int i = 0; i < 5; ++i) {
+        write(pserial, &data, 1);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    
     close(pserial);
     // Register the signal handler for SIGINT (Ctrl+C)
     std::signal(SIGINT, HandleSignal);
@@ -121,61 +130,68 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    crc_data = {STx, write_function, w1, w2, w3, w4, w5, val1_byte0, val1_byte1, val2_byte0, val2_byte1};
-    crc = calculate_crc(crc_data);
+    // Adjust crc_data based on w1 and w2
+    if (w1 == 0 && w2 == 37) {
+        crc_data = {STx, write_function_1, w1, w2, val1, val2};
+        crc = calculate_crc(crc_data);
+        std::cout << "Sending STx: " << STx << std::endl;
+        write(pserial, &STx, 1);
+        std::cout << "Sending write_function: " << write_function_1 << std::endl;
+        write(pserial, &write_function_1, 1);
+        std::cout << "Sending w1: " << w1 << std::endl;
+        write(pserial, &w1, 1);
+        std::cout << "Sending w2: " << w2 << std::endl;
+        write(pserial, &w2, 1);
+        std::cout << "Sending val1: " << val1 << std::endl;
+        write(pserial, &val1, 1);
+        std::cout << "Sending val2: " << val2 << std::endl;
+        write(pserial, &val2, 1);      
+        std::cout << "Sending CRC[1]: " << crc[1] << std::endl;
+        write(pserial, &crc[1], 1);
+        std::cout << "Sending CRC[0]: " << crc[0] << std::endl;
+        write(pserial, &crc[0], 1);
+        std::cout << "Sending ETx: " << ETx << std::endl;
+        write(pserial, &ETx, 1);
 
-    std::cout << "CRC 1: " << static_cast<int>(crc[0]) << std::endl;
-    std::cout << "CRC 2: " << static_cast<int>(crc[1]) << std::endl;    
+    } else {
+        crc_data = {STx, write_function_2, w1, w2, w3, w4, w5, val1_byte0, val1_byte1, val2_byte0, val2_byte1};
+        crc = calculate_crc(crc_data);
+        std::cout << "Sending STx: " << STx << std::endl;
+        write(pserial, &STx, 1);
+        std::cout << "Sending write_function: " << write_function_2 << std::endl;
+        write(pserial, &write_function_2, 1);
+        std::cout << "Sending w1: " << w1 << std::endl;
+        write(pserial, &w1, 1);
+        std::cout << "Sending w2: " << w2 << std::endl;
+        write(pserial, &w2, 1);
+        std::cout << "Sending w3: " << w3 << std::endl;
+        write(pserial, &w3, 1);
+        std::cout << "Sending w4: " << w4 << std::endl;
+        write(pserial, &w4, 1);
+        std::cout << "Sending w5: " << w5 << std::endl;
+        write(pserial, &w5, 1);
+        std::cout << "Sending val1_b0: " << val1_byte0 << std::endl;
+        write(pserial, &val1_byte0, 1);
+        std::cout << "Sending val1_b1: " << val1_byte1 << std::endl;
+        write(pserial, &val1_byte1, 1);    
+        std::cout << "Sending val2_b0: " << val2_byte0 << std::endl;
+        write(pserial, &val2_byte0, 1);
+        std::cout << "Sending val2_b1: " << val2_byte1 << std::endl;
+        write(pserial, &val2_byte1, 1);   
+        std::cout << "Sending CRC[1]: " << crc[1] << std::endl;
+        write(pserial, &crc[1], 1);
+        std::cout << "Sending CRC[0]: " << crc[0] << std::endl;
+        write(pserial, &crc[0], 1);
+        std::cout << "Sending ETx: " << ETx << std::endl;
+        write(pserial, &ETx, 1);
 
+    }
 
-
-    std::cout << "Sending STx: " << STx << std::endl;
-    write(pserial, &STx, 1);
-
-    std::cout << "Sending write_function: " << write_function << std::endl;
-    write(pserial, &write_function, 1);
-
-    std::cout << "Sending w1: " << w1 << std::endl;
-    write(pserial, &w1, 1);
-
-    std::cout << "Sending w2: " << w2 << std::endl;
-    write(pserial, &w2, 1);
-
-    std::cout << "Sending w3: " << w3 << std::endl;
-    write(pserial, &w3, 1);
-
-    std::cout << "Sending w4: " << w4 << std::endl;
-    write(pserial, &w4, 1);
-
-    std::cout << "Sending w5: " << w5 << std::endl;
-    write(pserial, &w5, 1);
-
-    std::cout << "Sending val1_b0: " << val1_byte0 << std::endl;
-    write(pserial, &val1_byte0, 1);
-    
-    std::cout << "Sending val1_b1: " << val1_byte1 << std::endl;
-    write(pserial, &val1_byte1, 1);    
-
-    std::cout << "Sending val2_b0: " << val2_byte0 << std::endl;
-    write(pserial, &val2_byte0, 1);
-    
-    std::cout << "Sending val2_b1: " << val2_byte1 << std::endl;
-    write(pserial, &val2_byte1, 1);   
-
-    std::cout << "Sending CRC[1]: " << crc[1] << std::endl;
-    write(pserial, &crc[1], 1);
-
-    std::cout << "Sending CRC[0]: " << crc[0] << std::endl;
-    write(pserial, &crc[0], 1);
-
-    std::cout << "Sending ETx: " << ETx << std::endl;
-    write(pserial, &ETx, 1);
 
 
     serial.flush();
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	   
     return 0;
 }
-

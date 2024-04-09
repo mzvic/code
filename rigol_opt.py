@@ -1345,7 +1345,8 @@ class MainWindow(QMainWindow):
     
         # Energy voltage
         self.eg_energy_voltage_setval = QLineEdit()
-        self.eg_energy_voltage_setval.setText("0") #self.eg_energy_voltage_setval.setFixedWidth(220) 
+        self.eg_energy_voltage_setval.setPlaceholderText("0.0 ... 5000.0") 
+        #self.eg_energy_voltage_setval.setText("0") #self.eg_energy_voltage_setval.setFixedWidth(220) 
         self.eg_energy_voltage_setbtn = QPushButton("Set") #self.eg_energy_voltage_setbtn.clicked.connect(func_eg_energy_voltage_setval)
         self.eg_energy_voltage_setbtn.clicked.connect(self.prevac_set_ev)
         self.eg_energy_voltage_setval.setFixedWidth(200)
@@ -1359,7 +1360,8 @@ class MainWindow(QMainWindow):
 
         # Focus voltage
         self.eg_focus_voltage_setval = QLineEdit()
-        self.eg_focus_voltage_setval.setText("0") #self.eg_focus_voltage_setval.setFixedWidth(220)
+        self.eg_focus_voltage_setval.setPlaceholderText("0 ... Uenergy") 
+        #self.eg_focus_voltage_setval.setText("0") #self.eg_focus_voltage_setval.setFixedWidth(220)
         self.eg_focus_voltage_setbtn = QPushButton("Set") 
         self.eg_focus_voltage_setbtn.clicked.connect(self.prevac_set_fv)
         self.eg_focus_voltage_setval.setFixedWidth(200)
@@ -1373,7 +1375,8 @@ class MainWindow(QMainWindow):
 
         # Wehnelt voltage
         self.eg_wehnelt_voltage_setval = QLineEdit()
-        self.eg_wehnelt_voltage_setval.setText("0") #self.eg_wehnelt_voltage_setval.setFixedWidth(220)
+        self.eg_wehnelt_voltage_setval.setPlaceholderText("0.0 ... 300.0") 
+        #self.eg_wehnelt_voltage_setval.setText("0") #self.eg_wehnelt_voltage_setval.setFixedWidth(220)
         self.eg_wehnelt_voltage_setbtn = QPushButton("Set") 
         self.eg_wehnelt_voltage_setbtn.clicked.connect(self.prevac_set_wv)
         self.eg_wehnelt_voltage_setval.setFixedWidth(200)
@@ -1387,7 +1390,8 @@ class MainWindow(QMainWindow):
 
         # Emission current
         self.eg_emission_current_setval = QLineEdit()
-        self.eg_emission_current_setval.setText("0") #self.eg_emission_current_setval.setFixedWidth(220)
+        self.eg_emission_current_setval.setPlaceholderText("0.10 ... 300.00") 
+        #self.eg_emission_current_setval.setText("0") #self.eg_emission_current_setval.setFixedWidth(220)
         self.eg_emission_current_setbtn = QPushButton("Set") 
         self.eg_emission_current_setbtn.clicked.connect(self.prevac_set_ec)
         self.eg_emission_current_setval.setFixedWidth(200)
@@ -1401,7 +1405,8 @@ class MainWindow(QMainWindow):
 
         # Time per dot
         self.eg_tpd_setval = QLineEdit()
-        self.eg_tpd_setval.setText("0") #self.eg_tpd_setval.setFixedWidth(220)
+        self.eg_tpd_setval.setPlaceholderText("20 ... 30000") 
+        #self.eg_tpd_setval.setText("0") #self.eg_tpd_setval.setFixedWidth(220)
         self.eg_tpd_setbtn = QPushButton("Set")
         self.eg_tpd_setbtn.clicked.connect(self.prevac_set_tpd)
         self.eg_tpd_setval.setFixedWidth(200)
@@ -1415,7 +1420,8 @@ class MainWindow(QMainWindow):
 
         # Scan position X
         self.eg_position_x_setval = QLineEdit()
-        self.eg_position_x_setval.setText("0") #self.eg_position_x_setval.setFixedWidth(220)
+        self.eg_position_x_setval.setPlaceholderText("-5.00 ... 5.00")
+        #self.eg_position_x_setval.setText("0") #self.eg_position_x_setval.setFixedWidth(220)
         self.eg_position_x_setbtn = QPushButton("Set") 
         self.eg_position_x_setbtn.clicked.connect(self.prevac_set_px)
         self.eg_position_x_setval.setFixedWidth(200)
@@ -1429,7 +1435,8 @@ class MainWindow(QMainWindow):
 
         # Scan position Y
         self.eg_position_y_setval = QLineEdit()
-        self.eg_position_y_setval.setText("0") #self.eg_position_y_setval.setFixedWidth(220)
+        self.eg_position_y_setval.setPlaceholderText("-5.00 ... 5.00")
+        #self.eg_position_y_setval.setText("0") #self.eg_position_y_setval.setFixedWidth(220)
         self.eg_position_y_setbtn = QPushButton("Set") 
         self.eg_position_y_setbtn.clicked.connect(self.prevac_set_py)
         self.eg_position_y_setval.setFixedWidth(200)
@@ -1443,7 +1450,8 @@ class MainWindow(QMainWindow):
 
         # Scan area X
         self.eg_area_x_setval = QLineEdit()
-        self.eg_area_x_setval.setText("0") #self.eg_area_x_setval.setFixedWidth(220)
+        self.eg_area_x_setval.setPlaceholderText("0.00 ... 10.00")
+        #self.eg_area_x_setval.setText("0") #self.eg_area_x_setval.setFixedWidth(220)
         self.eg_area_x_setbtn = QPushButton("Set") 
         self.eg_area_x_setbtn.clicked.connect(self.prevac_set_ax)
         self.eg_area_x_setval.setFixedWidth(200)
@@ -1457,7 +1465,8 @@ class MainWindow(QMainWindow):
 
         # Scan area Y
         self.eg_area_y_setval = QLineEdit()
-        self.eg_area_y_setval.setText("0") #self.eg_area_y_setval.setFixedWidth(220)
+        self.eg_area_y_setval.setPlaceholderText("0.00 ... 10.00")
+        #self.eg_area_y_setval.setText("0") #self.eg_area_y_setval.setFixedWidth(220)
         self.eg_area_y_setbtn = QPushButton("Set") 
         self.eg_area_y_setbtn.clicked.connect(self.prevac_set_ay)
         self.eg_area_y_setval.setFixedWidth(200)
@@ -1471,7 +1480,8 @@ class MainWindow(QMainWindow):
 
         # Scan grid X
         self.eg_grid_x_setval = QLineEdit()
-        self.eg_grid_x_setval.setText("0") #self.eg_grid_x_setval.setFixedWidth(220)
+        self.eg_grid_x_setval.setPlaceholderText("0.01 ... 2.00")
+        #self.eg_grid_x_setval.setText("0") #self.eg_grid_x_setval.setFixedWidth(220)
         self.eg_grid_x_setbtn = QPushButton("Set") 
         self.eg_grid_x_setbtn.clicked.connect(self.prevac_set_gx)
         self.eg_grid_x_setval.setFixedWidth(200)
@@ -1485,7 +1495,8 @@ class MainWindow(QMainWindow):
 
         # Scan grid Y
         self.eg_grid_y_setval = QLineEdit()
-        self.eg_grid_y_setval.setText("0") #self.eg_grid_y_setval.setFixedWidth(220)
+        self.eg_grid_y_setval.setPlaceholderText("0.01 ... 2.00")
+        #self.eg_grid_y_setval.setText("0") #self.eg_grid_y_setval.setFixedWidth(220)
         self.eg_grid_y_setbtn = QPushButton("Set")
         self.eg_grid_y_setbtn.clicked.connect(self.prevac_set_gy)
         self.eg_grid_y_setval.setFixedWidth(200)
@@ -1497,32 +1508,50 @@ class MainWindow(QMainWindow):
         self.layout3.addWidget(QLabel("[mm]"), 12, 3)
         self.layout3.addWidget(self.eg_grid_y_setbtn, 12, 4) 
 
-        # Plot 3 object 
-        self.color_map2 = pg.ImageView(view=pg.PlotItem(axisItems={'bottom': CustomImageAxis(orientation='bottom')}))
-                
-        # Plot 3 displayed in the APD tab
-        plot_item2 = self.color_map2.getView()
+        # Plot object 
+        self.graph_eg = pg.PlotWidget(axisItems={'bottom': DateAxis(orientation='bottom')})
+        
+        # Plot height
+        self.graph_eg.setMinimumHeight(180)
+        self.graph_eg.setMaximumHeight(10000)
 
-        # Plot 3 height
-        self.color_map2.setMinimumHeight(350)
-        self.color_map2.setMaximumHeight(1000)
-
-        # Some parameters and settings for plot 3
-        self.color_map2.setColorMap(pg.colormap.get('plasma')) # Histogram color setting
-        self.fft_magnitudes = 500000
-        self.color_map2.getView().autoRange() 
-        self.avg_count = 0
-        plot_item2.showGrid(x=True, y=True)
-        self.t_fft = int(time.time())
+        # Plot displayed in the electron gun tab
+        self.graph_eg.showGrid(x=True, y=True, alpha=1)           
+        #self.graph_eg.setLogMode(y=True)
+        
+        # Initial data for plot
+        self.plot_eg = self.graph_eg.plot([0,1,2,3], [0,0,0,0], pen=pg.mkPen(color=(255, 0, 0)))
+        
+        # Axis labels
+        self.graph_eg.setLabel('left', 'Frequency [Hz]')
+        self.graph_eg.setLabel('bottom', 'Time', units='hh:mm:ss.µµµµµµ')
         
         # Labels for the column titles
-        eg_plot_label = QLabel("Cascade plot from APD (enable APD readings first)")
+        eg_plot_label = QLabel("Dominant frequency vs. time (configure to obtain FFT in APD tab first)")
         eg_plot_label.setStyleSheet("font-weight: bold;")
-        self.layout3.addWidget(eg_plot_label,13,0)
+        self.layout3.addWidget(eg_plot_label, 13 ,0)
+
+        self.eg_plot_state = 0
+        
+        self.times_eg = []
+        self.data_eg = []
+        
+        self.eg_secs_label = QLabel("T-axis length in seconds:")
+        self.eg_secs_label.setFixedWidth(195)
+        self.eg_secs_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.eg_secs_input = QLineEdit(self)
+        self.eg_secs_input.setFixedWidth(200)
+        self.eg_secs_input.setText("86400") # Default value      
+        self.enable_eg_plot = QPushButton("Enable plot")
+        self.enable_eg_plot.setCheckable(True)
+        self.enable_eg_plot.clicked.connect(self.enb_eg_plot)#FUNCION
+        self.layout3.addWidget(self.enable_eg_plot, 14, 0)
+        self.layout3.addWidget(self.eg_secs_label, 14, 1)
+        self.layout3.addWidget(self.eg_secs_input, 14, 2)
 
         # Plot eg displayed in the APD tab
-        self.layout3.addWidget(self.color_map2,14,0,2,5)
-        self.layout3.setRowStretch(15, 5)
+        self.layout3.addWidget(self.graph_eg, 15, 0, 2, 5)
+        self.layout3.setRowStretch(16, 5)
 
         # ------------------------------------------------------------------------------------------- #
         # ESI TAB
@@ -2727,7 +2756,6 @@ class MainWindow(QMainWindow):
         prevac_command = [self.binary_paths[17], *prevac_arg.split()]
         self.processes[17] = subprocess.Popen(prevac_command)
         print(prevac_command)
-
         #subprocess.run(['pkill', '-f', self.processes[17].args[0]], check=True)  
         self.processes[16] = subprocess.Popen([self.binary_paths[16]])
 
@@ -2739,8 +2767,14 @@ class MainWindow(QMainWindow):
             hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
             hex_1 = hex_str[:4] 
             hex_2 = hex_str[4:8] 
-            decimal_part1 = int(hex_1, 16)
-            decimal_part2 = int(hex_2, 16)
+            if hex_1 != '':
+                decimal_part1 = int(hex_1, 16)
+            else:
+                decimal_part1 = 0
+            if hex_2 != '':
+                decimal_part2 = int(hex_2, 16)
+            else:
+                decimal_part2 = 0 
             arg = "0 15 " + str(decimal_part1) + " " + str(decimal_part2) 
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2753,8 +2787,14 @@ class MainWindow(QMainWindow):
             hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
             hex_1 = hex_str[:4] 
             hex_2 = hex_str[4:8] 
-            decimal_part1 = int(hex_1, 16)
-            decimal_part2 = int(hex_2, 16)
+            if hex_1 != '':
+                decimal_part1 = int(hex_1, 16)
+            else:
+                decimal_part1 = 0
+            if hex_2 != '':
+                decimal_part2 = int(hex_2, 16)
+            else:
+                decimal_part2 = 0 
             arg = "0 17 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2767,8 +2807,14 @@ class MainWindow(QMainWindow):
             hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
             hex_1 = hex_str[:4] 
             hex_2 = hex_str[4:8] 
-            decimal_part1 = int(hex_1, 16)
-            decimal_part2 = int(hex_2, 16)
+            if hex_1 != '':
+                decimal_part1 = int(hex_1, 16)
+            else:
+                decimal_part1 = 0
+            if hex_2 != '':
+                decimal_part2 = int(hex_2, 16)
+            else:
+                decimal_part2 = 0 
             arg = "0 19 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2781,8 +2827,14 @@ class MainWindow(QMainWindow):
             hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
             hex_1 = hex_str[:4] 
             hex_2 = hex_str[4:8] 
-            decimal_part1 = int(hex_1, 16)
-            decimal_part2 = int(hex_2, 16)
+            if hex_1 != '':
+                decimal_part1 = int(hex_1, 16)
+            else:
+                decimal_part1 = 0
+            if hex_2 != '':
+                decimal_part2 = int(hex_2, 16)
+            else:
+                decimal_part2 = 0 
             arg = "0 21 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2791,12 +2843,9 @@ class MainWindow(QMainWindow):
         if self.eg_connection_btn.isChecked():
             subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True) 
             float_text = self.eg_tpd_setval.text()
-            float_v = float(float_text)
-            hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
-            hex_1 = hex_str[:4] 
-            hex_2 = hex_str[4:8] 
-            decimal_part1 = int(hex_1, 16)
-            decimal_part2 = int(hex_2, 16)
+            float_v = int(float_text)
+            decimal_part1 = (float_v >> 8) & 0xFF
+            decimal_part2 = float_v & 0xFF
             arg = "0 37 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2809,8 +2858,14 @@ class MainWindow(QMainWindow):
             hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
             hex_1 = hex_str[:4] 
             hex_2 = hex_str[4:8] 
-            decimal_part1 = int(hex_1, 16)
-            decimal_part2 = int(hex_2, 16)
+            if hex_1 != '':
+                decimal_part1 = int(hex_1, 16)
+            else:
+                decimal_part1 = 0
+            if hex_2 != '':
+                decimal_part2 = int(hex_2, 16)
+            else:
+                decimal_part2 = 0 
             arg = "0 23 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2823,8 +2878,14 @@ class MainWindow(QMainWindow):
             hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
             hex_1 = hex_str[:4] 
             hex_2 = hex_str[4:8] 
-            decimal_part1 = int(hex_1, 16)
-            decimal_part2 = int(hex_2, 16)
+            if hex_1 != '':
+                decimal_part1 = int(hex_1, 16)
+            else:
+                decimal_part1 = 0
+            if hex_2 != '':
+                decimal_part2 = int(hex_2, 16)
+            else:
+                decimal_part2 = 0 
             arg = "0 25 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2837,8 +2898,14 @@ class MainWindow(QMainWindow):
             hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
             hex_1 = hex_str[:4] 
             hex_2 = hex_str[4:8] 
-            decimal_part1 = int(hex_1, 16)
-            decimal_part2 = int(hex_2, 16)
+            if hex_1 != '':
+                decimal_part1 = int(hex_1, 16)
+            else:
+                decimal_part1 = 0
+            if hex_2 != '':
+                decimal_part2 = int(hex_2, 16)
+            else:
+                decimal_part2 = 0 
             arg = "0 27 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2851,8 +2918,14 @@ class MainWindow(QMainWindow):
             hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
             hex_1 = hex_str[:4] 
             hex_2 = hex_str[4:8] 
-            decimal_part1 = int(hex_1, 16)
-            decimal_part2 = int(hex_2, 16)
+            if hex_1 != '':
+                decimal_part1 = int(hex_1, 16)
+            else:
+                decimal_part1 = 0
+            if hex_2 != '':
+                decimal_part2 = int(hex_2, 16)
+            else:
+                decimal_part2 = 0 
             arg = "0 29 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2865,8 +2938,14 @@ class MainWindow(QMainWindow):
             hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
             hex_1 = hex_str[:4] 
             hex_2 = hex_str[4:8] 
-            decimal_part1 = int(hex_1, 16)
-            decimal_part2 = int(hex_2, 16)
+            if hex_1 != '':
+                decimal_part1 = int(hex_1, 16)
+            else:
+                decimal_part1 = 0
+            if hex_2 != '':
+                decimal_part2 = int(hex_2, 16)
+            else:
+                decimal_part2 = 0 
             arg = "0 31 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -2879,8 +2958,14 @@ class MainWindow(QMainWindow):
             hex_str = hex(struct.unpack('<I', struct.pack('<f', float_v))[0])[2:]
             hex_1 = hex_str[:4] 
             hex_2 = hex_str[4:8] 
-            decimal_part1 = int(hex_1, 16)
-            decimal_part2 = int(hex_2, 16)
+            if hex_1 != '':
+                decimal_part1 = int(hex_1, 16)
+            else:
+                decimal_part1 = 0
+            if hex_2 != '':
+                decimal_part2 = int(hex_2, 16)
+            else:
+                decimal_part2 = 0 
             arg = "0 33 " + str(decimal_part1) + " " + str(decimal_part2)
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
@@ -3130,7 +3215,7 @@ class MainWindow(QMainWindow):
     def update_graph3(self):
         # Set the color map levels
         self.color_map.setLevels(0, 1)
-
+        
         # Get the spectrum amount and average time from input fields
         self.spectrum_amount = int(self.spectrum_amount_input.text())
         self.avg_time = int(self.avg_time_input.text())
@@ -3158,6 +3243,17 @@ class MainWindow(QMainWindow):
                 self.spectrum_matrix = np.zeros((1, self.fft_magnitudes))
 
             self.spectrum_matrix = np.vstack((self.data_matrix_avg, self.spectrum_matrix))
+            
+            if (self.eg_plot_state == 1):
+                max_index = np.argmax(self.data_matrix_avg[(self.f_i * 10):(self.f_f * 10)])
+                max_count = np.count_nonzero(self.data_matrix_avg[(self.f_i * 10):(self.f_f * 10)] == self.data_matrix_avg[(self.f_i * 10):(self.f_f * 10)][max_index])
+                if max_count == 1:
+                    max_value_index = max_index + (self.f_i * 10)
+                    current_time = time.time()
+                    self.update_graph_eg(current_time, max_value_index/10)
+                else:
+                    max_value_index = None
+
             self.data_matrix_avg = np.zeros(self.fft_magnitudes)
 
             # Trim the spectrum matrix to the specified spectrum amount
@@ -3168,10 +3264,45 @@ class MainWindow(QMainWindow):
             self.plot_matrix = np.transpose(self.spectrum_matrix)
             self.pm = self.plot_matrix[:self.f_f * 10, :]
 
+
+
             # Update the color map with the new data
             self.color_map.setImage(self.pm)
             self.color_map.getView().setRange(xRange=(self.f_i * 10, self.f_f * 10))
             self.t_fft = int(time.time())
+
+
+    def enb_eg_plot(self):
+        # Toggle the spec mode and update toggle button style
+        if self.toggle_button_spec.isChecked():
+            if self.enable_eg_plot.isChecked():
+                self.enable_eg_plot.setStyleSheet("background-color: darkblue; color: white;")
+                self.eg_plot_state = 1  
+            else:
+                self.enable_eg_plot.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                self.eg_plot_state = 0   
+        else:
+            self.enable_eg_plot.setChecked(False)   
+            self.enable_eg_plot.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+            self.eg_plot_state = 0     
+            self.showWarningSignal.emit("Please make sure that in the APD tab, the 'Plot counts', 'Plot FFT' and 'Show spectrum averages' buttons are enabled and try again...")         
+
+    def update_graph_eg(self, timestamp, value):
+        self.times_eg.append(timestamp)  # Add timestamp 
+        self.data_eg.append(value)  # Add value
+
+        # Calculate the cut-off time based on the input value
+        current_time = time.time()
+        cut_off_time = current_time - int(self.eg_secs_input.text())
+
+        # Keep only the data within the specified time range
+        self.times_eg = [t for t in self.times_eg if t >= cut_off_time]
+        self.data_eg = self.data_eg[-len(self.times_eg):]
+        self.plot_eg.setData(self.times_eg, self.data_eg)
+
+    #def update_plot_eg(self, data):
+        # Update the plot with the new data
+    #    self.plot_eg.setData(self.times_eg, self.data_eg)
 
     def update_graph_pressure(self):
         if (self.pressure_plotting_state == 1):
@@ -3201,6 +3332,7 @@ class MainWindow(QMainWindow):
                 self.pressure_data2 = [np.nan] * len(self.pressure_time)         
             # Put the updated data into the data_queue for plotting
             self.update_pressure_plot_thread.data_queue.put([self.pressure_data1, self.pressure_data2, self.pressure_time])
+
 
     def update_pressure_plot(self, data):
         # Update the plot with the new data

@@ -189,7 +189,7 @@ int main() {
         publisher_client.Publish(bundle);
         clear_responses(); 
 
-        sleep(1);
+        sleep(0.8);
     }
 
     close(pserial);
