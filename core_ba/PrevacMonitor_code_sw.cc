@@ -99,6 +99,11 @@ short int hexToInt16(unsigned char* bytes) {
     return intValue;
 }
 
+uint8_t hexToUint8(unsigned char* bytes) {
+    uint8_t value = bytes[0]; 
+    return value;
+}
+
 int main() {
     pserial = open(serialport, O_RDWR | O_NOCTTY | O_NDELAY);
     if (pserial == -1) {
@@ -169,22 +174,22 @@ int main() {
             responses[param] = read_response(); 
         }
 
-        std::cout << "----------------------------------------------------------" << std::endl;  
+        //std::cout << "----------------------------------------------------------" << std::endl;  
         const char* param_names[13] = {"Operate", "Stand by", "Energy voltage set", "Focus voltage set", "Wehnelt voltage set", "Emission current set", "Scan position X", "Scan position Y", "Scan area X", "Scan area Y", "Scan grid X", "Scan grid Y", "Time Per Dot"};
         for (int i = 0; i < 13; ++i) {
-            std::cout << param_names[i] << ": ";
+            //std::cout << param_names[i] << ": ";
             for (unsigned char j = 0; j < responses[i].data_length; j += 4) {
-                if (i == 12) { // INT16
+                if (i == 0 || i == 1 || i == 12) { // INT16
                     short int intValue = hexToInt16(&responses[i].data[j]);
-                    std::cout << intValue << " ";
+                    //std::cout << intValue << " ";
                     bundle.add_value(intValue);
                 } else { // FLOAT
                     float floatValue = hexToFloat(&responses[i].data[j]);
-                    std::cout << floatValue << " ";
+                    //std::cout << floatValue << " ";
                     bundle.add_value(floatValue);
                 }
             }    
-            std::cout << std::endl;
+            //std::cout << std::endl;
         }
         publisher_client.Publish(bundle);
         clear_responses(); 

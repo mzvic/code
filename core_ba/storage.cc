@@ -294,17 +294,17 @@ void WriteData(const Bundle &bundle) {
 		  LOG("Writing electron gun monitor record");
 		  // Create entry
 		  electron_gun_monitor_entry->timestamp_ = (double) bundle.timestamp().seconds() + (double) bundle.timestamp().nanos() / 1000000000L;
-		  electron_gun_monitor_entry->energy_voltage = kValue.Get(0);
-		  electron_gun_monitor_entry->focus_voltage = kValue.Get(1);
-		  electron_gun_monitor_entry->wehnelt_voltage = kValue.Get(2);
-		  electron_gun_monitor_entry->emission_current = kValue.Get(3);
-    	  electron_gun_monitor_entry->time_per_dot = kValue.Get(4);
-		  electron_gun_monitor_entry->pos_x = kValue.Get(5);
-		  electron_gun_monitor_entry->pos_y = kValue.Get(6);
-		  electron_gun_monitor_entry->area_x = kValue.Get(7);
-		  electron_gun_monitor_entry->area_y = kValue.Get(8);
-		  electron_gun_monitor_entry->grid_x = kValue.Get(9);
-		  electron_gun_monitor_entry->grid_y = kValue.Get(10); 
+		  electron_gun_monitor_entry->energy_voltage = kValue.Get(2);
+		  electron_gun_monitor_entry->focus_voltage = kValue.Get(3);
+		  electron_gun_monitor_entry->wehnelt_voltage = kValue.Get(4);
+		  electron_gun_monitor_entry->emission_current = kValue.Get(5);
+    	  electron_gun_monitor_entry->time_per_dot = kValue.Get(12);
+		  electron_gun_monitor_entry->pos_x = kValue.Get(6);
+		  electron_gun_monitor_entry->pos_y = kValue.Get(7);
+		  electron_gun_monitor_entry->area_x = kValue.Get(8);
+		  electron_gun_monitor_entry->area_y = kValue.Get(9);
+		  electron_gun_monitor_entry->grid_x = kValue.Get(10);
+		  electron_gun_monitor_entry->grid_y = kValue.Get(11); 
 		  LOG("Parsing done");
 		  if (H5PTappend(electron_gun_monitor_ptable, 1, electron_gun_monitor_entry.get()) < 0)
 			LOG("Error appending entry");

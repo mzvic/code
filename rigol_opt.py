@@ -27,6 +27,9 @@ import psutil
 import struct
 #python -m grpc_tools.protoc -I /home/code/Development1/core_ba/ --python_out=. --grpc_python_out=. /home/code/Development1/core_ba/core.proto
 
+# Pressure needed on FRG-702 to enable electron gun
+reqPress4ElectronGun = 0.00001
+
 # List to store counts from APD
 counts = []
 
@@ -149,34 +152,7 @@ class UpdatePlot1Thread(QThread):
             
             # Pause the thread for a short time
             time.sleep(0.1)
-
-
-# Definition of a custom thread class for updating plot 1 data
-class UpdatePressurePlotThread(QThread):
-    # Signal to emit updated plot data
-    plot_signal = pyqtSignal(list)
-    
-    # Constructor for the thread class
-    def __init__(self):
-        super(UpdatePressurePlotThread, self).__init__()
-        self.data_queue = queue.Queue()  # Initialize a queue for data
-    
-    # Run method for the thread
-    def run(self):
-        while True:
-            # Get data from the queue (blocking operation)
-            [self.pressure_time, self.pressure_data1, self.pressure_data2] = self.data_queue.get()
-            
-            # Emit a signal with the updated data for plot 1
-            self.plot_signal.emit([self.pressure_time, self.pressure_data1, self.pressure_data2])
-            
-            # Empty the queue by consuming all remaining items
-            while not self.data_queue.empty():
-                self.data_queue.get()
-            
-            # Pause the thread for a short time
-            time.sleep(1)
-                  
+          
 # Definition of a custom thread class for updating graph 2 data
 class UpdateGraph2Thread(QThread):
     bundle = None
@@ -903,11 +879,6 @@ class MainWindow(QMainWindow):
         self.update_graph2_thread = UpdateGraph2Thread()
         self.update_graph2_thread.update_signal.connect(self.update_graph2)
          
-        # Connect UpdatePressurePlotThread() to a thread (display the pressure vs. time [XGS600])
-        self.update_pressure_plot_thread = UpdatePressurePlotThread()
-        self.update_pressure_plot_thread.plot_signal.connect(self.update_pressure_plot)
-        self.update_pressure_plot_thread.start()
-
         self.rigolpublish2broker = RigolPublish2Broker()
         self.rigolpublish2broker.send_signal.connect(self.send_rigol_publishing_values)
         self.rigol_values = []
@@ -1254,22 +1225,22 @@ class MainWindow(QMainWindow):
         self.layout2.addWidget(self.pressure_secs_label, 3, 4)
         self.layout2.addWidget(self.pressure_secs_input, 3, 5)
 
-        self.graph_pressure_vacuum = pg.PlotWidget(axisItems={'left': DateAxis(orientation='left')})
+        self.graph_pressure_vacuum = pg.PlotWidget(axisItems={'bottom': DateAxis(orientation='bottom')})
 
-        self.graph_pressure_vacuum.invertY()
+        #self.graph_pressure_vacuum.invertY()
         
         self.graph_pressure_vacuum.showGrid(x=True, y=True, alpha=1)  
-        self.graph_pressure_vacuum.plotItem.setLogMode(x=True)         
-        self.graph_pressure_vacuum.setLabel('left', 'Time', units='hh:mm:ss.µµµµµµ')
-        self.graph_pressure_vacuum.setLabel('bottom', 'Pressure [Torr]')
+        #self.graph_pressure_vacuum.plotItem.setLogMode(x=True)         
+        self.graph_pressure_vacuum.setLabel('bottom', 'Time', units='hh:mm:ss.µµµµµµ')
+        self.graph_pressure_vacuum.setLabel('left', 'Pressure [Torr]')
         self.pressure_data1 = []
         self.pressure_data2 = []
         self.pressure_time = []          
         self.layout2.addWidget(self.graph_pressure_vacuum, 8, 0, 1, 6) 
         
         ## Initial data for plot 1
-        self.pressure_plot1 = self.graph_pressure_vacuum.plot([0,0,0,0], [time.time()-3,time.time()-2,time.time()-1,time.time()], pen=pg.mkPen(color=(255, 0, 0), width=2))
-        self.pressure_plot2 = self.graph_pressure_vacuum.plot([0,0,0,0], [time.time()-3,time.time()-2,time.time()-1,time.time()], pen=pg.mkPen(color=(0, 255, 0), width=2))
+        self.pressure_plot1 = self.graph_pressure_vacuum.plot([time.time()-3,time.time()-2,time.time()-1,time.time()], [0,0,0,0], pen=pg.mkPen(color=(255, 0, 0), width=2))
+        self.pressure_plot2 = self.graph_pressure_vacuum.plot([time.time()-3,time.time()-2,time.time()-1,time.time()], [0,0,0,0], pen=pg.mkPen(color=(0, 255, 0), width=2))
         self.btn_vacuum_monitor = QPushButton("Connect to vacuum equipment")
         self.btn_vacuum_monitor.setCheckable(True)  
         self.btn_vacuum_monitor.setStyleSheet("background-color: 53, 53, 53;")  
@@ -1294,6 +1265,9 @@ class MainWindow(QMainWindow):
         self.prevacSubs2Broker.update_signal.connect(self.update_electrongun_values)
         self.prevacSubs2Broker.start()      
 
+        self.vacuum_pressure1 = 0 
+        self.vacuum_pressure2 = 0
+
         # Labels for the column titles
         eg_label1 = QLabel("Parameter")
         eg_label2 = QLabel("ES40 reading")
@@ -1311,11 +1285,27 @@ class MainWindow(QMainWindow):
         #self.eg_connection_btn.setFixedWidth(300) 
         self.layout3.addWidget(self.eg_connection_btn, 0, 0, 1, 5) 
 
+        self.secure_eg_btn = QPushButton("Enable power on/off")
+        self.secure_eg_btn.setCheckable(True)
+        self.secure_eg_btn.clicked.connect(self.enb_eg_onoff)#FUNCION
+
+        self.operate_eg_btn = QPushButton("Operate")
+        self.operate_eg_btn.setCheckable(True)
+        self.operate_eg_btn.clicked.connect(self.enb_eg_operate)#FUNCION
+
+        self.standby_eg_btn = QPushButton("Stand by")
+        self.standby_eg_btn.setCheckable(True)
+        self.standby_eg_btn.clicked.connect(self.enb_eg_standby)#FUNCION                
+
+        self.layout3.addWidget(self.secure_eg_btn, 1, 0)
+        self.layout3.addWidget(self.operate_eg_btn, 1, 1, 1, 2)
+        self.layout3.addWidget(self.standby_eg_btn, 1, 3, 1, 2)
+
         # Set row index order for the titles
-        self.layout3.addWidget(eg_label1, 1, 0)
-        self.layout3.addWidget(eg_label2, 1, 1)
-        self.layout3.addWidget(eg_label3, 1, 2)#, 1, 2)
-        self.layout3.addWidget(eg_label4, 1, 4)
+        self.layout3.addWidget(eg_label1, 2, 0)
+        self.layout3.addWidget(eg_label2, 2, 1)
+        self.layout3.addWidget(eg_label3, 2, 2)#, 1, 2)
+        self.layout3.addWidget(eg_label4, 2, 4)
         
         # Temporales
         test_value = str(int("0"))
@@ -1342,7 +1332,8 @@ class MainWindow(QMainWindow):
         self.eg_read_area_y = QLabel("N/C")
         self.eg_read_grid_x = QLabel("N/C")
         self.eg_read_grid_y = QLabel("N/C")
-    
+        self.eg_read_grid_y.setFixedWidth(350)
+
         # Energy voltage
         self.eg_energy_voltage_setval = QLineEdit()
         self.eg_energy_voltage_setval.setPlaceholderText("0.0 ... 5000.0") 
@@ -1352,11 +1343,11 @@ class MainWindow(QMainWindow):
         self.eg_energy_voltage_setval.setFixedWidth(200)
         self.eg_energy_voltage_setbtn.setFixedWidth(150) 
 
-        self.layout3.addWidget(QLabel("Energy voltage:"), 2, 0) 
-        self.layout3.addWidget(self.eg_read_energy_voltage, 2, 1)
-        self.layout3.addWidget(self.eg_energy_voltage_setval, 2, 2)
-        self.layout3.addWidget(QLabel("[V]"), 2, 3)
-        self.layout3.addWidget(self.eg_energy_voltage_setbtn, 2, 4) 
+        self.layout3.addWidget(QLabel("Energy voltage:"), 3, 0) 
+        self.layout3.addWidget(self.eg_read_energy_voltage, 3, 1)
+        self.layout3.addWidget(self.eg_energy_voltage_setval, 3, 2)
+        self.layout3.addWidget(QLabel("[V]"), 3, 3)
+        self.layout3.addWidget(self.eg_energy_voltage_setbtn, 3, 4) 
 
         # Focus voltage
         self.eg_focus_voltage_setval = QLineEdit()
@@ -1367,11 +1358,11 @@ class MainWindow(QMainWindow):
         self.eg_focus_voltage_setval.setFixedWidth(200)
         self.eg_focus_voltage_setbtn.setFixedWidth(150) 
 
-        self.layout3.addWidget(QLabel("Focus voltage:"), 3, 0) 
-        self.layout3.addWidget(self.eg_read_focus_voltage, 3, 1)
-        self.layout3.addWidget(self.eg_focus_voltage_setval, 3, 2)
-        self.layout3.addWidget(QLabel("[V]"), 3, 3)
-        self.layout3.addWidget(self.eg_focus_voltage_setbtn, 3, 4) 
+        self.layout3.addWidget(QLabel("Focus voltage:"), 4, 0) 
+        self.layout3.addWidget(self.eg_read_focus_voltage, 4, 1)
+        self.layout3.addWidget(self.eg_focus_voltage_setval, 4, 2)
+        self.layout3.addWidget(QLabel("[V]"), 4, 3)
+        self.layout3.addWidget(self.eg_focus_voltage_setbtn, 4, 4) 
 
         # Wehnelt voltage
         self.eg_wehnelt_voltage_setval = QLineEdit()
@@ -1382,11 +1373,11 @@ class MainWindow(QMainWindow):
         self.eg_wehnelt_voltage_setval.setFixedWidth(200)
         self.eg_wehnelt_voltage_setbtn.setFixedWidth(150) 
 
-        self.layout3.addWidget(QLabel("Wehnelt voltage:"), 4, 0) 
-        self.layout3.addWidget(self.eg_read_wehnelt_voltage, 4, 1)
-        self.layout3.addWidget(self.eg_wehnelt_voltage_setval, 4, 2)
-        self.layout3.addWidget(QLabel("[V]"), 4, 3)
-        self.layout3.addWidget(self.eg_wehnelt_voltage_setbtn, 4, 4)  
+        self.layout3.addWidget(QLabel("Wehnelt voltage:"), 5, 0) 
+        self.layout3.addWidget(self.eg_read_wehnelt_voltage, 5, 1)
+        self.layout3.addWidget(self.eg_wehnelt_voltage_setval, 5, 2)
+        self.layout3.addWidget(QLabel("[V]"), 5, 3)
+        self.layout3.addWidget(self.eg_wehnelt_voltage_setbtn, 5, 4)  
 
         # Emission current
         self.eg_emission_current_setval = QLineEdit()
@@ -1397,11 +1388,11 @@ class MainWindow(QMainWindow):
         self.eg_emission_current_setval.setFixedWidth(200)
         self.eg_emission_current_setbtn.setFixedWidth(150) 
 
-        self.layout3.addWidget(QLabel("Emission current:"), 5, 0) 
-        self.layout3.addWidget(self.eg_read_emission_current, 5, 1)
-        self.layout3.addWidget(self.eg_emission_current_setval, 5, 2)
-        self.layout3.addWidget(QLabel("[µA]"), 5, 3)
-        self.layout3.addWidget(self.eg_emission_current_setbtn, 5, 4)  
+        self.layout3.addWidget(QLabel("Emission current:"), 6, 0) 
+        self.layout3.addWidget(self.eg_read_emission_current, 6, 1)
+        self.layout3.addWidget(self.eg_emission_current_setval, 6, 2)
+        self.layout3.addWidget(QLabel("[µA]"), 6, 3)
+        self.layout3.addWidget(self.eg_emission_current_setbtn, 6, 4)  
 
         # Time per dot
         self.eg_tpd_setval = QLineEdit()
@@ -1412,11 +1403,11 @@ class MainWindow(QMainWindow):
         self.eg_tpd_setval.setFixedWidth(200)
         self.eg_tpd_setbtn.setFixedWidth(150) 
 
-        self.layout3.addWidget(QLabel("Time per dot:"), 6, 0) 
-        self.layout3.addWidget(self.eg_read_tpd, 6, 1)
-        self.layout3.addWidget(self.eg_tpd_setval, 6, 2)
-        self.layout3.addWidget(QLabel("[µs]"), 6, 3)
-        self.layout3.addWidget(self.eg_tpd_setbtn, 6, 4)    
+        self.layout3.addWidget(QLabel("Time per dot:"), 7, 0) 
+        self.layout3.addWidget(self.eg_read_tpd, 7, 1)
+        self.layout3.addWidget(self.eg_tpd_setval, 7, 2)
+        self.layout3.addWidget(QLabel("[µs]"), 7, 3)
+        self.layout3.addWidget(self.eg_tpd_setbtn, 7, 4)    
 
         # Scan position X
         self.eg_position_x_setval = QLineEdit()
@@ -1427,11 +1418,11 @@ class MainWindow(QMainWindow):
         self.eg_position_x_setval.setFixedWidth(200)
         self.eg_position_x_setbtn.setFixedWidth(150) 
 
-        self.layout3.addWidget(QLabel("Scan position X:"), 7, 0) 
-        self.layout3.addWidget(self.eg_read_position_x, 7, 1)
-        self.layout3.addWidget(self.eg_position_x_setval, 7, 2)
-        self.layout3.addWidget(QLabel("[mm]"), 7, 3)
-        self.layout3.addWidget(self.eg_position_x_setbtn, 7, 4) 
+        self.layout3.addWidget(QLabel("Scan position X:"), 8, 0) 
+        self.layout3.addWidget(self.eg_read_position_x, 8, 1)
+        self.layout3.addWidget(self.eg_position_x_setval, 8, 2)
+        self.layout3.addWidget(QLabel("[mm]"), 8, 3)
+        self.layout3.addWidget(self.eg_position_x_setbtn, 8, 4) 
 
         # Scan position Y
         self.eg_position_y_setval = QLineEdit()
@@ -1442,11 +1433,11 @@ class MainWindow(QMainWindow):
         self.eg_position_y_setval.setFixedWidth(200)
         self.eg_position_y_setbtn.setFixedWidth(150) 
 
-        self.layout3.addWidget(QLabel("Scan position Y:"), 8, 0) 
-        self.layout3.addWidget(self.eg_read_position_y, 8, 1)
-        self.layout3.addWidget(self.eg_position_y_setval, 8, 2)
-        self.layout3.addWidget(QLabel("[mm]"), 8, 3)
-        self.layout3.addWidget(self.eg_position_y_setbtn, 8, 4)                                         
+        self.layout3.addWidget(QLabel("Scan position Y:"), 9, 0) 
+        self.layout3.addWidget(self.eg_read_position_y, 9, 1)
+        self.layout3.addWidget(self.eg_position_y_setval, 9, 2)
+        self.layout3.addWidget(QLabel("[mm]"), 9, 3)
+        self.layout3.addWidget(self.eg_position_y_setbtn, 9, 4)                                         
 
         # Scan area X
         self.eg_area_x_setval = QLineEdit()
@@ -1457,11 +1448,11 @@ class MainWindow(QMainWindow):
         self.eg_area_x_setval.setFixedWidth(200)
         self.eg_area_x_setbtn.setFixedWidth(150) 
 
-        self.layout3.addWidget(QLabel("Scan area X:"), 9, 0) 
-        self.layout3.addWidget(self.eg_read_area_x, 9, 1)
-        self.layout3.addWidget(self.eg_area_x_setval, 9, 2)
-        self.layout3.addWidget(QLabel("[mm]"), 9, 3)
-        self.layout3.addWidget(self.eg_area_x_setbtn, 9, 4) 
+        self.layout3.addWidget(QLabel("Scan area X:"), 10, 0) 
+        self.layout3.addWidget(self.eg_read_area_x, 10, 1)
+        self.layout3.addWidget(self.eg_area_x_setval, 10, 2)
+        self.layout3.addWidget(QLabel("[mm]"), 10, 3)
+        self.layout3.addWidget(self.eg_area_x_setbtn, 10, 4) 
 
         # Scan area Y
         self.eg_area_y_setval = QLineEdit()
@@ -1472,11 +1463,11 @@ class MainWindow(QMainWindow):
         self.eg_area_y_setval.setFixedWidth(200)
         self.eg_area_y_setbtn.setFixedWidth(150) 
 
-        self.layout3.addWidget(QLabel("Scan area Y:"), 10, 0) 
-        self.layout3.addWidget(self.eg_read_area_y, 10, 1)
-        self.layout3.addWidget(self.eg_area_y_setval, 10, 2)
-        self.layout3.addWidget(QLabel("[mm]"), 10, 3)
-        self.layout3.addWidget(self.eg_area_y_setbtn, 10, 4)  
+        self.layout3.addWidget(QLabel("Scan area Y:"), 11, 0) 
+        self.layout3.addWidget(self.eg_read_area_y, 11, 1)
+        self.layout3.addWidget(self.eg_area_y_setval, 11, 2)
+        self.layout3.addWidget(QLabel("[mm]"), 11, 3)
+        self.layout3.addWidget(self.eg_area_y_setbtn, 11, 4)  
 
         # Scan grid X
         self.eg_grid_x_setval = QLineEdit()
@@ -1487,11 +1478,11 @@ class MainWindow(QMainWindow):
         self.eg_grid_x_setval.setFixedWidth(200)
         self.eg_grid_x_setbtn.setFixedWidth(150) 
 
-        self.layout3.addWidget(QLabel("Scan grid X:"), 11, 0) 
-        self.layout3.addWidget(self.eg_read_grid_x, 11, 1)
-        self.layout3.addWidget(self.eg_grid_x_setval, 11, 2)
-        self.layout3.addWidget(QLabel("[mm]"), 11, 3)
-        self.layout3.addWidget(self.eg_grid_x_setbtn, 11, 4) 
+        self.layout3.addWidget(QLabel("Scan grid X:"), 12, 0) 
+        self.layout3.addWidget(self.eg_read_grid_x, 12, 1)
+        self.layout3.addWidget(self.eg_grid_x_setval, 12, 2)
+        self.layout3.addWidget(QLabel("[mm]"), 12, 3)
+        self.layout3.addWidget(self.eg_grid_x_setbtn, 12, 4) 
 
         # Scan grid Y
         self.eg_grid_y_setval = QLineEdit()
@@ -1502,11 +1493,11 @@ class MainWindow(QMainWindow):
         self.eg_grid_y_setval.setFixedWidth(200)
         self.eg_grid_y_setbtn.setFixedWidth(150) 
 
-        self.layout3.addWidget(QLabel("Scan grid Y:"), 12, 0) 
-        self.layout3.addWidget(self.eg_read_grid_y, 12, 1)
-        self.layout3.addWidget(self.eg_grid_y_setval, 12, 2)
-        self.layout3.addWidget(QLabel("[mm]"), 12, 3)
-        self.layout3.addWidget(self.eg_grid_y_setbtn, 12, 4) 
+        self.layout3.addWidget(QLabel("Scan grid Y:"), 13, 0) 
+        self.layout3.addWidget(self.eg_read_grid_y, 13, 1)
+        self.layout3.addWidget(self.eg_grid_y_setval, 13, 2)
+        self.layout3.addWidget(QLabel("[mm]"), 13, 3)
+        self.layout3.addWidget(self.eg_grid_y_setbtn, 13, 4) 
 
         # Plot object 
         self.graph_eg = pg.PlotWidget(axisItems={'bottom': DateAxis(orientation='bottom')})
@@ -1520,7 +1511,7 @@ class MainWindow(QMainWindow):
         #self.graph_eg.setLogMode(y=True)
         
         # Initial data for plot
-        self.plot_eg = self.graph_eg.plot([0,1,2,3], [0,0,0,0], pen=pg.mkPen(color=(255, 0, 0)))
+        self.plot_eg = self.graph_eg.plot([0,1,2,3], [0,0,0,0], pen=pg.mkPen(color=(255, 0, 0)), width=2)
         
         # Axis labels
         self.graph_eg.setLabel('left', 'Frequency [Hz]')
@@ -1529,9 +1520,10 @@ class MainWindow(QMainWindow):
         # Labels for the column titles
         eg_plot_label = QLabel("Dominant frequency vs. time (configure to obtain FFT in APD tab first)")
         eg_plot_label.setStyleSheet("font-weight: bold;")
-        self.layout3.addWidget(eg_plot_label, 13 ,0)
+        self.layout3.addWidget(eg_plot_label, 14 ,0, 1, 2)
 
         self.eg_plot_state = 0
+        self.secure_eg = 0
         
         self.times_eg = []
         self.data_eg = []
@@ -1542,16 +1534,17 @@ class MainWindow(QMainWindow):
         self.eg_secs_input = QLineEdit(self)
         self.eg_secs_input.setFixedWidth(200)
         self.eg_secs_input.setText("86400") # Default value      
-        self.enable_eg_plot = QPushButton("Enable plot")
-        self.enable_eg_plot.setCheckable(True)
-        self.enable_eg_plot.clicked.connect(self.enb_eg_plot)#FUNCION
-        self.layout3.addWidget(self.enable_eg_plot, 14, 0)
-        self.layout3.addWidget(self.eg_secs_label, 14, 1)
-        self.layout3.addWidget(self.eg_secs_input, 14, 2)
+
+        self.enable_eg_plot_btn = QPushButton("Enable plot")
+        self.enable_eg_plot_btn.setCheckable(True)
+        self.enable_eg_plot_btn.clicked.connect(self.enb_eg_plot)#FUNCION
+        self.layout3.addWidget(self.enable_eg_plot_btn, 15, 0)
+        self.layout3.addWidget(self.eg_secs_label, 15, 1)
+        self.layout3.addWidget(self.eg_secs_input, 15, 2)
 
         # Plot eg displayed in the APD tab
-        self.layout3.addWidget(self.graph_eg, 15, 0, 2, 5)
-        self.layout3.setRowStretch(16, 5)
+        self.layout3.addWidget(self.graph_eg, 16, 0, 2, 5)
+        self.layout3.setRowStretch(17, 5)
 
         # ------------------------------------------------------------------------------------------- #
         # ESI TAB
@@ -2670,8 +2663,8 @@ class MainWindow(QMainWindow):
                 pre_vacuum_pressure1 = float(twistorr_subscribing_values[12])
                 pre_vacuum_pressure2 = float(twistorr_subscribing_values[13])                                
 
-                vacuum_pressure1 = str("{:.2E}".format(pre_vacuum_pressure1))
-                vacuum_pressure2 = str("{:.2E}".format(pre_vacuum_pressure2))
+                self.vacuum_pressure1 = str("{:.2E}".format(pre_vacuum_pressure1))
+                self.vacuum_pressure2 = str("{:.2E}".format(pre_vacuum_pressure2))
 
                 # Update the labels with the vacuum-related values
                 self.monitor_vacuum_current.setText(vacuum_current+" [mA]")
@@ -2686,8 +2679,7 @@ class MainWindow(QMainWindow):
                 self.monitor_vacuum_frequency2.setText(vacuum_frequency2+" [Hz]")
                 self.monitor_vacuum_temperature2.setText(vacuum_temperature2+" [°C]")
                 self.vacuum_frequency2.setText(vacuum_frequency2+" [Hz]")
-                self.FR_pressure.setText(vacuum_pressure1+" [Torr]")
-
+                self.FR_pressure.setText(self.vacuum_pressure1+" [Torr]")
 
                 self.update_graph_pressure()
                 
@@ -2729,7 +2721,7 @@ class MainWindow(QMainWindow):
         # Start a QTimer to periodically update vacuum-related values
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_vacuum_values)
-        self.timer.start(10)  # Update interval for Twistorr monitoring
+        self.timer.start(1000)  # Update interval for Twistorr monitoring
 
     def stop_update_tt_timer(self):
         # Stop the QTimer used for updating vacuum-related values
@@ -2758,6 +2750,77 @@ class MainWindow(QMainWindow):
         print(prevac_command)
         #subprocess.run(['pkill', '-f', self.processes[17].args[0]], check=True)  
         self.processes[16] = subprocess.Popen([self.binary_paths[16]])
+
+    def enb_eg_onoff(self):
+        # Toggle the spec mode and update toggle button style
+        if self.eg_connection_btn.isChecked():
+            if self.btn_vacuum_monitor.isChecked():
+                if (0 < float(self.vacuum_pressure1) < reqPress4ElectronGun):
+                    if self.secure_eg_btn.isChecked():
+                        self.secure_eg_btn.setStyleSheet("background-color: red; color: white;")
+                        self.secure_eg = 1  
+                    else:
+                        self.secure_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                        self.secure_eg = 0  
+                        self.secure_eg_btn.setChecked(False)   
+                else:
+                    self.secure_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                    self.secure_eg = 0  
+                    self.secure_eg_btn.setChecked(False) 
+                    self.showWarningSignal.emit("To enable the electron gun, the pressure measured by the FRG-702 sensor must be less than {} [Torr], please wait until it reaches a pressure lower than that indicated...".format(reqPress4ElectronGun))  
+            else:
+                self.secure_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                self.secure_eg = 0  
+                self.secure_eg_btn.setChecked(False) 
+                self.showWarningSignal.emit("To enable the electron gun you must first be connected to the vacuum equipment...")                
+        else:
+            self.secure_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+            self.secure_eg = 0  
+            self.secure_eg_btn.setChecked(False)    
+
+    def enb_eg_operate(self):
+        if self.eg_connection_btn.isChecked():
+            if (self.secure_eg == 1):
+                float_v = 0
+                if self.operate_eg_btn.isChecked():
+                    float_v = 1
+                    self.operate_eg_btn.setStyleSheet("background-color: darkblue; color: white;")
+                else:
+                    float_v = 0
+                    self.operate_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                #subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True)
+                decimal_part1 = (float_v >> 8) & 0xFF
+                decimal_part2 = float_v & 0xFF
+                arg = "0 13 " + str(decimal_part1) + " " + str(decimal_part2)
+                print("AQUI SE ENVIARÍA EL COMANDO " + arg + " (OPERATE)")
+                #self.execute_prevac_setter(arg)  
+                #time.sleep(0.1) 
+            else:
+                self.operate_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                self.operate_eg_btn.setChecked(False) 
+                self.showWarningSignal.emit("First you must press the 'Enable power on/off' button...")                     
+
+    def enb_eg_standby(self):        
+        if self.eg_connection_btn.isChecked():
+            if (self.secure_eg == 1):
+                float_v = 0
+                if self.standby_eg_btn.isChecked():
+                    float_v = 1
+                    self.standby_eg_btn.setStyleSheet("background-color: darkblue; color: white;")
+                else:
+                    float_v = 0
+                    self.standby_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                #subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True)
+                decimal_part1 = (float_v >> 8) & 0xFF
+                decimal_part2 = float_v & 0xFF
+                arg = "0 14 " + str(decimal_part1) + " " + str(decimal_part2)
+                print("AQUI SE ENVIARÍA EL COMANDO " + arg + " (STAND BY)")
+                #self.execute_prevac_setter(arg)  
+                #time.sleep(0.1) 
+            else:
+                self.standby_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                self.standby_eg_btn.setChecked(False) 
+                self.showWarningSignal.emit("First you must press the 'Enable power on/off' button...") 
 
     def prevac_set_ev(self):
         if self.eg_connection_btn.isChecked():
@@ -2973,8 +3036,8 @@ class MainWindow(QMainWindow):
     def update_electrongun_values(self):
         if self.eg_connection_btn.isChecked():
             if len(prevac_subscribing_values) >= 13:
-                prevac_operate = float(prevac_subscribing_values[0])
-                prevac_standby = float(prevac_subscribing_values[1])
+                prevac_operate = int(prevac_subscribing_values[0])
+                prevac_standby = int(prevac_subscribing_values[1])
                 prevac_energy_voltage = str(round(float(prevac_subscribing_values[2]),3))
                 prevac_focus_voltage = str(round(float(prevac_subscribing_values[3]),3))
                 prevac_wehnelt_voltage = str(round(float(prevac_subscribing_values[4]),3))
@@ -2986,6 +3049,24 @@ class MainWindow(QMainWindow):
                 prevac_scan_gridX = str(round(float(prevac_subscribing_values[10]),3))
                 prevac_scan_gridY = str(round(float(prevac_subscribing_values[11]),3)) 
                 prevac_time_per_dot = str(round(float(prevac_subscribing_values[12]),3))                
+
+                print("Prevac operate state: " + str(prevac_operate) + " --- Prevac stand by state: " + str(prevac_standby))
+
+                if (float(self.vacuum_pressure1) > reqPress4ElectronGun):
+                    self.secure_eg = 0
+                    arg_operate = "0 13 0 0"
+                    arg_standby = "0 14 0 0"
+                    print("AQUI SE ENVIARÍA EL COMANDO " + arg_operate + " (OPERATE)")   
+                    print("AQUI SE ENVIARÍA EL COMANDO " + arg_standby + " (STANDBY)")
+                    #self.execute_prevac_setter(arg_operate)
+                    #self.execute_prevac_setter(arg_standby)                                     
+                    self.secure_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                    self.secure_eg_btn.setChecked(False)  
+                    self.standby_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                    self.standby_eg_btn.setChecked(False) 
+                    self.operate_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                    self.operate_eg_btn.setChecked(False)                     
+                    self.showWarningSignal.emit("The pressure in the FRG-702 sensor is greater than {} [Torr], a command has been sent to turn off the electron gun...".format(reqPress4ElectronGun))
 
                 # Update the labels with the prevac-related values
                 self.eg_read_energy_voltage.setText(prevac_energy_voltage+" [V]")
@@ -3000,7 +3081,7 @@ class MainWindow(QMainWindow):
                 self.eg_read_grid_x.setText(prevac_scan_gridX+" [mm]")
                 self.eg_read_grid_y.setText(prevac_scan_gridY+" [mm]")
 
-                print(self.eg_read_energy_voltage, self.eg_read_focus_voltage, self.eg_read_wehnelt_voltage, self.eg_read_emission_current, self.eg_read_tpd, self.eg_read_position_x, self.eg_read_position_y, self.eg_read_area_x, self.eg_read_area_y, self.eg_read_grid_x, self.eg_read_grid_y)
+                #print(self.eg_read_energy_voltage, self.eg_read_focus_voltage, self.eg_read_wehnelt_voltage, self.eg_read_emission_current, self.eg_read_tpd, self.eg_read_position_x, self.eg_read_position_y, self.eg_read_area_x, self.eg_read_area_y, self.eg_read_grid_x, self.eg_read_grid_y)
 
                                      
         else:        
@@ -3022,7 +3103,7 @@ class MainWindow(QMainWindow):
         # Start a QTimer to periodically update prevac-related values
         self.timer_prevac = QTimer()
         self.timer_prevac.timeout.connect(self.update_electrongun_values)
-        self.timer_prevac.start(10)  # Update interval for Prevac monitoring
+        self.timer_prevac.start(1000)  # Update interval for Prevac monitoring
 
     def stop_update_eg_timer(self):
         # Stop the QTimer used for updating prevac-related values
@@ -3264,8 +3345,6 @@ class MainWindow(QMainWindow):
             self.plot_matrix = np.transpose(self.spectrum_matrix)
             self.pm = self.plot_matrix[:self.f_f * 10, :]
 
-
-
             # Update the color map with the new data
             self.color_map.setImage(self.pm)
             self.color_map.getView().setRange(xRange=(self.f_i * 10, self.f_f * 10))
@@ -3275,15 +3354,15 @@ class MainWindow(QMainWindow):
     def enb_eg_plot(self):
         # Toggle the spec mode and update toggle button style
         if self.toggle_button_spec.isChecked():
-            if self.enable_eg_plot.isChecked():
-                self.enable_eg_plot.setStyleSheet("background-color: darkblue; color: white;")
+            if self.enable_eg_plot_btn.isChecked():
+                self.enable_eg_plot_btn.setStyleSheet("background-color: darkblue; color: white;")
                 self.eg_plot_state = 1  
             else:
-                self.enable_eg_plot.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                self.enable_eg_plot_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
                 self.eg_plot_state = 0   
         else:
-            self.enable_eg_plot.setChecked(False)   
-            self.enable_eg_plot.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+            self.enable_eg_plot_btn.setChecked(False)   
+            self.enable_eg_plot_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
             self.eg_plot_state = 0     
             self.showWarningSignal.emit("Please make sure that in the APD tab, the 'Plot counts', 'Plot FFT' and 'Show spectrum averages' buttons are enabled and try again...")         
 
@@ -3299,10 +3378,6 @@ class MainWindow(QMainWindow):
         self.times_eg = [t for t in self.times_eg if t >= cut_off_time]
         self.data_eg = self.data_eg[-len(self.times_eg):]
         self.plot_eg.setData(self.times_eg, self.data_eg)
-
-    #def update_plot_eg(self, data):
-        # Update the plot with the new data
-    #    self.plot_eg.setData(self.times_eg, self.data_eg)
 
     def update_graph_pressure(self):
         if (self.pressure_plotting_state == 1):
@@ -3329,24 +3404,17 @@ class MainWindow(QMainWindow):
                 self.pressure_data1 = [np.nan] * len(self.pressure_time)
             else:
                 self.pressure_data1 = [np.nan] * len(self.pressure_time)
-                self.pressure_data2 = [np.nan] * len(self.pressure_time)         
-            # Put the updated data into the data_queue for plotting
-            self.update_pressure_plot_thread.data_queue.put([self.pressure_data1, self.pressure_data2, self.pressure_time])
+                self.pressure_data2 = [np.nan] * len(self.pressure_time)  
 
-
-    def update_pressure_plot(self, data):
-        # Update the plot with the new data
-        #self.graph_pressure_vacuum.clear()
-        if (self.pressure1_checkbox.isChecked() and self.pressure2_checkbox.isChecked()):
-            self.pressure_plot1.setData(self.pressure_data1, self.pressure_time)
-            self.pressure_plot2.setData(self.pressure_data2, self.pressure_time)
-        elif (self.pressure1_checkbox.isChecked()):
-            self.pressure_plot1.setData(self.pressure_data1, self.pressure_time)
-            self.pressure_plot2.setData(self.pressure_data2, self.pressure_time)
-        elif (self.pressure2_checkbox.isChecked()):
-            self.pressure_plot1.setData(self.pressure_data1, self.pressure_time)
-            self.pressure_plot2.setData(self.pressure_data2, self.pressure_time)
-        #time.sleep(0.5)
+            if (self.pressure1_checkbox.isChecked() and self.pressure2_checkbox.isChecked()):
+                self.pressure_plot1.setData(self.pressure_time, self.pressure_data1)
+                self.pressure_plot2.setData(self.pressure_time, self.pressure_data2)
+            elif (self.pressure1_checkbox.isChecked()):
+                self.pressure_plot1.setData(self.pressure_time, self.pressure_data1)
+                self.pressure_plot2.setData(self.pressure_time, self.pressure_data2)
+            elif (self.pressure2_checkbox.isChecked()):
+                self.pressure_plot1.setData(self.pressure_time, self.pressure_data1)
+                self.pressure_plot2.setData(self.pressure_time, self.pressure_data2)
 
     def send_rigol_publishing_values(self):#, values):
         global rigol_publishing_values
