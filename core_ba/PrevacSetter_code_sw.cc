@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Adjust crc_data based on w1 and w2
-    if (w1 == 0 && w2 == 37) {
+    if ((w1 == 0 && w2 == 37) || (w1 == 0 && w2 == 13) || (w1 == 0 && w2 == 14)) {
         crc_data = {STx, write_function_1, w1, w2, val1, val2};
         crc = calculate_crc(crc_data);
         std::cout << "Sending STx: " << STx << std::endl;

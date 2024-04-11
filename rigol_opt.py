@@ -720,12 +720,54 @@ class MainWindow(QMainWindow):
         self.dock_grid.addWidget(self.FR_pressure, 9, 1)        
 
         # ---------------------------------------------
+        # ---- ELECTRON GUN ----
+        self.prevac_frame = QtWidgets.QFrame()
+        self.prevac_frame.setFrameShape(QtWidgets.QFrame.Box)
 
+        self.dock_grid.addWidget(self.prevac_frame, 10, 0, 5, 2)
+
+        prevac_layout = QtWidgets.QVBoxLayout(self.prevac_frame)
+        self.pressure_frame.setLayout(prevac_layout)
+
+        self.prevac_button = QtWidgets.QPushButton()
+        self.prevac_button.setCheckable(True)
+        self.prevac_button.setStyleSheet("background-color: 53, 53, 53;")
+        self.prevac_button.setText("Electron gun")
+        self.prevac_button.setFixedWidth(180)
+        self.prevac_button.clicked.connect(self.execute_prevac_bar_btn)
+        prevac_layout.addWidget(self.prevac_button, alignment=Qt.AlignTop | Qt.AlignHCenter)
+
+        self.dock_grid.addWidget(QLabel("       ES40 status:"), 11, 0)
+        self.EG_status = QtWidgets.QLabel("N/C")
+        self.dock_grid.addWidget(self.EG_status, 11, 1) 
+
+        self.cathode_failure = QtWidgets.QLabel("              N/C")
+        self.dock_grid.addWidget(self.cathode_failure, 12, 0)
+
+        self.cathode_current_limit = QtWidgets.QLabel("N/C")
+        self.dock_grid.addWidget(self.cathode_current_limit, 12, 1)        
+
+        self.ES_short_circuit = QtWidgets.QLabel("N/C")
+        self.dock_grid.addWidget(self.ES_short_circuit, 13, 1)  
+
+        self.ES_failure = QtWidgets.QLabel("              N/C")
+        self.dock_grid.addWidget(self.ES_failure, 13, 0)
+
+        self.FS_short_circuit = QtWidgets.QLabel("N/C")
+        self.dock_grid.addWidget(self.FS_short_circuit, 14, 1)        
+
+        self.FS_failure = QtWidgets.QLabel("              N/C")
+        self.dock_grid.addWidget(self.FS_failure, 14, 0)                
+
+        # ---------------------------------------------
+
+
+        # ---- LASER ----
         self.laser_frame = QtWidgets.QFrame()
         self.laser_frame.setFrameShape(QtWidgets.QFrame.Box)
         self.laser_frame.setGeometry(0, 0, 250, 130)  # Establecer posición y tamaño del frame
 
-        self.dock_grid.addWidget(self.laser_frame, 10, 0, 3, 2)
+        self.dock_grid.addWidget(self.laser_frame, 15, 0, 3, 2)
 
         self.laser_button = QtWidgets.QPushButton(self.laser_frame)
         self.laser_button.setCheckable(True)
@@ -737,18 +779,18 @@ class MainWindow(QMainWindow):
         self.rigol_laser_voltage = QLineEdit(self.laser_frame)
         self.rigol_laser_voltage.setText("1")
         self.rigol_laser_voltage.setFixedWidth(70)
-        self.rigol_laser_voltage.move(25, 85)  
+        self.rigol_laser_voltage.move(25, 50)  
 
         self.laser_set_button = QtWidgets.QPushButton(self.laser_frame)
         self.laser_set_button.setStyleSheet("background-color: 53, 53, 53; text-align: center;")
         self.laser_set_button.setText("Volt. set")
         self.laser_set_button.clicked.connect(self.toggle_laser_voltage)
         self.laser_set_button.setFixedWidth(70)
-        self.laser_set_button.move(130, 85)  
+        self.laser_set_button.move(130, 50)  
 
-        self.dock_grid.addWidget(QLabel("       Laser voltage:"), 12, 0)
+        self.dock_grid.addWidget(QLabel("       Laser voltage:"), 17, 0)
         self.laser_voltage_monitor = QtWidgets.QLabel("N/C")
-        self.dock_grid.addWidget(self.laser_voltage_monitor, 12, 1)
+        self.dock_grid.addWidget(self.laser_voltage_monitor, 17, 1)
 
         # ---------------------------------------------
 
@@ -756,7 +798,7 @@ class MainWindow(QMainWindow):
         self.apd_frame = QtWidgets.QFrame()
         self.apd_frame.setFrameShape(QtWidgets.QFrame.Box)
 
-        self.dock_grid.addWidget(self.apd_frame, 16, 0, 1, 2)
+        self.dock_grid.addWidget(self.apd_frame, 20, 0, 1, 2)
 
         apd_layout = QtWidgets.QVBoxLayout(self.apd_frame)
         self.apd_frame.setLayout(apd_layout)
@@ -1524,6 +1566,7 @@ class MainWindow(QMainWindow):
 
         self.eg_plot_state = 0
         self.secure_eg = 0
+        self.prevac_flags = [0] * 12
         
         self.times_eg = []
         self.data_eg = []
@@ -2555,6 +2598,18 @@ class MainWindow(QMainWindow):
             self.btn_vacuum_monitor.setStyleSheet("background-color: 53, 53, 53;")
             self.kill_twistorr_monitor()
 
+    def execute_prevac_bar_btn(self):
+        if self.prevac_button.isChecked():
+            self.prevac_button.setStyleSheet("background-color: darkblue;")
+            self.eg_connection_btn.setChecked(True)
+            self.eg_connection_btn.setStyleSheet("background-color: darkblue;")
+            self.execute_electrongun_monitor()
+        else:
+            self.prevac_button.setStyleSheet("background-color: 53, 53, 53;")
+            self.eg_connection_btn.setChecked(False)
+            self.eg_connection_btn.setStyleSheet("background-color: 53, 53, 53;")
+            self.kill_electrongun_monitor()
+
     def execute_twistorr_btn(self):
         if self.btn_vacuum_monitor.isChecked():
             self.btn_vacuum_monitor.setStyleSheet("background-color: darkblue;")
@@ -2646,6 +2701,17 @@ class MainWindow(QMainWindow):
     def update_vacuum_values(self):
         # Update the prevac-related values from twistorr_subscribing_values
         if self.btn_vacuum_monitor.isChecked():
+            process_name = self.binary_paths[11]
+            try:
+                result = subprocess.run(["pgrep", "-f", process_name], capture_output=True, text=True)
+                if result.returncode == 0:
+                    pass
+                else:
+                    print("TwisTorr monitor not running, starting again...")
+                    self.processes[11] = subprocess.Popen([self.binary_paths[11]])
+            except Exception as e:
+                print("Error checking TwisTorr monitor :", str(e))
+
             if len(twistorr_subscribing_values) >= 14:
                 vacuum_status = int(twistorr_subscribing_values[0])
                 vacuum_current = str(int(twistorr_subscribing_values[1]))
@@ -2788,13 +2854,13 @@ class MainWindow(QMainWindow):
                 else:
                     float_v = 0
                     self.operate_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
-                #subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True)
+                subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True)
                 decimal_part1 = (float_v >> 8) & 0xFF
                 decimal_part2 = float_v & 0xFF
                 arg = "0 13 " + str(decimal_part1) + " " + str(decimal_part2)
                 print("AQUI SE ENVIARÍA EL COMANDO " + arg + " (OPERATE)")
-                #self.execute_prevac_setter(arg)  
-                #time.sleep(0.1) 
+                self.execute_prevac_setter(arg)  
+                time.sleep(0.1) 
             else:
                 self.operate_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
                 self.operate_eg_btn.setChecked(False) 
@@ -2810,13 +2876,13 @@ class MainWindow(QMainWindow):
                 else:
                     float_v = 0
                     self.standby_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
-                #subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True)
+                subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True)
                 decimal_part1 = (float_v >> 8) & 0xFF
                 decimal_part2 = float_v & 0xFF
                 arg = "0 14 " + str(decimal_part1) + " " + str(decimal_part2)
                 print("AQUI SE ENVIARÍA EL COMANDO " + arg + " (STAND BY)")
-                #self.execute_prevac_setter(arg)  
-                #time.sleep(0.1) 
+                self.execute_prevac_setter(arg)  
+                time.sleep(0.1) 
             else:
                 self.standby_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
                 self.standby_eg_btn.setChecked(False) 
@@ -3037,7 +3103,7 @@ class MainWindow(QMainWindow):
         if self.eg_connection_btn.isChecked():
             if len(prevac_subscribing_values) >= 13:
                 prevac_operate = int(prevac_subscribing_values[0])
-                prevac_standby = int(prevac_subscribing_values[1])
+                flags = bin(int(prevac_subscribing_values[1]))[2:]
                 prevac_energy_voltage = str(round(float(prevac_subscribing_values[2]),3))
                 prevac_focus_voltage = str(round(float(prevac_subscribing_values[3]),3))
                 prevac_wehnelt_voltage = str(round(float(prevac_subscribing_values[4]),3))
@@ -3050,20 +3116,92 @@ class MainWindow(QMainWindow):
                 prevac_scan_gridY = str(round(float(prevac_subscribing_values[11]),3)) 
                 prevac_time_per_dot = str(round(float(prevac_subscribing_values[12]),3))                
 
-                print("Prevac operate state: " + str(prevac_operate) + " --- Prevac stand by state: " + str(prevac_standby))
+                flags = flags.zfill(12)
+
+                self.prevac_flags = [int(bit) for bit in flags]
+
+                print("Prevac operate state: " + str(prevac_operate) + " --- Prevac status flags: " + str(self.prevac_flags))
+
+                if (self.prevac_flags[9] == 1):
+                    self.cathode_failure.setText("       Cathode FLR")
+                    self.cathode_failure.setStyleSheet("color: red; font-weight: bold")
+                else:
+                    self.cathode_failure.setText("       Cathode FLR")
+                    self.cathode_failure.setStyleSheet("color: white; font-weight: normal")                    
+
+                if (self.prevac_flags[8] == 1):
+                    self.cathode_current_limit.setText("C. current lim.")
+                    self.cathode_current_limit.setStyleSheet("color: red; font-weight: bold")
+                else:
+                    self.cathode_current_limit.setText("C. current lim.")
+                    self.cathode_current_limit.setStyleSheet("color: white; font-weight: normal")                    
+
+                if (self.prevac_flags[3] == 1):
+                    self.ES_short_circuit.setText("ES short circ.")
+                    self.ES_short_circuit.setStyleSheet("color: red; font-weight: bold")
+                else:
+                    self.ES_short_circuit.setText("ES short circ.")
+                    self.ES_short_circuit.setStyleSheet("color: white; font-weight: normal")                    
+
+                if (self.prevac_flags[2] == 1):
+                    self.ES_failure.setText("       ES FLR")
+                    self.ES_failure.setStyleSheet("color: red; font-weight: bold")
+                else:
+                    self.ES_failure.setText("       ES FLR")
+                    self.ES_failure.setStyleSheet("color: white; font-weight: normal")                    
+
+                if (self.prevac_flags[1] == 1):
+                    self.FS_short_circuit.setText("FS short circ.")
+                    self.FS_short_circuit.setStyleSheet("color: red; font-weight: bold")
+                else:
+                    self.FS_short_circuit.setText("FS short circ.")
+                    self.FS_short_circuit.setStyleSheet("color: white; font-weight: normal")                    
+
+                if (self.prevac_flags[0] == 1):
+                    self.FS_failure.setText("       FS FLR")
+                    self.FS_failure.setStyleSheet("color: red; font-weight: bold")
+                else:
+                    self.FS_failure.setText("       FS FLR")
+                    self.FS_failure.setStyleSheet("color: white; font-weight: normal")                    
+
+                if (prevac_operate == 1):
+                    self.EG_status.setText(" Operate")
+                    self.EG_status.setStyleSheet("color: white; font-weight: bold")
+                else:
+                    self.EG_status.setText(" Stand by")
+                    self.EG_status.setStyleSheet("color: white; font-weight: bold")                    
+
+                if (prevac_operate == 1) and (self.secure_eg == 0):
+                    self.secure_eg = 1
+                    self.secure_eg_btn.setStyleSheet("background-color: red; color: white;")
+                    self.secure_eg_btn.setChecked(True)  
+                    if prevac_operate == 1:
+                        self.operate_eg_btn.setStyleSheet("background-color: darkblue; color: white;")
+                        self.operate_eg_btn.setChecked(True) 
+                    if prevac_standby == 1:
+                        self.standby_eg_btn.setStyleSheet("background-color: darkblue; color: white;")
+                        self.standby_eg_btn.setChecked(True) 
+                
+                if prevac_operate == 1:
+                    self.operate_eg_btn.setStyleSheet("background-color: darkblue; color: white;")
+                    self.operate_eg_btn.setChecked(True) 
+                    self.standby_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                    self.standby_eg_btn.setChecked(False) 
+                
+                if prevac_operate == 0:
+                    self.standby_eg_btn.setStyleSheet("background-color: darkblue; color: white;")
+                    self.standby_eg_btn.setChecked(True) 
+                    self.operate_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                    self.operate_eg_btn.setChecked(False)  
 
                 if (float(self.vacuum_pressure1) > reqPress4ElectronGun):
                     self.secure_eg = 0
-                    arg_operate = "0 13 0 0"
-                    arg_standby = "0 14 0 0"
-                    print("AQUI SE ENVIARÍA EL COMANDO " + arg_operate + " (OPERATE)")   
-                    print("AQUI SE ENVIARÍA EL COMANDO " + arg_standby + " (STANDBY)")
-                    #self.execute_prevac_setter(arg_operate)
-                    #self.execute_prevac_setter(arg_standby)                                     
+                    arg_standby = "0 14 0 1"
+                    self.execute_prevac_setter(arg_standby)                                     
                     self.secure_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
                     self.secure_eg_btn.setChecked(False)  
-                    self.standby_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
-                    self.standby_eg_btn.setChecked(False) 
+                    self.standby_eg_btn.setStyleSheet("background-color: darkblue; color: white;")
+                    self.standby_eg_btn.setChecked(True) 
                     self.operate_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
                     self.operate_eg_btn.setChecked(False)                     
                     self.showWarningSignal.emit("The pressure in the FRG-702 sensor is greater than {} [Torr], a command has been sent to turn off the electron gun...".format(reqPress4ElectronGun))
@@ -3095,7 +3233,24 @@ class MainWindow(QMainWindow):
             self.eg_read_area_x.setText("N/C")
             self.eg_read_area_y.setText("N/C")
             self.eg_read_grid_x.setText("N/C")
-            self.eg_read_grid_y.setText("N/C")                     
+            self.eg_read_grid_y.setText("N/C")     
+            
+            self.EG_status.setText("N/C")
+            self.cathode_failure.setText("              N/C")  
+            self.cathode_current_limit.setText("N/C") 
+            self.ES_short_circuit.setText("N/C")   
+            self.ES_failure.setText("              N/C")    
+            self.FS_short_circuit.setText("N/C")    
+            self.FS_failure.setText("              N/C") 
+            
+            self.EG_status.setStyleSheet("color: white; font-weight: normal") 
+            self.cathode_failure.setStyleSheet("color: white; font-weight: normal")   
+            self.cathode_current_limit.setStyleSheet("color: white; font-weight: normal")  
+            self.ES_short_circuit.setStyleSheet("color: white; font-weight: normal")   
+            self.ES_failure.setStyleSheet("color: white; font-weight: normal")     
+            self.FS_short_circuit.setStyleSheet("color: white; font-weight: normal")    
+            self.FS_failure.setStyleSheet("color: white; font-weight: normal")              
+
         # Sleep briefly to avoid excessive updates
         #time.sleep(0.01)
 
@@ -3236,6 +3391,16 @@ class MainWindow(QMainWindow):
         self.update_plot1_thread.data_queue.put([self.times1, self.data1])
 
     def update_plot1(self, data):
+        process_name = self.binary_paths[1]
+        try:
+            result = subprocess.run(["pgrep", "-f", process_name], capture_output=True, text=True)
+            if result.returncode == 0:
+                pass
+            else:
+                print("APD CVT not running, starting again...")
+                self.processes[1] = subprocess.Popen([self.binary_paths[1]])
+        except Exception as e:
+            print("Error checking APD CVT :", str(e))
         # Update the plot with the new data
         self.plot1.setData(self.times1, self.data1)
     

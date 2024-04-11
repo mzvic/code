@@ -144,9 +144,9 @@ int main() {
         
         for (int param = 0; param < 13; ++param) {
             if (param == 0) { //Operate
-                send_data(read_function, 0, 13, 0, 1, 21, 201);
+                send_data(read_function, 0, 0, 0, 1, 132, 10);
             } else if (param == 1) { //Stand by
-                send_data(read_function, 0, 14, 0, 1, 229, 201);
+                send_data(read_function, 0, 1, 0, 1, 213, 202);
             } else if (param == 2) { //Energy voltage set
                 send_data(read_function, 0, 15, 0, 2, 244, 8);
             } else if (param == 3) { //Focus voltage set
@@ -175,7 +175,7 @@ int main() {
         }
 
         //std::cout << "----------------------------------------------------------" << std::endl;  
-        const char* param_names[13] = {"Operate", "Stand by", "Energy voltage set", "Focus voltage set", "Wehnelt voltage set", "Emission current set", "Scan position X", "Scan position Y", "Scan area X", "Scan area Y", "Scan grid X", "Scan grid Y", "Time Per Dot"};
+        const char* param_names[13] = {"Operate", "Status flags", "Energy voltage set", "Focus voltage set", "Wehnelt voltage set", "Emission current set", "Scan position X", "Scan position Y", "Scan area X", "Scan area Y", "Scan grid X", "Scan grid Y", "Time Per Dot"};
         for (int i = 0; i < 13; ++i) {
             //std::cout << param_names[i] << ": ";
             for (unsigned char j = 0; j < responses[i].data_length; j += 4) {
