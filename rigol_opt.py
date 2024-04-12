@@ -1327,7 +1327,7 @@ class MainWindow(QMainWindow):
         #self.eg_connection_btn.setFixedWidth(300) 
         self.layout3.addWidget(self.eg_connection_btn, 0, 0, 1, 5) 
 
-        self.secure_eg_btn = QPushButton("Enable power on/off")
+        self.secure_eg_btn = QPushButton("Enable operate")
         self.secure_eg_btn.setCheckable(True)
         self.secure_eg_btn.clicked.connect(self.enb_eg_onoff)#FUNCION
 
@@ -2622,12 +2622,6 @@ class MainWindow(QMainWindow):
             self.pressure_button.setStyleSheet("background-color: 53, 53, 53;")
             self.kill_twistorr_monitor()
 
-    def execute_twistorr_monitor(self):
-        self.processes[11] = subprocess.Popen([self.binary_paths[11]])
- 
-    def kill_twistorr_monitor(self):
-        subprocess.run(['pkill', '-f', self.processes[11].args[0]], check=True)
-
     def tt_startstop1_button(self):
         if self.btn_vacuum_monitor.isChecked():
             if self.btn_tt_startstop1.isChecked():
@@ -2701,17 +2695,6 @@ class MainWindow(QMainWindow):
     def update_vacuum_values(self):
         # Update the prevac-related values from twistorr_subscribing_values
         if self.btn_vacuum_monitor.isChecked():
-            process_name = self.binary_paths[11]
-            try:
-                result = subprocess.run(["pgrep", "-f", process_name], capture_output=True, text=True)
-                if result.returncode == 0:
-                    pass
-                else:
-                    print("TwisTorr monitor not running, starting again...")
-                    self.processes[11] = subprocess.Popen([self.binary_paths[11]])
-            except Exception as e:
-                print("Error checking TwisTorr monitor :", str(e))
-
             if len(twistorr_subscribing_values) >= 14:
                 vacuum_status = int(twistorr_subscribing_values[0])
                 vacuum_current = str(int(twistorr_subscribing_values[1]))
@@ -2794,10 +2777,22 @@ class MainWindow(QMainWindow):
         if hasattr(self, 'timer'):
             self.timer.stop()
 
+    def execute_twistorr_monitor(self):
+        self.processes[11] = subprocess.Popen([self.binary_paths[11]])
+        os.system('sudo systemctl enable twistorrmonitor.service')
+        os.system('sudo systemctl start twistorrmonitor.service')    
+ 
+    def kill_twistorr_monitor(self):
+        os.system('sudo systemctl stop twistorrmonitor.service') 
+        subprocess.run(['pkill', '-f', self.processes[11].args[0]], check=True)
+
     def execute_electrongun_monitor(self):
         self.processes[16] = subprocess.Popen([self.binary_paths[16]])
+        os.system('sudo systemctl enable prevacmonitor.service')
+        os.system('sudo systemctl start prevacmonitor.service')  
 
     def kill_electrongun_monitor(self):
+        os.system('sudo systemctl stop prevacmonitor.service') 
         command = ['pkill', '-f', self.processes[16].args[0]]
         print("Command to kill process:", command)
         subprocess.run(command, check=True)
@@ -2850,7 +2845,7 @@ class MainWindow(QMainWindow):
                 float_v = 0
                 if self.operate_eg_btn.isChecked():
                     float_v = 1
-                    self.operate_eg_btn.setStyleSheet("background-color: darkblue; color: white;")
+                    self.operate_eg_btn.setStyleSheet("background-color: green; color: white;")
                 else:
                     float_v = 0
                     self.operate_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
@@ -2873,6 +2868,9 @@ class MainWindow(QMainWindow):
                 if self.standby_eg_btn.isChecked():
                     float_v = 1
                     self.standby_eg_btn.setStyleSheet("background-color: darkblue; color: white;")
+                    self.secure_eg = 0
+                    self.secure_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                    self.secure_eg_btn.setChecked(False) 
                 else:
                     float_v = 0
                     self.standby_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
@@ -3176,14 +3174,11 @@ class MainWindow(QMainWindow):
                     self.secure_eg_btn.setStyleSheet("background-color: red; color: white;")
                     self.secure_eg_btn.setChecked(True)  
                     if prevac_operate == 1:
-                        self.operate_eg_btn.setStyleSheet("background-color: darkblue; color: white;")
+                        self.operate_eg_btn.setStyleSheet("background-color: green; color: white;")
                         self.operate_eg_btn.setChecked(True) 
-                    if prevac_standby == 1:
-                        self.standby_eg_btn.setStyleSheet("background-color: darkblue; color: white;")
-                        self.standby_eg_btn.setChecked(True) 
                 
                 if prevac_operate == 1:
-                    self.operate_eg_btn.setStyleSheet("background-color: darkblue; color: white;")
+                    self.operate_eg_btn.setStyleSheet("background-color: green; color: white;")
                     self.operate_eg_btn.setChecked(True) 
                     self.standby_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
                     self.standby_eg_btn.setChecked(False) 

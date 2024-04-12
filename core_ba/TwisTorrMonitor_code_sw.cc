@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     // Main loop: continuously read data from twistorr
     while (!exit_flag) { 
         std::fstream serial(serialport, std::ios::in | std::ios::out | std::ios::binary);
-        std::this_thread::sleep_for(std::chrono::milliseconds(400));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         bundle.clear_value(); 
         for (int device_count = 1; device_count <= 2; device_count++) { // ADDR1 and ADDR2
             for (int xor_WIN = 199; xor_WIN <= 204; ++xor_WIN) {
@@ -184,28 +184,30 @@ int main(int argc, char* argv[]) {
             }
         }
         std::size_t start_index = 0;
-        std::size_t comma_index = 0;
-        for (std::size_t i = 0; i < response.size(); ++i) {
-            if (response[i] == '>') {
-                start_index = i;
-            } else if (response[i] == ',') {
-                comma_index = i;
-                break;             }
+
+        std::size_t comma_index = std::find(response.begin() + start_index, response.end(), ',') - response.begin();
+
+        if (comma_index != response.size()) {
+            std::string AUX1 = std::string(response.begin() + start_index + 1, response.begin() + comma_index);
+            std::string AUX2 = std::string(response.begin() + comma_index + 1, response.end());
+
+            float pressure1 = std::stof(AUX1);
+            float pressure2 = std::stof(AUX2);
+        
+            bundle.add_value(pressure1);
+            bundle.add_value(pressure2);
+            
+            //std::cout << "Response: " << std::string(response.begin(), response.end()) << std::endl;
+            //std::cout << "Pressure1: " << pressure1 << std::endl;
+            //std::cout << "Pressure2: " << pressure2 << std::endl;
+        } else {
+            std::cerr << "Error: Comma index out of bounds." << std::endl;
         }
 
-        std::string AUX1 = std::string(response.begin() + start_index + 1, response.begin() + comma_index);
-        std::string AUX2 = std::string(response.begin() + comma_index + 1, response.end());
-
-        // Convertir las cadenas AUX1 y AUX2 a floats
-        float pressure1 = std::stof(AUX1);
-        float pressure2 = std::stof(AUX2);
-   
-        bundle.add_value(pressure1);
-        bundle.add_value(pressure2);
-        
         publisher_client.Publish(bundle);
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        }	   
+    }
+
     return 0;
 }
 
