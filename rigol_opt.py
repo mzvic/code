@@ -2779,23 +2779,19 @@ class MainWindow(QMainWindow):
 
     def execute_twistorr_monitor(self):
         self.processes[11] = subprocess.Popen([self.binary_paths[11]])
-        os.system('sudo systemctl enable twistorrmonitor.service')
-        os.system('sudo systemctl start twistorrmonitor.service')    
+        os.system('echo code | sudo -S systemctl start twistorrmonitor.service')  
  
     def kill_twistorr_monitor(self):
-        os.system('sudo systemctl stop twistorrmonitor.service') 
+        os.system('echo code | sudo -S systemctl stop twistorrmonitor.service')
         subprocess.run(['pkill', '-f', self.processes[11].args[0]], check=True)
 
     def execute_electrongun_monitor(self):
         self.processes[16] = subprocess.Popen([self.binary_paths[16]])
-        os.system('sudo systemctl enable prevacmonitor.service')
-        os.system('sudo systemctl start prevacmonitor.service')  
+        os.system('echo code | sudo -S systemctl start prevacmonitor.service')
 
     def kill_electrongun_monitor(self):
-        os.system('sudo systemctl stop prevacmonitor.service') 
-        command = ['pkill', '-f', self.processes[16].args[0]]
-        print("Command to kill process:", command)
-        subprocess.run(command, check=True)
+        os.system('echo code | sudo -S systemctl stop prevacmonitor.service')
+        subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True)
 
     def execute_electrongun_btn(self):
         if self.eg_connection_btn.isChecked():

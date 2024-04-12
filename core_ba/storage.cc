@@ -77,6 +77,8 @@ typedef struct {
 
 typedef struct {
   double timestamp_;
+  uint8_t status;
+  std::string status_flags;
   float energy_voltage;
   float focus_voltage;
   float wehnelt_voltage;
@@ -96,7 +98,7 @@ std::array<std::string, 1> fft_param = {"apd_fft_full"};
 std::array<std::string, 12> twistorr_param = {"pump1_current", "pump1_voltage", "pump1_power", "pump1_frequency", "pump1_temperature","pump2_current", "pump2_voltage", "pump2_power", "pump2_frequency", "pump2_temperature", "pressure_1", "pressure_2"};
 std::array<std::string, 5> rigol_param = {"rigol_voltage", "rigol_voltage_offset", "rigol_frequency", "rigol_function", "rigol_status"};
 std::array<std::string, 2> laser_param = {"laser_voltage", "laser_state"};
-std::array<std::string, 11> electron_gun_param = {"energy_voltage", "focus_voltage", "wehnelt_voltage", "emission_current", "time_per_dot", "pos_x", "pos_y", "area_x", "area_y", "grid_x", "grid_y"};
+std::array<std::string, 13> electron_gun_param = {"energy_voltage", "focus_voltage", "wehnelt_voltage", "emission_current", "time_per_dot", "pos_x", "pos_y", "area_x", "area_y", "grid_x", "grid_y", "status", "status_flags"};
 
 
 bool exit_flag = false;
@@ -161,6 +163,15 @@ class StorageServiceImpl final : public Storage::CallbackService {
 	return puller_reactors.back();
   }
 };
+
+
+std::string intToBinaryString(int n) {
+    std::string binaryString;
+    for (int i = sizeof(n) * 8 - 1; i >= 0; --i) {
+        binaryString += ((n >> i) & 1) ? '1' : '0';
+    }
+    return binaryString;
+}
 
 void WriteData(const Bundle &bundle) {
   auto start = high_resolution_clock::now();
@@ -294,6 +305,8 @@ void WriteData(const Bundle &bundle) {
 		  LOG("Writing electron gun monitor record");
 		  // Create entry
 		  electron_gun_monitor_entry->timestamp_ = (double) bundle.timestamp().seconds() + (double) bundle.timestamp().nanos() / 1000000000L;
+		  electron_gun_monitor_entry->status = kValue.Get(0);
+		  electron_gun_monitor_entry->status_flags = intToBinaryString(kValue.Get(1));
 		  electron_gun_monitor_entry->energy_voltage = kValue.Get(2);
 		  electron_gun_monitor_entry->focus_voltage = kValue.Get(3);
 		  electron_gun_monitor_entry->wehnelt_voltage = kValue.Get(4);
@@ -578,7 +591,22 @@ static hid_t MakeElectronGunMonitorEntryType() {
 	}
   // Insert other parameters
   for (const auto &id : data_ids) {
-    if (id == "energy_voltage") {
+      
+    if (id == "status") {
+		  if (H5Tinsert(type_id_eg, "Operate status", HOFFSET(ElectronGunMonitorEntry, status), H5T_NATIVE_INT8) < 0){
+		  	H5Tclose(type_id_eg);
+				return H5I_INVALID_HID;
+		  }
+    } else if (id == "status_flags") {
+            hid_t string_type = H5Tcopy(H5T_C_S1);
+            H5Tset_size(string_type, H5T_VARIABLE);
+            if (H5Tinsert(type_id_eg, "Status_flags", HOFFSET(ElectronGunMonitorEntry, status_flags), string_type) < 0) {
+                H5Tclose(type_id_eg);
+                H5Tclose(string_type);
+                return H5I_INVALID_HID;
+            }
+            H5Tclose(string_type);
+    } else if (id == "energy_voltage") {
 		  if (H5Tinsert(type_id_eg, "Energy_voltage", HOFFSET(ElectronGunMonitorEntry, energy_voltage), H5T_NATIVE_FLOAT) < 0){
 		  	H5Tclose(type_id_eg);
 				return H5I_INVALID_HID;
