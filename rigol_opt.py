@@ -1974,49 +1974,57 @@ class MainWindow(QMainWindow):
         eg_data_group = QtWidgets.QGroupBox("Electron gun data:")
         eg_data_grid_layout = QGridLayout()      
 
+        self.eg_12_checkbox = QCheckBox("Operate status")
+        self.eg_12_checkbox.setChecked(False)
+        eg_data_grid_layout.addWidget(self.eg_12_checkbox, 1, 0)
+
+        self.eg_13_checkbox = QCheckBox("Status flags")
+        self.eg_13_checkbox.setChecked(False)
+        eg_data_grid_layout.addWidget(self.eg_13_checkbox, 2, 0)
+
         self.eg_1_checkbox = QCheckBox("Energy voltage")
         self.eg_1_checkbox.setChecked(False)
-        eg_data_grid_layout.addWidget(self.eg_1_checkbox, 1, 1)
+        eg_data_grid_layout.addWidget(self.eg_1_checkbox, 3, 0)
 
         self.eg_2_checkbox = QCheckBox("Focus voltage")
         self.eg_2_checkbox.setChecked(False)
-        eg_data_grid_layout.addWidget(self.eg_2_checkbox, 2, 1)
+        eg_data_grid_layout.addWidget(self.eg_2_checkbox, 4, 0)
 
         self.eg_3_checkbox = QCheckBox("Wehnelt voltage")
         self.eg_3_checkbox.setChecked(False)
-        eg_data_grid_layout.addWidget(self.eg_3_checkbox, 3, 1)
+        eg_data_grid_layout.addWidget(self.eg_3_checkbox, 5, 0)
 
         self.eg_4_checkbox = QCheckBox("Emission current")
         self.eg_4_checkbox.setChecked(False)
-        eg_data_grid_layout.addWidget(self.eg_4_checkbox, 4, 1)
+        eg_data_grid_layout.addWidget(self.eg_4_checkbox, 6, 0)
 
         self.eg_5_checkbox = QCheckBox("Time per dot")
         self.eg_5_checkbox.setChecked(False)
-        eg_data_grid_layout.addWidget(self.eg_5_checkbox, 5, 1)
+        eg_data_grid_layout.addWidget(self.eg_5_checkbox, 7, 0)
 
         self.eg_6_checkbox = QCheckBox("Scan position X")
         self.eg_6_checkbox.setChecked(False)
-        eg_data_grid_layout.addWidget(self.eg_6_checkbox, 1, 0)
+        eg_data_grid_layout.addWidget(self.eg_6_checkbox, 1, 1)
 
         self.eg_7_checkbox = QCheckBox("Scan position Y")
         self.eg_7_checkbox.setChecked(False)
-        eg_data_grid_layout.addWidget(self.eg_7_checkbox, 2, 0)
+        eg_data_grid_layout.addWidget(self.eg_7_checkbox, 2, 1)
 
         self.eg_8_checkbox = QCheckBox("Scan area X")
         self.eg_8_checkbox.setChecked(False)
-        eg_data_grid_layout.addWidget(self.eg_8_checkbox, 3, 0)
+        eg_data_grid_layout.addWidget(self.eg_8_checkbox, 3, 1)
 
         self.eg_9_checkbox = QCheckBox("Scan area Y")
         self.eg_9_checkbox.setChecked(False)
-        eg_data_grid_layout.addWidget(self.eg_9_checkbox, 4, 0)
+        eg_data_grid_layout.addWidget(self.eg_9_checkbox, 4, 1)
 
         self.eg_10_checkbox = QCheckBox("Scan grid X")
         self.eg_10_checkbox.setChecked(False)
-        eg_data_grid_layout.addWidget(self.eg_10_checkbox, 5, 0)
+        eg_data_grid_layout.addWidget(self.eg_10_checkbox, 5, 1)
 
         self.eg_11_checkbox = QCheckBox("Scan grid Y")
         self.eg_11_checkbox.setChecked(False)
-        eg_data_grid_layout.addWidget(self.eg_11_checkbox, 6, 0)               
+        eg_data_grid_layout.addWidget(self.eg_11_checkbox, 6, 1)               
 
         mark_all_eg_button = QPushButton("Check all")
         mark_all_eg_button.clicked.connect(self.mark_all_eg_checkboxes)
@@ -2024,8 +2032,8 @@ class MainWindow(QMainWindow):
         unmark_all_eg_button = QPushButton("Uncheck all")
         unmark_all_eg_button.clicked.connect(self.unmark_all_eg_checkboxes)
   
-        eg_data_grid_layout.addWidget(mark_all_eg_button, 7, 0)
-        eg_data_grid_layout.addWidget(unmark_all_eg_button, 7, 1)
+        eg_data_grid_layout.addWidget(mark_all_eg_button, 8, 0)
+        eg_data_grid_layout.addWidget(unmark_all_eg_button, 8, 1)
 
         # -------------------------------------------------------------------- #
         # FFT AVG #
@@ -2277,7 +2285,13 @@ class MainWindow(QMainWindow):
                     print("Ejecutando recorder 'Scan grid X'")
                 if self.eg_11_checkbox.isChecked():
                     storage_list.append("grid_y") 
-                    print("Ejecutando recorder 'Scan grid Y'")                                         
+                    print("Ejecutando recorder 'Scan grid Y'")  
+                if self.eg_12_checkbox.isChecked():
+                    storage_list.append("status") 
+                    print("Ejecutando recorder 'Operate status'")                                                             
+                if self.eg_13_checkbox.isChecked():
+                    storage_list.append("status_flags") 
+                    print("Ejecutando recorder 'Status flags'")                                                                 
 
                 if storage_list:
                     storage_command = [self.binary_paths[12]] + [str(stg_arg) for stg_arg in storage_list]
@@ -2312,7 +2326,12 @@ class MainWindow(QMainWindow):
                         self.rigol_3_checkbox.isChecked() or self.rigol_4_checkbox.isChecked()):   
                     record_list.append("DATA_RIGOL_MON")
                 if (self.eg_1_checkbox.isChecked() or self.eg_2_checkbox.isChecked() or
-                        self.eg_3_checkbox.isChecked() or self.eg_4_checkbox.isChecked()):
+                        self.eg_3_checkbox.isChecked() or self.eg_4_checkbox.isChecked() or
+                        self.eg_5_checkbox.isChecked() or self.eg_6_checkbox.isChecked() or
+                        self.eg_7_checkbox.isChecked() or self.eg_8_checkbox.isChecked() or
+                        self.eg_9_checkbox.isChecked() or self.eg_10_checkbox.isChecked() or
+                        self.eg_11_checkbox.isChecked() or self.eg_12_checkbox.isChecked() or
+                        self.eg_13_checkbox.isChecked()):
                     record_list.append("DATA_EG_MON")    
                 print(record_list)
                 if record_list:
@@ -2320,7 +2339,6 @@ class MainWindow(QMainWindow):
                     print("Executing command:", " ".join(record_command))
                     # Execute record with all elements of record_list as arguments
                     self.processes[13] = subprocess.Popen(record_command)
-
             else:
                 self.begin_logging_button.setChecked(True)
 
@@ -2387,6 +2405,8 @@ class MainWindow(QMainWindow):
         self.eg_9_checkbox.setChecked(True)
         self.eg_10_checkbox.setChecked(True)
         self.eg_11_checkbox.setChecked(True) 
+        self.eg_12_checkbox.setChecked(True)
+        self.eg_13_checkbox.setChecked(True) 
 
     def unmark_all_eg_checkboxes(self):
         self.eg_1_checkbox.setChecked(False)
@@ -2400,6 +2420,8 @@ class MainWindow(QMainWindow):
         self.eg_9_checkbox.setChecked(False)
         self.eg_10_checkbox.setChecked(False)
         self.eg_11_checkbox.setChecked(False)     
+        self.eg_12_checkbox.setChecked(False)
+        self.eg_13_checkbox.setChecked(False) 
 
     def mark_all_rigol_checkboxes(self):
         self.rigol_1_checkbox.setChecked(True)
@@ -3711,6 +3733,8 @@ class MainWindow(QMainWindow):
             if process is not None:
                 subprocess.run(['pkill', '-f', process.args[0]], check=True)
 
+        os.system('echo code | sudo -S systemctl stop twistorrmonitor.service')        
+        os.system('echo code | sudo -S systemctl stop prevacmonitor.service')
         self.stop_update_tt_timer()
         self.stop_update_eg_timer()
         event.accept()
