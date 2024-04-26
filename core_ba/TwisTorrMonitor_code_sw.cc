@@ -31,182 +31,263 @@
 using namespace core;
 using google::protobuf::Timestamp;
 
-// Global variables
-const char xor_STX = 2;
-//const char xor_ADDR = 128;
-const char xor_ADDR1 = 128;
-const char xor_ADDR2 = 129;
-const char xor_WR = 48;
-const char xor_OnOff = 48;
-const char xor_ETX = 3;
-const unsigned char STx = 35;
-const unsigned char _0 = 48;
-const unsigned char _F = 70;
-const unsigned char _CR = 13;
+int pserial;
 
 bool exit_flag = false;  // Used to signal the program to exit
 std::mutex signal_mutex; // Mutex for synchronization
 std::condition_variable signal_cv; // Condition variable for synchronization
 
+const char xor_STX = 2;
+const char xor_ADDR1 = 128;
+const char xor_ADDR2 = 129;
+const char xor_WR = 48;
+const char xor_OnOff = 48;
+const char xor_ETX = 3;
+
+int battery_status = 0;
+
 // Function to handle the interrupt signal (SIGINT)
 void HandleSignal(int) {
   std::unique_lock<std::mutex> slck(signal_mutex);
-
   std::cout << "Exiting..." << std::endl;
-
   exit_flag = true;
-
   signal_cv.notify_one();
 }
 
-int main(int argc, char* argv[]) {
-    int pserial = open(serialport, O_RDWR | O_NOCTTY);
-    if (pserial == -1) {
-        std::cerr << "Error opening serial port." << std::endl;
-        return 1;
+struct ups_Response {
+    unsigned char* data;
+    unsigned char data_length;
+};
+
+struct baro_Response {
+    float pressure1;
+    float pressure2;
+};
+
+struct pump_Response {
+    float pump_data;
+};
+
+ups_Response read_ups_response(int pserial) {
+    unsigned char ups_response[512];
+    int bytesRead = read(pserial, ups_response, sizeof(ups_response)); 
+    if (bytesRead > 0) {
+        unsigned char read_function = ups_response[0];
+        unsigned char function_code = ups_response[1];
+        unsigned char data_length = ups_response[2];
+        unsigned char* data = new unsigned char[data_length]; 
+        
+        std::memcpy(data, &ups_response[3], data_length);
+        return {data, data_length}; 
+    } 
+    return {nullptr, 0}; 
+}
+
+float stringToFloat(const std::string& str) {
+    std::istringstream iss(str);
+    float f;
+    iss >> f;
+    if (iss.fail()) {
+        throw std::invalid_argument("Invalid float format");
     }
-    struct termios options;
-    tcgetattr(pserial, &options);
-    cfsetispeed(&options, baudrate);
-    cfsetospeed(&options, baudrate);
-    options.c_cflag |= (CLOCAL | CREAD);    
-    options.c_cflag &= ~CSIZE;
-    options.c_cflag |= CS8;         
-    options.c_cflag &= ~PARENB;     
-    options.c_cflag &= ~CSTOPB;     
-    options.c_cflag &= ~CRTSCTS;   
-    options.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
-    options.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
-    options.c_oflag &= ~OPOST;
-    options.c_cc[VMIN] = 1;
-    options.c_cc[VTIME] = 1;
-    tcsetattr(pserial, TCSANOW, &options);
-    char data = '0';
-    write(pserial, &data, 1);
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    close(pserial);
+    return f;
+}
+
+baro_Response read_baro_response(int pserial) {
+    unsigned char baro_response[512];
+    int bytesRead = read(pserial, baro_response, sizeof(baro_response)); 
+    if (bytesRead > 0) {
+        std::string response_str(reinterpret_cast<char*>(baro_response), bytesRead);
+        //std::cout << "baro_Response: " << response_str << std::endl;
+        size_t comma_pos = response_str.find(',');
+        if (comma_pos != std::string::npos) {
+            std::string pressure1_str = response_str.substr(1, comma_pos - 1); // Ignorar el símbolo '>'
+            std::string pressure2_str = response_str.substr(comma_pos + 1);
+            float pressure1 = stringToFloat(pressure1_str);
+            float pressure2 = stringToFloat(pressure2_str);
+            return {pressure1, pressure2};
+        } else {
+            std::cerr << "Error: Comma not found in response." << std::endl;
+            return {0, 0}; 
+        }
+    } else {
+        std::cerr << "Error reading from serial port." << std::endl;
+        return {0, 0}; 
+    } 
+}
+
+
+pump_Response read_pump_response(int pserial) {
+    unsigned char pump_response[512];
+    int bytesRead = read(pserial, pump_response, sizeof(pump_response));
+    if (bytesRead > 0) {
+        //std::cout << "pump_Response: ";
+        //for (int i = 0; i < bytesRead; ++i) {
+        //    std::cout << pump_response[i];
+        //}
+        //std::cout << std::endl;
+        
+        float rx_value = stringToFloat(std::string(pump_response + 6, pump_response + bytesRead));
+        return {rx_value};
+    } else {
+        std::cerr << "Error reading from serial port." << std::endl;
+    }
+    return {0}; 
+}
+
+
+void send_data_pump(unsigned char pump_st, unsigned char pump_add, unsigned char pump_w1, unsigned char pump_w2, unsigned char pump_w3, unsigned char pump_wr, unsigned char pump_val, unsigned char pump_end, unsigned char pump_crc1, unsigned char pump_crc2) {
+    write(pserial, &pump_st, 1);
+    write(pserial, &pump_add, 1);
+    write(pserial, &pump_w1, 1);
+    write(pserial, &pump_w2, 1);
+    write(pserial, &pump_w3, 1);
+    write(pserial, &pump_wr, 1);
+    write(pserial, &pump_val, 1);
+    write(pserial, &pump_end, 1);
+    write(pserial, &pump_crc1, 1);
+    write(pserial, &pump_crc2, 1);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+}
+
+void send_data_baro(unsigned char baro_add, unsigned char baro_w1, unsigned char baro_w2, unsigned char baro_cr) {
+    write(pserial, &baro_add, 1);
+    write(pserial, &baro_w1, 1);
+    write(pserial, &baro_w1, 1);
+    write(pserial, &baro_w1, 1);
+    write(pserial, &baro_w2, 1);
+    write(pserial, &baro_cr, 1);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+}
+
+void send_data_ups(unsigned char add, unsigned char function, unsigned char word_0, unsigned char word_1, unsigned char windows_0, unsigned char windows_1, unsigned char crc_2, unsigned char crc_1) {
+    write(pserial, &add, 1);
+    write(pserial, &function, 1);
+    write(pserial, &word_0, 1);
+    write(pserial, &word_1, 1);
+    write(pserial, &windows_0, 1);
+    write(pserial, &windows_1, 1);
+    write(pserial, &crc_2, 1);
+    write(pserial, &crc_1, 1);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+}
+
+short int hexToInt16(unsigned char* bytes) {
+    if (bytes == nullptr) {
+        return 0; 
+    }
+    if (bytes[0] == '\0' || bytes[1] == '\0') {
+        return 0; 
+    }
+    int battery_status = (bytes[0] << 8) | bytes[1];
+    battery_status = battery_status * 0.1; 
+    return battery_status;
+}
+
+int main(int argc, char* argv[]) {
+    // Register the signal handler for SIGINT (Ctrl+C)
+    std::signal(SIGINT, HandleSignal);
     // Create a data bundle and a publisher client for communication
     Bundle bundle;
     PublisherClient publisher_client;
     Timestamp timestamp; 
-
-    // Register the signal handler for SIGINT (Ctrl+C)
-    std::signal(SIGINT, HandleSignal);
-
     // Set the data bundle type to DATA_TT_MON
-    bundle.set_type(DATA_TT_MON);
-    // Main loop: continuously read data from twistorr
-    while (!exit_flag) { 
-        std::fstream serial(serialport, std::ios::in | std::ios::out | std::ios::binary);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        bundle.clear_value(); 
-        for (int device_count = 1; device_count <= 2; device_count++) { // ADDR1 and ADDR2
-            for (int xor_WIN = 199; xor_WIN <= 204; ++xor_WIN) {
-                std::fstream serial(serialport, std::ios::in | std::ios::out | std::ios::binary);
-                if (!serial.is_open()) {
-                    std::cerr << "Error opening serial port." << std::endl;
-                    return 1;
-                }
-                //std::cout << "--------------------------------------------------------------------\n";
+    bundle.set_type(DATA_TT_MON);    
+    
+        // Main loop: continuously read data from twistorr
+        while (!exit_flag) { 
+            bundle.clear_value();
+            pserial = open(serialport, O_RDWR | O_NOCTTY);
+            if (pserial == -1) {
+                std::cerr << "Error opening serial port (first try)." << std::endl;
+                pserial = open(serialport, O_RDWR | O_NOCTTY);
+                if (pserial == -1) {
+                    std::cerr << "Error opening serial port (second try)." << std::endl;
+                    return 1;}
+            }
+            struct termios options;
+            tcgetattr(pserial, &options);
+            cfsetispeed(&options, B9600);
+            cfsetospeed(&options, B9600);
+            options.c_cflag |= (CLOCAL | CREAD);
+            options.c_cflag &= ~PARENB;
+            options.c_cflag &= ~CSTOPB;
+            options.c_cflag &= ~CSIZE;
+            options.c_cflag |= CS8;
+            options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+            options.c_oflag &= ~OPOST;
+            options.c_cc[VMIN] = 0;
+            options.c_cc[VTIME] = 10;
+            tcsetattr(pserial, TCSANOW, &options);
 
-                std::string WIN = std::to_string(xor_WIN);
-                
-                char xor_WIN1 = WIN[0];
-                char xor_WIN2 = WIN[1];
-                char xor_WIN3 = WIN[2];
-                if (xor_WIN == 199){
-                    xor_WIN1 = 48;
-                    xor_WIN2 = 48;
-                    xor_WIN3 = 48;                
-                }
-
-                char xor_checksum = 30;
-                if (device_count == 1){
-                    xor_checksum = xor_ADDR1 ^ xor_WIN1 ^ xor_WIN2 ^ xor_WIN3 ^ xor_WR ^ xor_OnOff ^ xor_ETX;
-                }else{
-                    xor_checksum = xor_ADDR2 ^ xor_WIN1 ^ xor_WIN2 ^ xor_WIN3 ^ xor_WR ^ xor_OnOff ^ xor_ETX;}
-                char crc_1 = ((xor_checksum >> 4) & 0xF);
-                char crc_2 = (xor_checksum & 0xF);
-                char ascii_crc_1[3];
-                char ascii_crc_2[3];
-                snprintf(ascii_crc_1, sizeof(ascii_crc_1), "%X", crc_1);
-                snprintf(ascii_crc_2, sizeof(ascii_crc_2), "%X", crc_2);
-
-                serial.write(&xor_STX, 1);
-                if (device_count == 1){
-                    serial.write(&xor_ADDR1, 1);
-                }else{
-                    serial.write(&xor_ADDR2, 1);}
-                serial.write(&xor_WIN1, 1);
-                serial.write(&xor_WIN2, 1);
-                serial.write(&xor_WIN3, 1);
-                serial.write(&xor_WR, 1);
-                serial.write(&xor_OnOff, 1);
-                serial.write(&xor_ETX, 1);
-                serial.write(ascii_crc_1, 1);
-                serial.write(ascii_crc_2, 1);
-
-                serial.flush();
-
-                std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
-                std::vector<char> response;
-                char currentChar;
-                int responseSize = 0;
-                while (serial.get(currentChar)) {
-                    response.push_back(currentChar);
-                    if (currentChar == 3) {
-                        break;
+            pump_Response pump_response;
+            baro_Response baro_response;
+            ups_Response ups_response;
+            for (int device_count = 1; device_count <= 2; device_count++) { // ADDR1 and ADDR2
+                for (int xor_WIN = 199; xor_WIN <= 204; ++xor_WIN) {
+                    std::string WIN = std::to_string(xor_WIN);
+                    char xor_WIN1 = WIN[0];
+                    char xor_WIN2 = WIN[1];
+                    char xor_WIN3 = WIN[2];
+                    if (xor_WIN == 199){
+                        xor_WIN1 = 48;
+                        xor_WIN2 = 48;
+                        xor_WIN3 = 48;                
                     }
+                    char xor_checksum = 30;
+                    if (device_count == 1){
+                        xor_checksum = xor_ADDR1 ^ xor_WIN1 ^ xor_WIN2 ^ xor_WIN3 ^ xor_WR ^ xor_OnOff ^ xor_ETX;
+                    }else{
+                        xor_checksum = xor_ADDR2 ^ xor_WIN1 ^ xor_WIN2 ^ xor_WIN3 ^ xor_WR ^ xor_OnOff ^ xor_ETX;}
+                    char crc_1 = ((xor_checksum >> 4) & 0xF);
+                    char crc_2 = (xor_checksum & 0xF);
+                    char ascii_crc_1[3];
+                    char ascii_crc_2[3];
+                    snprintf(ascii_crc_1, sizeof(ascii_crc_1), "%X", crc_1);
+                    snprintf(ascii_crc_2, sizeof(ascii_crc_2), "%X", crc_2);
+                    // Asking for pumps data
+                    if (device_count == 1){
+                        send_data_pump(2, xor_ADDR1, xor_WIN1, xor_WIN2, xor_WIN3, 48, 48, 3, ascii_crc_1[0], ascii_crc_2[0]);
+                    }else{
+                        send_data_pump(2, xor_ADDR2, xor_WIN1, xor_WIN2, xor_WIN3, 48, 48, 3, ascii_crc_1[0], ascii_crc_2[0]);}
+                    pump_response = read_pump_response(pserial); 
+                    //std::cout << "Pump " << device_count << " - Window " << xor_WIN  << " value: " << pump_response.pump_data << std::endl;
+                    //std::cout << "---------------------------------------------------------------------------------" << std::endl;
+                    bundle.add_value(pump_response.pump_data);
+                    
                 }
-                //std::cout << "Size of response vector: " << response.size() << std::endl;
-                float rx_value = std::stof(std::string(response.begin() + 6, response.end()));
-                bundle.add_value(rx_value);
-                //std::cout << "Rx window " << xor_WIN << ": " << std::fixed << std::setprecision(2) << rx_value << "\n";
-            }
-        }
-
-        serial.write(reinterpret_cast<const char*>(&STx), 1);
-        serial.write(reinterpret_cast<const char*>(&_0), 1);
-        serial.write(reinterpret_cast<const char*>(&_0), 1);
-        serial.write(reinterpret_cast<const char*>(&_0), 1);
-        serial.write(reinterpret_cast<const char*>(&_F), 1);
-        serial.write(reinterpret_cast<const char*>(&_CR), 1);
-        serial.flush();       
-
-        std::vector<char> response;
-        char currentChar;
-        int responseSize = 0;
-        while (serial.get(currentChar)) {
-            response.push_back(currentChar);
-            if (currentChar == '\r') { 
-                break;
-            }
-        }
-        std::size_t start_index = 0;
-
-        std::size_t comma_index = std::find(response.begin() + start_index, response.end(), ',') - response.begin();
-
-        if (comma_index != response.size()) {
-            std::string AUX1 = std::string(response.begin() + start_index + 1, response.begin() + comma_index);
-            std::string AUX2 = std::string(response.begin() + comma_index + 1, response.end());
-
-            float pressure1 = std::stof(AUX1);
-            float pressure2 = std::stof(AUX2);
-        
-            bundle.add_value(pressure1);
-            bundle.add_value(pressure2);
+            }                  
             
-            //std::cout << "Response: " << std::string(response.begin(), response.end()) << std::endl;
-            //std::cout << "Pressure1: " << pressure1 << std::endl;
-            //std::cout << "Pressure2: " << pressure2 << std::endl;
-        } else {
-            std::cerr << "Error: Comma index out of bounds." << std::endl;
-        }
+            // Asking for pressure
+            while (baro_response.pressure1 < 0.000000000001 || baro_response.pressure2 < 0.000000000001 || baro_response.pressure1 > 100 ||  baro_response.pressure1 > 100 ){
+                send_data_baro(35, 48, 70, 13);  
+                baro_response = read_baro_response(pserial);
+            }
+            bundle.add_value(baro_response.pressure1);
+            bundle.add_value(baro_response.pressure2);
+            //std::cout << "Pressure 1: " << baro_response.pressure1 << " [Torr] - Pressure2: " << baro_response.pressure2 << " [Torr]" << std::endl;
+            //std::cout << "---------------------------------------------------------------------------------" << std::endl;
+            
+            // Asking for UPS battery status
+            battery_status = 0;
+            while (battery_status > 100 || battery_status < 1){
+                send_data_ups(4, 3, 0, 56, 0, 1, 5, 146);
+                ups_response = read_ups_response(pserial); 
+                battery_status = hexToInt16(ups_response.data);
+            }    
+            bundle.add_value(battery_status);
+            //auto now = std::chrono::system_clock::now();
+            //std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+            //std::cout << "Timestamp: " << std::put_time(std::localtime(&now_c), "%F %T")  << "  -  Battery status: " << battery_status << "%..." << std::endl;
+            //std::cout << "---------------------------------------------------------------------------------" << std::endl;
+            close(pserial);
+            publisher_client.Publish(bundle);
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-        publisher_client.Publish(bundle);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }
+        }
 
     return 0;
 }

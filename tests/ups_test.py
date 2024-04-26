@@ -6,7 +6,7 @@ target_ip = '192.168.1.100'
 community = 'public'
 
 # OID para obtener el estado de la batería de la UPS
-battery_status_oid = '1.3.6.1.4.1.318.1.1.1.2.2.1.0'
+battery_status_oid = '.1.3.6.1.4.1.56788.1.1.1.3.5.7'
 
 # Función para realizar la consulta SNMP
 def snmp_get(oid):

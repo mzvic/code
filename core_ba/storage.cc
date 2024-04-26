@@ -31,7 +31,7 @@ using namespace core;
 using namespace google::protobuf;
 using namespace std::chrono;
 
-std::string FILENAME = "storage.h5";
+std::string Filename_from_GUI = "storage.h5";
 std::vector<std::string> data_ids;
 
 typedef struct {
@@ -58,6 +58,7 @@ typedef struct {
   uint32_t pump2_temperature_mon;
   double pressure_1;
   double pressure_2;
+  uint8_t ups_status;
 } TwisTorrMonitorEntry;
 
 typedef struct {
@@ -95,7 +96,7 @@ typedef struct {
 
 std::array<std::string, 1> counts_param = {"apd_counts_full"};
 std::array<std::string, 1> fft_param = {"apd_fft_full"};
-std::array<std::string, 12> twistorr_param = {"pump1_current", "pump1_voltage", "pump1_power", "pump1_frequency", "pump1_temperature","pump2_current", "pump2_voltage", "pump2_power", "pump2_frequency", "pump2_temperature", "pressure_1", "pressure_2"};
+std::array<std::string, 13> twistorr_param = {"pump1_current", "pump1_voltage", "pump1_power", "pump1_frequency", "pump1_temperature","pump2_current", "pump2_voltage", "pump2_power", "pump2_frequency", "pump2_temperature", "pressure_1", "pressure_2", "ups_status"};
 std::array<std::string, 5> rigol_param = {"rigol_voltage", "rigol_voltage_offset", "rigol_frequency", "rigol_function", "rigol_status"};
 std::array<std::string, 2> laser_param = {"laser_voltage", "laser_state"};
 std::array<std::string, 13> electron_gun_param = {"energy_voltage", "focus_voltage", "wehnelt_voltage", "emission_current", "time_per_dot", "pos_x", "pos_y", "area_x", "area_y", "grid_x", "grid_y", "status", "status_flags"};
@@ -119,7 +120,9 @@ queue<Bundle> inbound_queue;
 mutex pusher_mutex;
 mutex puller_mutex;
 mutex inbound_queue_mutex;
+mutex data_storage_mutex;
 condition_variable inbound_queue_cv;
+condition_variable data_storage_cv;
 
 hid_t fid, counts_ptable, fft_ptable, twistorr_monitor_ptable, rigol_monitor_ptable, laser_monitor_ptable, electron_gun_monitor_ptable;
 
@@ -228,7 +231,8 @@ void WriteData(const Bundle &bundle) {
 		  twistorr_monitor_entry->pump2_frequency_mon = kValue.Get(10);
 		  twistorr_monitor_entry->pump2_temperature_mon = kValue.Get(11);
 		  twistorr_monitor_entry->pressure_1 = kValue.Get(12);
-		  twistorr_monitor_entry->pressure_2 = kValue.Get(13);			    	  
+		  twistorr_monitor_entry->pressure_2 = kValue.Get(13);	
+		  twistorr_monitor_entry->ups_status = kValue.Get(14);			    	  
 		  LOG("Parsing done");
 		  if (H5PTappend(twistorr_monitor_ptable, 1, twistorr_monitor_entry.get()) < 0)
 			LOG("Error appending entry");
@@ -484,6 +488,11 @@ static hid_t MakeTwisTorrMonitorEntryType() {
       	H5Tclose(type_id_tt);
         return H5I_INVALID_HID;
       }
+    } else if (id == "ups_status") {
+      if (H5Tinsert(type_id_tt, "UPS batteries", HOFFSET(TwisTorrMonitorEntry, ups_status), H5T_NATIVE_INT8) < 0){
+      	H5Tclose(type_id_tt);
+        return H5I_INVALID_HID;
+      }
     }
   }
 
@@ -670,11 +679,19 @@ static hid_t MakeElectronGunMonitorEntryType() {
 
 int OpenDataStorage() {
   hid_t plist_id;
+  time_t raw_time;
+  tm *timeinfo;
+  char FILENAME[200];
+  // Create filename
+  raw_time = time(nullptr);
+  timeinfo = localtime(&raw_time);
+  snprintf(FILENAME, sizeof(FILENAME), "%d%.2d%.2d%s", timeinfo->tm_year + 1900, timeinfo->tm_mon + 1, timeinfo->tm_mday, Filename_from_GUI.c_str());
+  
 
   // Test file access
-  if (access(FILENAME.c_str(), W_OK) == 0) {
+  if (access(FILENAME, W_OK) == 0) {
 	// File exists and is writable, so open it
-	fid = H5Fopen(FILENAME.c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+	fid = H5Fopen(FILENAME, H5F_ACC_RDWR, H5P_DEFAULT);
 	if (fid < 0) {
 	  LOG("File exists, but it could not be opened");
 
@@ -737,7 +754,7 @@ int OpenDataStorage() {
 	  // File doesn't exist, so create a new one
 	  LOG("File not found, creating a new one");
 
-	  fid = H5Fcreate(FILENAME.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT);
+	  fid = H5Fcreate(FILENAME, H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT);
 	  if (fid < 0) {
 		LOG("Error creating file");
 		return -1;
@@ -873,12 +890,44 @@ int CloseDataStorage() {
   return 0;
 }
 
+void ManageDataStorage() {
+  time_t raw_time;
+  tm *timeinfo;
+
+  while (!exit_flag) {
+	{
+	  unique_lock<mutex> dslck(data_storage_mutex);
+
+	  // Get current time
+	  raw_time = time(nullptr);
+	  timeinfo = localtime(&raw_time);
+
+	  // Find next midnight
+	  timeinfo->tm_hour = 0;
+	  timeinfo->tm_min = 0;
+	  timeinfo->tm_sec = 0;
+	  raw_time = mktime(timeinfo);        // Midnight of today
+	  raw_time += 86400;                      // Midnight of tomorrow
+	  auto next_midnight = system_clock::from_time_t(raw_time);
+
+	  data_storage_cv.wait_until(dslck, next_midnight, [] {
+		return exit_flag;
+	  });
+
+	  if (!exit_flag) {
+		CloseDataStorage();
+		OpenDataStorage();
+	  }
+	}
+  }
+}
+
 int RunServer(void *) {
   StorageServiceImpl service;
   ServerBuilder builder;
   sigset_t set;
   int s;
-  thread inbound_queue_thread;
+  thread inbound_queue_thread, manage_data_storage_thread;
 
   // Create these big entries in child memory
 
@@ -913,6 +962,9 @@ int RunServer(void *) {
   // Create and start InboundQueueProcessing thread
   inbound_queue_thread = thread(&InboundQueueProcessing);
 
+  // Create and start ManageDataStorage thread
+  manage_data_storage_thread = thread(&ManageDataStorage);
+  
   // Initialize GRPC Server
   // grpc::EnableDefaultHealthCheckService(true);
   // grpc::reflection::InitProtoReflectionServerBuilderPlugin();
@@ -954,8 +1006,10 @@ int RunServer(void *) {
   // Stop InboundQueueProcessing thread. No more writings after this
   exit_flag = true;
   inbound_queue_cv.notify_one();
+  data_storage_cv.notify_one();
   inbound_queue_thread.join();
-
+  manage_data_storage_thread.join();
+  
   // Close data storage
   if (CloseDataStorage() < 0)
 	LOG("Error closing data storage");
@@ -992,14 +1046,14 @@ void HandleSignal(int) {
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " <FILENAME> <Variable_1> <Variable_2> ..." << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <Filename_from_GUI> <Variable_1> <Variable_2> ..." << std::endl;
     return 1;
   }  
 
-  FILENAME = argv[1];
+  Filename_from_GUI = argv[1];
 
-  std::cout << "Nombre de archivo: " << FILENAME.c_str() << std::endl;
-
+  std::cout << "Nombre de archivo: " << Filename_from_GUI.c_str() << std::endl;
+  
   data_ids.assign(argv + 2, argv + argc);  
 
   std::cout << "Tipos de datos especificados:" << std::endl;

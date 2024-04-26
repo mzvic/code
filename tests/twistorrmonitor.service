@@ -4,8 +4,11 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/bin/bash -c 'while sleep 10; do pgrep -x "/home/code/Development/core_ba/bin/TwisTorrMonitor_code_sw" || systemctl restart twistorrmonitor.service; done'
+ExecStart=/home/code/Development/core_ba/bin/TwisTorrMonitor_code_sw
 Restart=always
+RestartSec=10
+ExecStop=/bin/kill -SIGTERM $MAINPID
+TimeoutStopSec=10
 
 [Install]
 WantedBy=multi-user.target

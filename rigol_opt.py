@@ -30,6 +30,9 @@ import struct
 # Pressure needed on FRG-702 to enable electron gun
 reqPress4ElectronGun = 0.00001
 
+# Battery percentage with which the electron gun and pumps automatically turn off
+ups_critical_value = 15
+
 # List to store counts from APD
 counts = []
 
@@ -621,7 +624,8 @@ class MainWindow(QMainWindow):
 
         # Title of the window
         self.setWindowTitle("CoDE Control Software")
-        
+        self.closing = 0
+
         # Icon for the window
         icon = QtGui.QIcon(path + "/CoDE.png")    
         self.setWindowIcon(icon)        
@@ -645,6 +649,19 @@ class MainWindow(QMainWindow):
 
         # Create grid layout for the dock widget
         self.dock_grid = QtWidgets.QGridLayout()
+
+        # ---- UPS ----
+        self.ups_frame = QtWidgets.QFrame()
+        self.ups_frame.setFrameShape(QtWidgets.QFrame.Box)
+
+        self.dock_grid.addWidget(self.ups_frame, 0, 0, 1, 2)
+
+        ups_layout = QtWidgets.QVBoxLayout(self.ups_frame)
+        self.ups_frame.setLayout(ups_layout)
+
+        self.dock_grid.addWidget(QLabel("       UPS battery:"), 0, 0)
+        self.ups_monitor = QtWidgets.QLabel("N/C")
+        self.dock_grid.addWidget(self.ups_monitor, 0, 1)
 
         # ---- Datalogger ----
         self.logging_frame = QtWidgets.QFrame()
@@ -1278,6 +1295,21 @@ class MainWindow(QMainWindow):
         self.pressure_data1 = []
         self.pressure_data2 = []
         self.pressure_time = []          
+        self.steady_state_1 = True
+        self.transient_threshold1 = 0.2
+        self.transient_value_1 = 12 
+        self.steady_state_2 = True 
+        self.transient_threshold2 = 0.2
+        self.transient_value_2 = 12
+        self.previous_power1 = None 
+        self.previous_power2 = None 
+        self.max_freq_1 = 1010
+        self.max_freq_2 = 1167 
+        self.vacuum_power1_history = [] 
+        self.vacuum_power2_history = []                   
+        self.vacuum_plot_time = 0 
+        self.setting_twistorr = 0
+
         self.layout2.addWidget(self.graph_pressure_vacuum, 8, 0, 1, 6) 
         
         ## Initial data for plot 1
@@ -1928,7 +1960,11 @@ class MainWindow(QMainWindow):
 
         self.pressure_1_checkbox = QCheckBox("Pressure (FRG-702)")
         self.pressure_1_checkbox.setChecked(False)
-        twistorr_data_grid_layout.addWidget(self.pressure_1_checkbox, 6, 0)         
+        twistorr_data_grid_layout.addWidget(self.pressure_1_checkbox, 6, 0)  
+
+        self.ups_checkbox = QCheckBox("UPS batteries (%)")
+        self.ups_checkbox.setChecked(False)
+        twistorr_data_grid_layout.addWidget(self.ups_checkbox, 7, 0)                 
 
         self.twistorr_6_checkbox = QCheckBox("Pump current (74FS)")
         self.twistorr_6_checkbox.setChecked(False)
@@ -1952,7 +1988,8 @@ class MainWindow(QMainWindow):
 
         self.pressure_2_checkbox = QCheckBox("Pressure (CDG-500)")
         self.pressure_2_checkbox.setChecked(False)
-        twistorr_data_grid_layout.addWidget(self.pressure_2_checkbox, 6, 1)   
+        twistorr_data_grid_layout.addWidget(self.pressure_2_checkbox, 6, 1)  
+
 
         #self.twistorr_6_checkbox = QCheckBox("TwisTorr 305 FS error code") #error_comentado
         #self.twistorr_6_checkbox.setChecked(False)
@@ -1964,8 +2001,8 @@ class MainWindow(QMainWindow):
         unmark_all_twistorr_button = QPushButton("Uncheck all")
         unmark_all_twistorr_button.clicked.connect(self.unmark_all_twistorr_checkboxes)
   
-        twistorr_data_grid_layout.addWidget(mark_all_twistorr_button, 7, 0)
-        twistorr_data_grid_layout.addWidget(unmark_all_twistorr_button, 7, 1)
+        twistorr_data_grid_layout.addWidget(mark_all_twistorr_button, 8, 0)
+        twistorr_data_grid_layout.addWidget(unmark_all_twistorr_button, 8, 1)
 
 
 
@@ -2139,7 +2176,8 @@ class MainWindow(QMainWindow):
                 self.eg_4_checkbox.isChecked() or self.eg_5_checkbox.isChecked() or
                 self.eg_6_checkbox.isChecked() or self.eg_7_checkbox.isChecked() or
                 self.eg_8_checkbox.isChecked() or self.eg_9_checkbox.isChecked() or 
-                self.eg_10_checkbox.isChecked() or self.eg_11_checkbox.isChecked()):
+                self.eg_10_checkbox.isChecked() or self.eg_11_checkbox.isChecked() or
+                self.ups_checkbox.isChecked()):
             self.showWarningSignal.emit("Select the variables to record before begin data logging...")
             self.begin_logging_button.setChecked(False)
         if not self.storage_line_edit.text():
@@ -2161,7 +2199,8 @@ class MainWindow(QMainWindow):
                 self.eg_4_checkbox.isChecked() or self.eg_5_checkbox.isChecked() or
                 self.eg_6_checkbox.isChecked() or self.eg_7_checkbox.isChecked() or
                 self.eg_8_checkbox.isChecked() or self.eg_9_checkbox.isChecked() or 
-                self.eg_10_checkbox.isChecked() or self.eg_11_checkbox.isChecked()) and (self.storage_line_edit.text()):   
+                self.eg_10_checkbox.isChecked() or self.eg_11_checkbox.isChecked() or
+                self.ups_checkbox.isChecked()) and (self.storage_line_edit.text()):   
 
             if self.begin_logging_button.isChecked():
                 self.begin_logging_button.setStyleSheet("background-color: darkblue;")
@@ -2172,7 +2211,7 @@ class MainWindow(QMainWindow):
 
                 storage_list = []
                 # Laser #
-                storage_list.append(self.storage_line_edit.text()+".h5")
+                storage_list.append("_-_"+self.storage_line_edit.text())
                 if self.laser_1_checkbox.isChecked():
                     storage_list.append("laser_voltage") 
                     print("Ejecutando recorder 'Laser voltage'")
@@ -2233,7 +2272,10 @@ class MainWindow(QMainWindow):
                     print("Ejecutando recorder 'FRG-702'")
                 if self.pressure_2_checkbox.isChecked():
                     storage_list.append("pressure_2") 
-                    print("Ejecutando recorder 'CDG-500'")                                        
+                    print("Ejecutando recorder 'CDG-500'")   
+                if self.ups_checkbox.isChecked():
+                    storage_list.append("ups_status") 
+                    print("Ejecutando recorder 'UPS Batteries'")                                                            
                 # --------------------------#
                 # Rigol #
                 if self.rigol_1_checkbox.isChecked():
@@ -2375,6 +2417,7 @@ class MainWindow(QMainWindow):
         self.twistorr_10_checkbox.setChecked(True)
         self.pressure_1_checkbox.setChecked(True)
         self.pressure_2_checkbox.setChecked(True)
+        self.ups_checkbox.setChecked(True)
         #self.twistorr_6_checkbox.setChecked(True)  #error_comentado      
 
     def unmark_all_twistorr_checkboxes(self):
@@ -2389,7 +2432,8 @@ class MainWindow(QMainWindow):
         self.twistorr_9_checkbox.setChecked(False)
         self.twistorr_10_checkbox.setChecked(False)
         self.pressure_1_checkbox.setChecked(False)
-        self.pressure_2_checkbox.setChecked(False)        
+        self.pressure_2_checkbox.setChecked(False)  
+        self.ups_checkbox.setChecked(False)      
         #self.twistorr_6_checkbox.setChecked(False)  #error_comentado   
 
 
@@ -2453,7 +2497,7 @@ class MainWindow(QMainWindow):
 
     def set_datetime_as_filename(self):
         date_time = datetime.now()
-        formatted_datetime = date_time.strftime("CoDE_dataset_%d-%m-%Y_%H:%M:%S")
+        formatted_datetime = date_time.strftime("CoDE_dataset_%Y%m%d_%H:%M:%S.h5")
         self.storage_line_edit.setText(formatted_datetime)
 
     def toggle_apd_connect(self):    
@@ -2647,15 +2691,24 @@ class MainWindow(QMainWindow):
     def tt_startstop1_button(self):
         if self.btn_vacuum_monitor.isChecked():
             if self.btn_tt_startstop1.isChecked():
-                self.btn_tt_startstop1.setStyleSheet("background-color: darkblue;")
-                self.execute_twistorr_ss1("1")  
-                time.sleep(0.1) 
+                if (float(self.vacuum_pressure1)>0.1):
+                    self.btn_tt_startstop1.setChecked(False) 
+                    self.showWarningSignal.emit("Pressure in FRG-702 is very high, make sure the robust pumps are running...")                
+                else:
+                    self.btn_tt_startstop1.setStyleSheet("background-color: darkblue;")
+                    #os.system('echo code | sudo -S systemctl stop twistorrmonitor.service') 
+                    self.execute_twistorr_ss1("1")  
+                    #os.system('echo code | sudo -S systemctl start twistorrmonitor.service') 
+                    time.sleep(0.1) 
             else:
                 self.btn_tt_startstop1.setStyleSheet("background-color: 53, 53, 53;")
-                self.execute_twistorr_ss1("0")  
+                #os.system('echo code | sudo -S systemctl stop twistorrmonitor.service') 
+                self.execute_twistorr_ss1("0")
+                #os.system('echo code | sudo -S systemctl start twistorrmonitor.service') 
                 time.sleep(0.1)
 
     def execute_twistorr_ss1(self, start_stop1):
+        self.setting_twistorr = 1
         subprocess.run(['pkill', '-f', self.processes[11].args[0]], check=True)
         time.sleep(0.1)
         command_ss1 = [self.binary_paths[14], str(start_stop1)]
@@ -2664,19 +2717,29 @@ class MainWindow(QMainWindow):
         subprocess.run(['pkill', '-f', self.processes[14].args[0]], check=True)  
         self.processes[11] = subprocess.Popen([self.binary_paths[11]])
         time.sleep(0.1)
+        self.setting_twistorr = 0
 
     def tt_startstop2_button(self):
         if self.btn_vacuum_monitor.isChecked():
             if self.btn_tt_startstop2.isChecked():
-                self.btn_tt_startstop2.setStyleSheet("background-color: darkblue;")
-                self.execute_twistorr_ss2("1") 
-                time.sleep(0.1)  
+                if (float(self.vacuum_pressure1)>0.1):
+                    self.btn_tt_startstop2.setChecked(False) 
+                    self.showWarningSignal.emit("Pressure in FRG-702 is very high, make sure the robust pumps are running...")                
+                else:
+                    self.btn_tt_startstop2.setStyleSheet("background-color: darkblue;")
+                    #os.system('echo code | sudo -S systemctl stop twistorrmonitor.service') 
+                    self.execute_twistorr_ss2("1")  
+                    #os.system('echo code | sudo -S systemctl start twistorrmonitor.service') 
+                    time.sleep(0.1) 
             else:
                 self.btn_tt_startstop2.setStyleSheet("background-color: 53, 53, 53;")
-                self.execute_twistorr_ss2("0")  
+                #os.system('echo code | sudo -S systemctl stop twistorrmonitor.service') 
+                self.execute_twistorr_ss2("0")
+                #os.system('echo code | sudo -S systemctl start twistorrmonitor.service') 
                 time.sleep(0.1)
 
     def execute_twistorr_ss2(self, start_stop2):
+        self.setting_twistorr = 1
         subprocess.run(['pkill', '-f', self.processes[11].args[0]], check=True)
         time.sleep(0.1)
         command_ss2 = [self.binary_paths[15], str(start_stop2)]
@@ -2684,7 +2747,8 @@ class MainWindow(QMainWindow):
         time.sleep(0.1)
         subprocess.run(['pkill', '-f', self.processes[15].args[0]], check=True)   
         self.processes[11] = subprocess.Popen([self.binary_paths[11]])   
-        time.sleep(0.1)    
+        time.sleep(0.1)  
+        self.setting_twistorr = 0  
 
     def pressure_plot_button(self):
         if self.btn_pressure.isChecked():
@@ -2716,34 +2780,132 @@ class MainWindow(QMainWindow):
 
     def update_vacuum_values(self):
         # Update the prevac-related values from twistorr_subscribing_values
+        current_time = int(time.time())
+        current_time_float = float(time.time())
+        last_digit = current_time % 10
+        datetime_obj = datetime.fromtimestamp(current_time)
+        update_transient_status = 0
+
+        process_name = self.binary_paths[11]
+        if (self.setting_twistorr == 0 and self.closing == 0):
+            try:
+                result = subprocess.run(["pgrep", "-f", process_name], capture_output=True, text=True)
+                if result.returncode == 0:
+                    pass
+                else:
+                    print("TwisTorr monitor not running, starting again...")
+                    self.processes[11] = subprocess.Popen([self.binary_paths[11]])
+            except Exception as e:
+                print("Error checking TwisTorr monitor:", str(e))
+        
+        if current_time_float - self.vacuum_plot_time >= 0.5:
+            if self.btn_vacuum_monitor.isChecked():
+                self.update_graph_pressure()
+            self.vacuum_plot_time = current_time_float  
+            update_transient_status = 1
+            if last_digit == 0:
+                self.kill_twistorr_monitor()
+                #print("Restarting TwisTorr monitor... Time: ", datetime_obj)
+                #os.system('echo code | sudo -S systemctl restart twistorrmonitor.service') 
+        
         if self.btn_vacuum_monitor.isChecked():
             if len(twistorr_subscribing_values) >= 14:
-                vacuum_status = int(twistorr_subscribing_values[0])
-                vacuum_current = str(int(twistorr_subscribing_values[1]))
-                vacuum_voltage = str(int(twistorr_subscribing_values[2]))
-                vacuum_power = str(int(twistorr_subscribing_values[3]))
-                vacuum_frequency = str(int(twistorr_subscribing_values[4]))
-                vacuum_temperature = str(int(twistorr_subscribing_values[5]))
+                vacuum_status1 = int(twistorr_subscribing_values[0])
+                vacuum_current1 = str(int(twistorr_subscribing_values[1]))
+                vacuum_voltage1 = str(int(twistorr_subscribing_values[2]))
+                vacuum_power1 = str(int(twistorr_subscribing_values[3]))
+                vacuum_frequency1 = str(int(twistorr_subscribing_values[4]))
+                vacuum_temperature1 = str(int(twistorr_subscribing_values[5]))
                 vacuum_status2 = int(twistorr_subscribing_values[6])
                 vacuum_current2 = str(int(twistorr_subscribing_values[7]))
                 vacuum_voltage2 = str(int(twistorr_subscribing_values[8]))
                 vacuum_power2 = str(int(twistorr_subscribing_values[9]))
                 vacuum_frequency2 = str(int(twistorr_subscribing_values[10]))
                 vacuum_temperature2 = str(int(twistorr_subscribing_values[11]))  
+                UPS_Battery = str(int(twistorr_subscribing_values[14])) 
+                UPS_Battery_int = int(twistorr_subscribing_values[14])
+
+                if UPS_Battery_int < ups_critical_value:
+                    self.showWarningSignal.emit("UPS batteries are below {}%, turning off electron gun and vacuum pumps (305FS and 74FS)...".format(ups_critical_value))
+                    ## Turning off electron gun
+                    if self.eg_connection_btn.isChecked():
+                        self.secure_eg = 0
+                        arg_standby = "0 14 0 1"
+                        self.execute_prevac_setter(arg_standby)                                     
+                        self.secure_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                        self.secure_eg_btn.setChecked(False)  
+                        self.standby_eg_btn.setStyleSheet("background-color: darkblue; color: white;")
+                        self.standby_eg_btn.setChecked(True) 
+                        self.operate_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
+                        self.operate_eg_btn.setChecked(False)   
+                    # Turning off pumps
+                    self.execute_twistorr_ss1("0")
+                    self.execute_twistorr_ss2("0")
+
+                if update_transient_status == 1:
+                    if self.previous_power1 is not None:
+                        if len(self.vacuum_power1_history) == 10:
+                            self.vacuum_power1_history.pop(0)
+                        self.vacuum_power1_history.append(float(vacuum_power1))                     
+                        x_305 = np.arange(len(self.vacuum_power1_history))
+                        slope_305, _ = np.polyfit(x_305, self.vacuum_power1_history, 1)
+                        print("Pendiente 305: ", slope_305)
+                        print(self.vacuum_power1_history)
+                        
+                        if ((self.vacuum_power1_history.count(0) >= 2) and (slope_305 > 0.01)):
+                            self.steady_state_1 = False
+                        elif ((slope_305 < 0.001) and (float(vacuum_power1) < self.transient_value_1)):
+                            self.steady_state_1 = True
+                        #else:
+                        #    self.steady_state_1 = True
+                    self.previous_power1 = float(vacuum_power1)
+
+                    if self.previous_power2 is not None:
+                        if len(self.vacuum_power2_history) == 10:
+                            self.vacuum_power2_history.pop(0)
+                        self.vacuum_power2_history.append(float(vacuum_power2))
+                        x_74 = np.arange(len(self.vacuum_power2_history))
+                        slope_74, _ = np.polyfit(x_74, self.vacuum_power2_history, 1)                                
+                        print("Pendiente 74: ", slope_74) 
+                        print(self.vacuum_power2_history)
+
+                        if ((self.vacuum_power2_history.count(0) >= 2) and (slope_74 > 0.01)):
+                            self.steady_state_2 = False
+                        elif ((slope_74 < 0.001) and (float(vacuum_power2) < self.transient_value_2)):
+                            self.steady_state_2 = True
+                        #else:
+                        #    self.steady_state_2 = True                
+                    self.previous_power2 = float(vacuum_power2)
+
+                    print("Steady state 305FS: ", self.steady_state_1, "... Zeros: ", self.vacuum_power1_history.count(0))
+                    print("Steady state _74FS: ", self.steady_state_2, "... Zeros: ", self.vacuum_power2_history.count(0))
+                    if self.steady_state_1 or self.steady_state_2:                   
+                        if ((float(vacuum_power1) > self.transient_value_1) and (vacuum_frequency1 == self.max_freq_1)):
+                            #print("¡Alerta! Aumento en la potencia de 305FS.")
+                            self.showWarningSignal.emit("TwisTorr 305FS pump increased its power to {}W, a command has been sent to turn it off...".format(float(vacuum_power1)))
+                            self.execute_twistorr_ss1("0") 
+                            #time.sleep(0.2) 
+                        if ((float(vacuum_power2) > self.transient_value_2) and (vacuum_frequency2 == self.max_freq_2)):
+                            #print("¡Alerta! Aumento en la potencia de 74FS.")   
+                            self.showWarningSignal.emit("TwisTorr 74FS pump increased its power to {}W, a command has been sent to turn it off...".format(float(vacuum_power2)))
+                            self.execute_twistorr_ss2("0")
+                            #time.sleep(0.2)  
+                    update_transient_status = 0
 
                 pre_vacuum_pressure1 = float(twistorr_subscribing_values[12])
-                pre_vacuum_pressure2 = float(twistorr_subscribing_values[13])                                
+                pre_vacuum_pressure2 = float(twistorr_subscribing_values[13])   
 
                 self.vacuum_pressure1 = str("{:.2E}".format(pre_vacuum_pressure1))
                 self.vacuum_pressure2 = str("{:.2E}".format(pre_vacuum_pressure2))
 
                 # Update the labels with the vacuum-related values
-                self.monitor_vacuum_current.setText(vacuum_current+" [mA]")
-                self.monitor_vacuum_voltage.setText(vacuum_voltage+" [Vdc]")
-                self.monitor_vacuum_power.setText(vacuum_power+" [W]")
-                self.monitor_vacuum_frequency.setText(vacuum_frequency+" [Hz]")
-                self.monitor_vacuum_temperature.setText(vacuum_temperature+" [°C]")
-                self.vacuum_frequency.setText(vacuum_frequency+" [Hz]")
+                self.ups_monitor.setText(UPS_Battery+"%")
+                self.monitor_vacuum_current.setText(vacuum_current1+" [mA]")
+                self.monitor_vacuum_voltage.setText(vacuum_voltage1+" [Vdc]")
+                self.monitor_vacuum_power.setText(vacuum_power1+" [W]")
+                self.monitor_vacuum_frequency.setText(vacuum_frequency1+" [Hz]")
+                self.monitor_vacuum_temperature.setText(vacuum_temperature1+" [°C]")
+                self.vacuum_frequency.setText(vacuum_frequency1+" [Hz]")
                 self.monitor_vacuum_current2.setText(vacuum_current2+" [mA]")
                 self.monitor_vacuum_voltage2.setText(vacuum_voltage2+" [Vdc]")
                 self.monitor_vacuum_power2.setText(vacuum_power2+" [W]")
@@ -2751,10 +2913,8 @@ class MainWindow(QMainWindow):
                 self.monitor_vacuum_temperature2.setText(vacuum_temperature2+" [°C]")
                 self.vacuum_frequency2.setText(vacuum_frequency2+" [Hz]")
                 self.FR_pressure.setText(self.vacuum_pressure1+" [Torr]")
-
-                self.update_graph_pressure()
                 
-                if (vacuum_status == 1):
+                if (vacuum_status1 == 1):
                     self.btn_tt_startstop1.setChecked(True)
                     self.btn_tt_startstop1.setStyleSheet("background-color: darkblue;")
                 else:
@@ -2781,6 +2941,7 @@ class MainWindow(QMainWindow):
             self.monitor_vacuum_temperature2.setText("N/C")
             self.vacuum_frequency2.setText("N/C")  
             self.FR_pressure.setText("N/C")
+            self.ups_monitor.setText("N/C")
             self.btn_tt_startstop1.setChecked(False)
             self.btn_tt_startstop1.setStyleSheet("background-color: 53, 53, 53;") 
             self.btn_tt_startstop2.setChecked(False)
@@ -2792,7 +2953,7 @@ class MainWindow(QMainWindow):
         # Start a QTimer to periodically update vacuum-related values
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_vacuum_values)
-        self.timer.start(1000)  # Update interval for Twistorr monitoring
+        self.timer.start(10)  # Update interval for Twistorr monitoring
 
     def stop_update_tt_timer(self):
         # Stop the QTimer used for updating vacuum-related values
@@ -3136,7 +3297,7 @@ class MainWindow(QMainWindow):
 
                 self.prevac_flags = [int(bit) for bit in flags]
 
-                print("Prevac operate state: " + str(prevac_operate) + " --- Prevac status flags: " + str(self.prevac_flags))
+                #print("Prevac operate state: " + str(prevac_operate) + " --- Prevac status flags: " + str(self.prevac_flags))
 
                 if (self.prevac_flags[9] == 1):
                     self.cathode_failure.setText("       Cathode FLR")
@@ -3404,16 +3565,17 @@ class MainWindow(QMainWindow):
         self.update_plot1_thread.data_queue.put([self.times1, self.data1])
 
     def update_plot1(self, data):
-        process_name = self.binary_paths[1]
-        try:
-            result = subprocess.run(["pgrep", "-f", process_name], capture_output=True, text=True)
-            if result.returncode == 0:
-                pass
-            else:
-                print("APD CVT not running, starting again...")
-                self.processes[1] = subprocess.Popen([self.binary_paths[1]])
-        except Exception as e:
-            print("Error checking APD CVT :", str(e))
+        if (self.closing == 0):
+            process_name = self.binary_paths[1]
+            try:
+                result = subprocess.run(["pgrep", "-f", process_name], capture_output=True, text=True)
+                if result.returncode == 0:
+                    pass
+                else:
+                    print("APD CVT not running, starting again...")
+                    self.processes[1] = subprocess.Popen([self.binary_paths[1]])
+            except Exception as e:
+                print("Error checking APD CVT :", str(e))
         # Update the plot with the new data
         self.plot1.setData(self.times1, self.data1)
     
@@ -3728,13 +3890,13 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         # Terminate running processes and stop timers before closing
-
+        self.closing = 1
         for process in self.processes:
             if process is not None:
                 subprocess.run(['pkill', '-f', process.args[0]], check=True)
 
-        os.system('echo code | sudo -S systemctl stop twistorrmonitor.service')        
-        os.system('echo code | sudo -S systemctl stop prevacmonitor.service')
+        #os.system('echo code | sudo -S systemctl stop twistorrmonitor.service')        
+        #os.system('echo code | sudo -S systemctl stop prevacmonitor.service')
         self.stop_update_tt_timer()
         self.stop_update_eg_timer()
         event.accept()
