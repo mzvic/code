@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
             }                  
             
             // Asking for pressure
-            while (baro_response.pressure1 < 0.000000000001 || baro_response.pressure2 < 0.000000000001 || baro_response.pressure1 > 100 ||  baro_response.pressure1 > 100 ){
+            while (baro_response.pressure1 < 0.000000000001 || baro_response.pressure2 < 0.000000000001 || baro_response.pressure1 > 1500 ||  baro_response.pressure1 > 1500 ){
                 send_data_baro(35, 48, 70, 13);  
                 baro_response = read_baro_response(pserial);
             }

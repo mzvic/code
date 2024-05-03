@@ -40,6 +40,9 @@ counts = []
 freq = []
 magn = []
 
+# Check if there is another instance
+gui_instance = 0
+
 # List to store monitoring data from TwistTorr
 twistorr_subscribing_values = []
 prevac_subscribing_values = []
@@ -1320,10 +1323,7 @@ class MainWindow(QMainWindow):
         self.btn_vacuum_monitor.setStyleSheet("background-color: 53, 53, 53;")  
         self.btn_vacuum_monitor.clicked.connect(self.execute_twistorr_btn) 
         self.layout2.addWidget(self.btn_vacuum_monitor, 11, 0, 1, 6)
-        # Connect any set button with execute_twistorr_set() function
-        #btn_vacuum_pressure.clicked.connect(lambda: self.execute_twistorr_set_pressure())
-        #btn_speed_motor.clicked.connect(lambda: self.execute_twistorr_set_motor_speed())
-        #btn_valve_state.clicked.connect(lambda: self.execute_twistorr_set_valve_state())
+
         
         #self.layout2.setRowStretch(8, 1)
 
@@ -2211,7 +2211,7 @@ class MainWindow(QMainWindow):
 
                 storage_list = []
                 # Laser #
-                storage_list.append("_-_"+self.storage_line_edit.text())
+                storage_list.append("_-_"+self.storage_line_edit.text()+".h5")
                 if self.laser_1_checkbox.isChecked():
                     storage_list.append("laser_voltage") 
                     print("Ejecutando recorder 'Laser voltage'")
@@ -2497,7 +2497,7 @@ class MainWindow(QMainWindow):
 
     def set_datetime_as_filename(self):
         date_time = datetime.now()
-        formatted_datetime = date_time.strftime("CoDE_dataset_%Y%m%d_%H:%M:%S.h5")
+        formatted_datetime = date_time.strftime("CoDE_dataset_%Y%m%d_%H:%M:%S")
         self.storage_line_edit.setText(formatted_datetime)
 
     def toggle_apd_connect(self):    
@@ -2659,10 +2659,14 @@ class MainWindow(QMainWindow):
             self.btn_vacuum_monitor.setStyleSheet("background-color: darkblue;")
             self.execute_twistorr_monitor()
         else:
-            self.pressure_button.setStyleSheet("background-color: 53, 53, 53;")
-            self.btn_vacuum_monitor.setChecked(False)
-            self.btn_vacuum_monitor.setStyleSheet("background-color: 53, 53, 53;")
-            self.kill_twistorr_monitor()
+            if ((self.secure_eg == 1) and (self.eg_connection_btn.isChecked())):
+                self.btn_vacuum_monitor.setChecked(True)
+                self.showWarningSignal.emit("Some security methods that depend on vacuum data were implemented to protect the electron gun, you cannot disconnect from the vacuum equipment if you are connected to the electron gun...")
+            else:
+                self.pressure_button.setStyleSheet("background-color: 53, 53, 53;")
+                self.btn_vacuum_monitor.setChecked(False)
+                self.btn_vacuum_monitor.setStyleSheet("background-color: 53, 53, 53;")
+                self.kill_twistorr_monitor()
 
     def execute_prevac_bar_btn(self):
         if self.prevac_button.isChecked():
@@ -2683,10 +2687,14 @@ class MainWindow(QMainWindow):
             self.pressure_button.setStyleSheet("background-color: darkblue;")
             self.execute_twistorr_monitor()
         else:
-            self.btn_vacuum_monitor.setStyleSheet("background-color: 53, 53, 53;")
-            self.pressure_button.setChecked(False)
-            self.pressure_button.setStyleSheet("background-color: 53, 53, 53;")
-            self.kill_twistorr_monitor()
+            if ((self.secure_eg == 1) and (self.eg_connection_btn.isChecked())):
+                self.pressure_button.setChecked(True)
+                self.showWarningSignal.emit("Some security methods that depend on vacuum data were implemented to protect the electron gun, you cannot disconnect from the vacuum equipment if you are connected to the electron gun...")
+            else:
+                self.btn_vacuum_monitor.setStyleSheet("background-color: 53, 53, 53;")
+                self.pressure_button.setChecked(False)
+                self.pressure_button.setStyleSheet("background-color: 53, 53, 53;")
+                self.kill_twistorr_monitor()
 
     def tt_startstop1_button(self):
         if self.btn_vacuum_monitor.isChecked():
@@ -2758,25 +2766,7 @@ class MainWindow(QMainWindow):
         else:
             self.btn_pressure.setStyleSheet("background-color: 53, 53, 53;")
             self.pressure_plotting_state = 0 
-            time.sleep(0.1)
-
-    def execute_twistorr_set_pressure(self):
-        # Execute the TwisTorr Setter binary with pressure, motor, and valve parameters
-        self.processes[10] = subprocess.Popen([self.binary_paths[10], str(self.pressure), str("0")])
-        # Uncomment the following line if you want to stop the process after a short delay
-        # subprocess.run(['pkill', '-f', self.processes[10].args[0]], check=True)
-
-    def execute_twistorr_set_motor_speed(self):
-        # Execute the TwisTorr Setter binary with pressure, motor, and valve parameters
-        self.processes[10] = subprocess.Popen([self.binary_paths[10], str(self.motor), str("1")])
-        # Uncomment the following line if you want to stop the process after a short delay
-        # subprocess.run(['pkill', '-f', self.processes[10].args[0]], check=True)   
-
-    def execute_twistorr_set_valve_state(self):
-        # Execute the TwisTorr Setter binary with pressure, motor, and valve parameters
-        self.processes[10] = subprocess.Popen([self.binary_paths[10], str(self.valve), str("2")])
-        # Uncomment the following line if you want to stop the process after a short delay
-        # subprocess.run(['pkill', '-f', self.processes[10].args[0]], check=True)                
+            time.sleep(0.1)    
 
     def update_vacuum_values(self):
         # Update the prevac-related values from twistorr_subscribing_values
@@ -2962,18 +2952,18 @@ class MainWindow(QMainWindow):
 
     def execute_twistorr_monitor(self):
         self.processes[11] = subprocess.Popen([self.binary_paths[11]])
-        os.system('echo code | sudo -S systemctl start twistorrmonitor.service')  
+        #os.system('echo code | sudo -S systemctl start twistorrmonitor.service')  
  
     def kill_twistorr_monitor(self):
-        os.system('echo code | sudo -S systemctl stop twistorrmonitor.service')
+        #os.system('echo code | sudo -S systemctl stop twistorrmonitor.service')
         subprocess.run(['pkill', '-f', self.processes[11].args[0]], check=True)
 
     def execute_electrongun_monitor(self):
         self.processes[16] = subprocess.Popen([self.binary_paths[16]])
-        os.system('echo code | sudo -S systemctl start prevacmonitor.service')
+        #os.system('echo code | sudo -S systemctl start prevacmonitor.service')
 
     def kill_electrongun_monitor(self):
-        os.system('echo code | sudo -S systemctl stop prevacmonitor.service')
+        #os.system('echo code | sudo -S systemctl stop prevacmonitor.service')
         subprocess.run(['pkill', '-f', self.processes[16].args[0]], check=True)
 
     def execute_electrongun_btn(self):
@@ -3368,7 +3358,7 @@ class MainWindow(QMainWindow):
                     self.operate_eg_btn.setStyleSheet("background-color: 53, 53, 53; color: 53, 53, 53;")
                     self.operate_eg_btn.setChecked(False)  
 
-                if (float(self.vacuum_pressure1) > reqPress4ElectronGun):
+                if ((self.secure_eg == 1) and (float(self.vacuum_pressure1) > reqPress4ElectronGun)):
                     self.secure_eg = 0
                     arg_standby = "0 14 0 1"
                     self.execute_prevac_setter(arg_standby)                                     
@@ -3890,6 +3880,7 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         # Terminate running processes and stop timers before closing
+        os.remove("lockfile.lock") 
         self.closing = 1
         for process in self.processes:
             if process is not None:
@@ -3946,6 +3937,20 @@ class MainWindow(QMainWindow):
         msg.setIcon(QMessageBox.Critical)
         msg.exec_()
 
+  
+class AlertWindow(QMainWindow):
+    showWarningSignal = pyqtSignal(str)
+    def __init__(self):
+        super(AlertWindow, self).__init__()
+
+        self.showWarningSignal.connect(self.show_warning_message)
+    
+    def show_warning_message(self, message):
+        msg = QMessageBox()
+        msg.setWindowTitle("CoDE Warning")
+        msg.setText(message)
+        msg.setIcon(QMessageBox.Critical)
+        msg.exec_()
 
 
 # Apply dark theme to the GUI            
@@ -3971,23 +3976,38 @@ def apply_dark_theme(app):
     app.setPalette(dark_palette)
     app.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
 
+def check_lock_file():
+    return os.path.exists("lockfile.lock")
+
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     apply_dark_theme(app)
     app.setApplicationName("CoDE Control Software")
-    try:
-        # Create the main window and display it
-        mainWindow = MainWindow()
-        mainWindow.show()
-        # Start the update timer for Twistorr and Prevac 
-        mainWindow.start_update_tt_timer()
-        mainWindow.start_update_eg_timer()
-        # Execute the application event loop
-        sys.exit(app.exec_())
-    except Exception as e:
-        # Handle unexpected exceptions by displaying an error message
-        error_message = "An unexpected error has occurred: {}".format(str(e))
-        #QtWidgets.QMessageBox.critical(None, "Error", error_message)
-        # Append the error message to an error log file
-        with open("error.log", "a") as log_file:
-            log_file.write(error_message)
+    # Verifies if there is a lock file
+    if check_lock_file():
+        alertWindow = AlertWindow()
+        alertWindow.showWarningSignal.emit("There is currently an instance of 'CoDE Control Software', please close the old one to open a new one, or continue working with the old one...")      
+    else:    
+        # Creates a lock file
+        with open("lockfile.lock", "w") as lock_file:
+            lock_file.write("1")
+
+        try:
+            # Create the main window and display it
+            mainWindow = MainWindow()
+            mainWindow.show()
+            # Start the update timer for Twistorr and Prevac 
+            mainWindow.start_update_tt_timer()
+            mainWindow.start_update_eg_timer()
+            # Execute the application event loop
+            sys.exit(app.exec_())
+        except Exception as e:
+            # Handle unexpected exceptions by displaying an error message
+            error_message = "An unexpected error has occurred: {}".format(str(e))
+            #QtWidgets.QMessageBox.critical(None, "Error", error_message)
+            # Append the error message to an error log file
+            with open("error.log", "a") as log_file:
+                log_file.write(error_message)
+        finally:
+            # Delete the lock file at the end
+            os.remove("lockfile.lock")            
