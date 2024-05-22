@@ -2699,7 +2699,7 @@ class MainWindow(QMainWindow):
     def tt_startstop1_button(self):
         if self.btn_vacuum_monitor.isChecked():
             if self.btn_tt_startstop1.isChecked():
-                if (float(self.vacuum_pressure1)>0.1):
+                if (float(self.vacuum_pressure1)>0.5):
                     self.btn_tt_startstop1.setChecked(False) 
                     self.showWarningSignal.emit("Pressure in FRG-702 is very high, make sure the robust pumps are running...")                
                 else:
@@ -2730,7 +2730,7 @@ class MainWindow(QMainWindow):
     def tt_startstop2_button(self):
         if self.btn_vacuum_monitor.isChecked():
             if self.btn_tt_startstop2.isChecked():
-                if (float(self.vacuum_pressure1)>0.1):
+                if (float(self.vacuum_pressure1)>0.5):
                     self.btn_tt_startstop2.setChecked(False) 
                     self.showWarningSignal.emit("Pressure in FRG-702 is very high, make sure the robust pumps are running...")                
                 else:
@@ -2969,9 +2969,13 @@ class MainWindow(QMainWindow):
     def execute_electrongun_btn(self):
         if self.eg_connection_btn.isChecked():
             self.eg_connection_btn.setStyleSheet("background-color: darkblue;")
+            self.prevac_button.setStyleSheet("background-color: darkblue;")
+            self.eg_connection_btn.setChecked(True)
             self.execute_electrongun_monitor()
         else:
             self.eg_connection_btn.setStyleSheet("background-color: 53, 53, 53;")
+            self.prevac_button.setStyleSheet("background-color: 53, 53, 53;")
+            self.eg_connection_btn.setChecked(False)
             self.kill_electrongun_monitor()
 
     def execute_prevac_setter(self, prevac_arg):
