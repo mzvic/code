@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/home/code/Development/core_ba/bin/TwisTorrMonitor_code_sw
+ExecStart=/home/code/Development/core/bin/TwisTorrMonitor_code_sw
 Restart=always
 RestartSec=10
 ExecStop=/bin/kill -SIGTERM $MAINPID

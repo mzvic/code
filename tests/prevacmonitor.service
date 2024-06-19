@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/bin/bash -c 'while sleep 10; do pgrep -x "/home/code/Development/core_ba/bin/PrevacMonitor_code_sw" || systemctl restart prevacmonitor.service; done'
+ExecStart=/bin/bash -c 'while sleep 10; do pgrep -x "/home/code/Development/core/bin/PrevacMonitor_code_sw" || systemctl restart prevacmonitor.service; done'
 Restart=always
 
 [Install]

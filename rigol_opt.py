@@ -17,15 +17,15 @@ import time
 import threading
 import grpc #grpcio, grpcio-tools
 from google.protobuf.timestamp_pb2 import Timestamp
-import core_ba.core_pb2 as core
-import core_ba.core_pb2_grpc as core_grpc
+import core.core_pb2 as core
+import core.core_pb2_grpc as core_grpc
 import queue
 import gc
 import os
 import pyvisa
 import psutil
 import struct
-#python -m grpc_tools.protoc -I /home/code/Development1/core_ba/ --python_out=. --grpc_python_out=. /home/code/Development1/core_ba/core.proto
+#python -m grpc_tools.protoc -I /home/code/Development1/core/ --python_out=. --grpc_python_out=. /home/code/Development1/core/core.proto
 
 # Pressure needed on FRG-702 to enable electron gun
 reqPress4ElectronGun = 0.00001
@@ -605,24 +605,24 @@ class MainWindow(QMainWindow):
         
         # Paths to c++ processes
         self.binary_paths = [
-            path + '/core_ba/bin/APD_broker2_code_sw',
-            path + '/core_ba/bin/APD_plot_cvt_code_sw',
-            path + '/core_ba/bin/APD_publisher_code_sw',
-            path + '/core_ba/bin/APD_fft_partial_code_sw',
-            path + '/core_ba/bin/APD_reg_zero_code_sw', 
-            path + '/core_ba/bin/APD_reg_proc_code_sw', 
-            path + '/core_ba/bin/APD_reg_fft_1_code_sw',
-            path + '/core_ba/bin/APD_reg_fft_01_code_sw',
-            path + '/core_ba/bin/APD_fft_full_code_sw',
-            path + '/core_ba/bin/TwisTorrIO_code_sw',
-            path + '/core_ba/bin/TwisTorrSetter_code_sw',
-            path + '/core_ba/bin/TwisTorrMonitor_code_sw',            
-            path + '/core_ba/bin/storage',
-            path + '/core_ba/bin/recorder',
-            path + '/core_ba/bin/TwisTorrSS1_code_sw',
-            path + '/core_ba/bin/TwisTorrSS2_code_sw',
-            path + '/core_ba/bin/PrevacMonitor_code_sw',
-            path + '/core_ba/bin/PrevacSetter_code_sw'
+            path + '/core/bin/APD_broker2_code_sw',
+            path + '/core/bin/APD_plot_cvt_code_sw',
+            path + '/core/bin/APD_publisher_code_sw',
+            path + '/core/bin/APD_fft_partial_code_sw',
+            path + '/core/bin/APD_reg_zero_code_sw', 
+            path + '/core/bin/APD_reg_proc_code_sw', 
+            path + '/core/bin/APD_reg_fft_1_code_sw',
+            path + '/core/bin/APD_reg_fft_01_code_sw',
+            path + '/core/bin/APD_fft_full_code_sw',
+            path + '/core/bin/TwisTorrIO_code_sw',
+            path + '/core/bin/TwisTorrSetter_code_sw',
+            path + '/core/bin/TwisTorrMonitor_code_sw',            
+            path + '/core/bin/storage',
+            path + '/core/bin/recorder',
+            path + '/core/bin/TwisTorrSS1_code_sw',
+            path + '/core/bin/TwisTorrSS2_code_sw',
+            path + '/core/bin/PrevacMonitor_code_sw',
+            path + '/core/bin/PrevacSetter_code_sw'
         ]
 
         # Title of the window
