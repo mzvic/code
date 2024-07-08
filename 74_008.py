@@ -37,7 +37,8 @@ def apply_dark_theme(app): # GUI Setup
 app = QApplication(sys.argv) 
 apply_dark_theme(app)
 
-RS232 = serial.Serial(port='/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0', baudrate=9600) # Open RS485 port of the 74FS pump
+# Open RS485 port of the 74FS pump
+RS232 = serial.Serial(port='/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0', baudrate=9600) 
 
 # Enable Serial Control
 xor_STX = 2 
@@ -49,8 +50,10 @@ xor_WR = 49
 xor_OnOff = 48
 xor_ETX = 3
 
-xor = hex(xor_ADDR ^ xor_WIN1 ^ xor_WIN2 ^ xor_WIN3 ^ xor_WR ^ xor_OnOff ^ xor_ETX) # Calculate Checksum XOR
+# Calculate Checksum XOR
+xor = hex(xor_ADDR ^ xor_WIN1 ^ xor_WIN2 ^ xor_WIN3 ^ xor_WR ^ xor_OnOff ^ xor_ETX) 
 
+# Convert XOR to bytes
 STX = xor_STX.to_bytes(1, 'big')
 ADDR = xor_ADDR.to_bytes(1, 'big')
 WIN1 = xor_WIN1.to_bytes(1, 'big')

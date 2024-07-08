@@ -241,9 +241,11 @@ class PrevacSubscribe2Broker(QThread):
                 prevac_subscribing_values[:] = bundle.value  # Copy the bundle value to the prevac_subscribing_values list
                 self.update_signal.emit()  # Emit a signal to indicate updated data
 
+# Definition of a custom thread class for publishing Rigol data to Broker
 class RigolPublish2Broker(QThread):
     send_signal = pyqtSignal()
-    
+
+    # Run method for the thread
     def run(self):
         global rigol_publishing_values
         global g_global
@@ -261,9 +263,9 @@ class RigolPublish2Broker(QThread):
     def generate_bundles(self):
         global rigol_publishing_values
         rigol_values = rigol_publishing_values
-        bundle = core.Bundle()
-        bundle.timestamp.GetCurrentTime()
-        bundle.type = core.DATA_RIGOL_MON
+        bundle = core.Bundle()  # Create an empty Bundle object
+        bundle.timestamp.GetCurrentTime()  # Get the current time
+        bundle.type = core.DATA_RIGOL_MON # Set the type to DATA_RIGOL_MON
         self.send_signal.emit()
         if rigol_values is not None and len(rigol_values) == rigol_pub_size:
             bundle.value.extend(rigol_values)
@@ -4007,7 +4009,7 @@ if __name__ == "__main__":
             sys.exit(app.exec_())
         except Exception as e:
             # Handle unexpected exceptions by displaying an error message
-            error_message = "An unexpected error has occurred: {}".format(str(e))
+            error_message = "\n" +"An unexpected error has occurred: {}".format(str(e))
             #QtWidgets.QMessageBox.critical(None, "Error", error_message)
             # Append the error message to an error log file
             with open("error.log", "a") as log_file:
