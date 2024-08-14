@@ -685,7 +685,7 @@ int OpenDataStorage() {
   // Create filename
   raw_time = time(nullptr);
   timeinfo = localtime(&raw_time);
-  snprintf(FILENAME, sizeof(FILENAME), "%d%.2d%.2d%s", timeinfo->tm_year + 1900, timeinfo->tm_mon + 1, timeinfo->tm_mday, Filename_from_GUI.c_str());
+  snprintf(FILENAME, sizeof(FILENAME), "%d-%.2d-%.2d%s", timeinfo->tm_year + 1900, timeinfo->tm_mon + 1, timeinfo->tm_mday, Filename_from_GUI.c_str());
   
 
   // Test file access
