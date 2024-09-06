@@ -1,7 +1,7 @@
 from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtCore import QThread, pyqtSignal, QDateTime, Qt, QTimer
 from PyQt5.QtGui import QFont, QImage, QPixmap
-from PyQt5.QtWidgets import QTabWidget, QVBoxLayout, QWidget, QCheckBox, QLineEdit, QLabel, QComboBox, QApplication, QMainWindow, QPushButton, QTextEdit, QHBoxLayout, QGridLayout, QLineEdit, QFormLayout, QMessageBox
+from PyQt5.QtWidgets import QTabWidget, QVBoxLayout, QWidget, QCheckBox, QLineEdit, QLabel, QComboBox, QApplication, QMainWindow, QPushButton, QTextEdit, QHBoxLayout, QGridLayout, QLineEdit, QFormLayout, QMessageBox, QButtonGroup
 import pyqtgraph as pg
 from pyqtgraph import QtGui, ImageItem
 from serial.tools import list_ports #pyserial
@@ -862,46 +862,46 @@ class MainWindow(QMainWindow):
  
         # Plot 1 object 
         self.graph1 = pg.PlotWidget(axisItems={'bottom': DateAxis(orientation='bottom')})
-        
+
         # Plot 1 height
         self.graph1.setMinimumHeight(180)
         self.graph1.setMaximumHeight(300)
 
         # Plot 1 displayed in the APD tab
         self.layout1.addWidget(self.graph1) 
-        plotItem1 = self.graph1.getPlotItem()
-        plotItem1.showGrid(True, True, 0.7)
-        
+        self.plotItem1 = self.graph1.getPlotItem()
+        self.plotItem1.showGrid(True, True, 0.7)
+
         # Initial data for plot 1
-        self.plot1 = self.graph1.plot([0,1,2,3], [0,0,0,0], pen=pg.mkPen(color=(255, 0, 0)))
-        
+        self.plot1 = self.graph1.plot([0, 1, 2, 3], [0, 0, 0, 0], pen=pg.mkPen(color=(255, 0, 0)))
+
         # Axis labels
         self.graph1.setLabel('left', 'Counts')
         self.graph1.setLabel('bottom', 'Time', units='hh:mm:ss.µµµµµµ')
-        
+
         # List to be displayed in plot 1
         self.data1 = []
-        self.times1 = []      
+        self.times1 = []
 
         # Plot 2 object 
         self.graph2 = pg.PlotWidget()
-        
+
         # Plot 2 height
         self.graph2.setMinimumHeight(180)
         self.graph2.setMaximumHeight(300)
-        
+
         # Plot 2 displayed in the APD tab
         self.layout1.addWidget(self.graph2)
         plotItem2 = self.graph2.getPlotItem()
         plotItem2.showGrid(True, True, 0.7)
-        
+
         # Axis labels
         self.graph2.setLabel("left", "|Power|")
         self.graph2.setLabel("bottom", "Frequency", "Hz")
         self.graph2.plotItem.setLogMode(x=True)
         self.h_line = pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen(color=(0, 255, 0), width=1))
         self.graph2.addItem(self.h_line) 
-        
+
         # Boolean for enable cursor ID (yellow bar) and spectrometer
         self.cursor_position = None
         self.y_bar = False
@@ -2074,8 +2074,7 @@ class MainWindow(QMainWindow):
         eg_data_grid_layout.addWidget(mark_all_eg_button, 8, 0)
         eg_data_grid_layout.addWidget(unmark_all_eg_button, 8, 1)
 
-        # -------------------------------------------------------------------- #
-        # FFT AVG #
+        #----------------------- FFT avg settings --------------------------------------------------------------------------------- #
         fft_data_group = QtWidgets.QGroupBox()
         fft_data_grid_layout = QGridLayout()      
 
@@ -2110,7 +2109,7 @@ class MainWindow(QMainWindow):
         self.layout7.addWidget(eg_data_group, 0, 1)
         self.layout7.addWidget(fft_data_group, 2, 1)
 
-
+        #----------------------- Filename settings --------------------------------------------------------------------------------- #
         self.storage_filename_group = QtWidgets.QGroupBox("Storage filename:")
         self.storage_filename_grid_layout = QGridLayout()                 
 
@@ -2132,21 +2131,62 @@ class MainWindow(QMainWindow):
         self.storage_filename_group.setLayout(self.storage_filename_grid_layout)
         self.layout7.addWidget(self.storage_filename_group, 9, 0, 1, 2)
 
+        #----------------------- Logging period settings --------------------------------------------------------------------------------- #
+
+        self.logging_duration_button_group = QtWidgets.QGroupBox("Data logging period (when 'Not defined' is checked, data logging stops when the user presses the 'Stop data logging' button):")
+        self.logging_duration_button_grid_layout = QGridLayout()      
+
+        self.logging_period_notdefined_checkbox = QCheckBox("Not defined")
+        self.logging_period_notdefined_checkbox.setChecked(True)
+        self.logging_period_notdefined_checkbox.setFixedWidth(110) 
+        self.logging_duration_button_grid_layout.addWidget(self.logging_period_notdefined_checkbox, 1, 0)
+
+        self.logging_period_defined_checkbox = QCheckBox("User defined")
+        self.logging_period_defined_checkbox.setChecked(False)
+        self.logging_period_defined_checkbox.setFixedWidth(110)
+        self.logging_duration_button_grid_layout.addWidget(self.logging_period_defined_checkbox, 1, 1)
+
+        logging_minutes_label = QLabel("Data logging period in minutes: ")
+        logging_minutes_label.setFixedWidth(250) 
+        self.logging_duration_button_grid_layout.addWidget(logging_minutes_label, 1, 2)        
+
+        self.logging_minutes_input = QLineEdit(self)
+        self.logging_minutes_input.setFixedWidth(80) 
+        #self.logging_minutes_input.setText("10") # Default value  
+        self.logging_minutes_input.setPlaceholderText("e.g. '10'")     
+        self.logging_duration_button_grid_layout.addWidget(self.logging_minutes_input, 1, 3) 
+
+        # Crear un QButtonGroup y agregar los checkboxes
+        self.period_button_group = QButtonGroup()
+        self.period_button_group.addButton(self.logging_period_notdefined_checkbox)
+        self.period_button_group.addButton(self.logging_period_defined_checkbox)
+
+        # Establecer el modo de exclusividad
+        self.period_button_group.setExclusive(True)
+
+        self.logging_time_stop =  9999999999
+
+        self.logging_duration_button_group.setLayout(self.logging_duration_button_grid_layout)
+        self.logging_duration_button_group.setLayout(self.logging_duration_button_grid_layout)
+        self.layout7.addWidget(self.logging_duration_button_group, 10, 0, 1, 2)       
+
+
+        #----------------------- Start - stop buttons  --------------------------------------------------------------------------------- #
         storage_button_group = QtWidgets.QGroupBox("Data logging (files stored in /home/code folder):")
         storage_button_grid_layout = QGridLayout()      
 
         self.begin_logging_button = QPushButton("Begin data logging")
         self.begin_logging_button.setCheckable(True) 
         self.begin_logging_button.clicked.connect(self.logging_connect)
-        storage_button_grid_layout.addWidget(self.begin_logging_button, 10, 0)  
+        storage_button_grid_layout.addWidget(self.begin_logging_button, 11, 0)  
 
         self.stop_logging_button = QPushButton("Stop data logging") 
         self.stop_logging_button.setCheckable(True) 
         self.stop_logging_button.clicked.connect(self.logging_disconnect)
-        storage_button_grid_layout.addWidget(self.stop_logging_button, 10, 1)     
+        storage_button_grid_layout.addWidget(self.stop_logging_button, 11, 1)     
 
         storage_button_group.setLayout(storage_button_grid_layout)
-        self.layout7.addWidget(storage_button_group, 10, 0, 1, 2)        
+        self.layout7.addWidget(storage_button_group, 11, 0, 1, 2)        
         
         #image_label = QLabel()
         #pixmap = QPixmap("hdf.png") 
@@ -2154,8 +2194,6 @@ class MainWindow(QMainWindow):
         #image_label.setAlignment(Qt.AlignCenter)  
         #self.layout7.addWidget(image_label, 4, 8, 1, 3)        
         
-
-
 
         # ------------------------------------------------------------------------------------------------------------------ #
         #----------------------- FUNCTIONS --------------------------------------------------------------------------------- #
@@ -2183,8 +2221,26 @@ class MainWindow(QMainWindow):
             self.showWarningSignal.emit("Select the variables to record before begin data logging...")
             self.begin_logging_button.setChecked(False)
         if not self.storage_line_edit.text():
-            self.showWarningSignal.emit("Give the file a name or press the 'Set datetime as filename' button before starting data logging....")
+            self.showWarningSignal.emit("Give the file a name or press the 'Set datetime as filename' button before starting data logging...")
             self.begin_logging_button.setChecked(False)
+        
+        self.input_period_text = 0
+
+        if self.logging_period_defined_checkbox.isChecked():
+            try:
+                input_period_text = int(self.logging_minutes_input.text())
+            except ValueError:
+                self.begin_logging_button.setChecked(False)
+                self.input_period_text = -1
+                self.showWarningSignal.emit("You have selected the User-defined Data logging period option, please enter a valid value (integer greater than zero)...")
+                                
+        if self.logging_period_defined_checkbox.isChecked():
+            if input_period_text <= 0:       
+                self.input_period_text = -1
+                self.begin_logging_button.setChecked(False)
+                self.showWarningSignal.emit("You have selected the User-defined Data logging period option, please enter a valid value (integer greater than zero)...")   
+            else:
+                self.logging_time_stop = int(time.time()) + (int(input_period_text)*60)
 
         if (self.laser_1_checkbox.isChecked() or self.laser_2_checkbox.isChecked() or
                 self.apd_2_checkbox.isChecked() or self.apd_4_checkbox.isChecked() or
@@ -2384,7 +2440,8 @@ class MainWindow(QMainWindow):
                     # Execute record with all elements of record_list as arguments
                     self.processes[13] = subprocess.Popen(record_command)
             else:
-                self.begin_logging_button.setChecked(True)
+                if self.input_period_text >= 0:
+                    self.begin_logging_button.setChecked(True)
 
     def mark_all_laser_checkboxes(self):
         self.laser_1_checkbox.setChecked(True)
@@ -3272,6 +3329,12 @@ class MainWindow(QMainWindow):
             self.execute_prevac_setter(arg)  
             time.sleep(0.1) 
 
+    
+    def update_logging_stop(self):
+        #print(int(time.time()) - int(self.logging_time_stop))
+        if int(time.time()) > int(self.logging_time_stop):
+            self.stop_logging_button.click()
+
     def update_electrongun_values(self):
         if self.eg_connection_btn.isChecked():
             if len(prevac_subscribing_values) >= 13:
@@ -3430,6 +3493,12 @@ class MainWindow(QMainWindow):
         self.timer_prevac.timeout.connect(self.update_electrongun_values)
         self.timer_prevac.start(1000)  # Update interval for Prevac monitoring
 
+    def start_update_logging_timer(self):
+        # Start a QTimer to periodically update logging time stop
+        self.timer_logging = QTimer()
+        self.timer_logging.timeout.connect(self.update_logging_stop)
+        self.timer_logging.start(1000)  # Update interval for Prevac monitoring        
+
     def stop_update_eg_timer(self):
         # Stop the QTimer used for updating prevac-related values
         if hasattr(self, 'timer_prevac'):
@@ -3561,20 +3630,53 @@ class MainWindow(QMainWindow):
         self.update_plot1_thread.data_queue.put([self.times1, self.data1])
 
     def update_plot1(self, data):
-        if (self.closing == 0):
+        # Actualiza el gráfico
+        if self.closing == 0:
             process_name = self.binary_paths[1]
             try:
                 result = subprocess.run(["pgrep", "-f", process_name], capture_output=True, text=True)
-                if result.returncode == 0:
-                    pass
-                else:
+                if result.returncode != 0:
                     print("APD CVT not running, starting again...")
                     self.processes[1] = subprocess.Popen([self.binary_paths[1]])
             except Exception as e:
-                print("Error checking APD CVT :", str(e))
-        # Update the plot with the new data
+                print("Error checking APD CVT:", str(e))
+
+        # Actualiza los datos en el gráfico
         self.plot1.setData(self.times1, self.data1)
-    
+
+        # Actualiza el texto solo cada 0.1 segundos
+        if not hasattr(self, 'last_text_update_time'):
+            self.last_text_update_time = 0
+            
+        if time.time() - self.last_text_update_time >= 0.01:  
+            self.last_text_update_time = time.time()
+
+            if self.times1 and self.data1:
+                current_time = time.time()
+                one_second_ago = current_time - 1
+
+                start_index = next((i for i, t in enumerate(self.times1) if t >= one_second_ago), len(self.times1))
+                recent_counts = self.data1[start_index:]
+
+                if recent_counts:
+                    sum_counts = int(sum(recent_counts))
+                    average_counts = sum_counts / len(recent_counts)
+
+                else:
+                    sum_count = 0
+                    average_counts = 0
+
+                if not hasattr(self, 'counts_text_item'):
+                    font = QFont()
+                    font.setBold(True)
+                    self.counts_text_item = pg.TextItem(color=(255, 0, 0))
+                    self.counts_text_item.setFont(font)
+                    self.graph1.addItem(self.counts_text_item)
+                time_size = self.times1[-1] - self.times1[0]
+                self.counts_text_item.setPos(time.time()-(time_size*0.3), 0)
+                text = f"Avg: {average_counts:7.2f} - Sum: {sum_counts:6} (Counts in the last second)"
+                self.counts_text_item.setText(text)
+
 
     def update_graph2(self):
         # Get the FFT frequency range from the input fields
@@ -4005,6 +4107,7 @@ if __name__ == "__main__":
             # Start the update timer for Twistorr and Prevac 
             mainWindow.start_update_tt_timer()
             mainWindow.start_update_eg_timer()
+            mainWindow.start_update_logging_timer()
             # Execute the application event loop
             sys.exit(app.exec_())
         except Exception as e:
