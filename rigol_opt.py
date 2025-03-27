@@ -305,33 +305,33 @@ class LaserPublish2Broker(QThread):
         yield bundle
 
 # Rigol initial settings
-try:
-    os.system('usbreset 1ab1:0515')
-    rm1 = pyvisa.ResourceManager('@py')
-    scope_usb = rm1.open_resource('USB0::6833::1301::MS5A242205632::0::INSTR', timeout = 5000)
-    scope_usb.write(":RUN")
-    scope_usb.write(":TIM:MODE MAIN")
-    scope_usb.write(":CHAN1:DISP 1")
-    scope_usb.write(":CHAN2:DISP 1")
-    scope_usb.write(":CHAN1:PROB 1")
-    scope_usb.write(":CHAN2:PROB 1")
-    scope_usb.write(":TRIG:COUP AC")
-    scope_usb.write(":LAN:AUT 0")
-    scope_usb.write(":LAN:MAN 1")
-    scope_usb.write(":LAN:DHCP 1")
-    scope_usb.write(":LAN:SMAS 225.225.225.0")
-    scope_usb.write(":LAN:GAT 152.74.216.1")
-    scope_usb.write(":LAN:IPAD 152.74.216.91")
-    scope_usb.write(":LAN:DNS 152.74.16.14")
-    #scope_usb.write(":LAN:APPL")
-    rigol_ip = scope_usb.query(':LAN:VISA?').strip()
-    print(rigol_ip)
-    scope_usb.close()
-except ValueError as ve:
-    print("Rigol MSO5074:", ve)
-    rigol_ip = "no"
-    scope_usb = None
-#rigol_ip = "no"
+#try:
+#    os.system('usbreset 1ab1:0515')
+#    rm1 = pyvisa.ResourceManager('@py')
+#    scope_usb = rm1.open_resource('USB0::6833::1301::MS5A242205632::0::INSTR', timeout = 5000)
+#    scope_usb.write(":RUN")
+#    scope_usb.write(":TIM:MODE MAIN")
+#    scope_usb.write(":CHAN1:DISP 1")
+#    scope_usb.write(":CHAN2:DISP 1")
+#    scope_usb.write(":CHAN1:PROB 1")
+#    scope_usb.write(":CHAN2:PROB 1")
+#    scope_usb.write(":TRIG:COUP AC")
+#    scope_usb.write(":LAN:AUT 0")
+#    scope_usb.write(":LAN:MAN 1")
+#    scope_usb.write(":LAN:DHCP 1")
+#    scope_usb.write(":LAN:SMAS 225.225.225.0")
+#    scope_usb.write(":LAN:GAT 152.74.216.1")
+#    scope_usb.write(":LAN:IPAD 152.74.216.91")
+#    scope_usb.write(":LAN:DNS 152.74.16.14")
+#    #scope_usb.write(":LAN:APPL")
+#    rigol_ip = scope_usb.query(':LAN:VISA?').strip()
+#    print(rigol_ip)
+#    scope_usb.close()
+#except ValueError as ve:
+#    print("Rigol MSO5074:", ve)
+#    rigol_ip = "no"
+#    scope_usb = None
+rigol_ip = "no"
 
 # Definition of a custom thread class for updating Rigol data        
 class RigolDataThread(QThread):
