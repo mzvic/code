@@ -105,6 +105,11 @@ std::array<std::string, 13> electron_gun_param = {"energy_voltage", "focus_volta
 bool exit_flag = false;
 int pid = 0;
 
+
+int seconds_per_file = 1215752191;
+
+time_t new_file_time;
+
 unique_ptr<CountsEntry> counts_entry;
 unique_ptr<FFTEntry> fft_entry;
 unique_ptr<TwisTorrMonitorEntry> twistorr_monitor_entry;
@@ -683,11 +688,17 @@ int OpenDataStorage() {
   tm *timeinfo;
   char FILENAME[200];
   // Create filename
-  raw_time = time(nullptr);
+  raw_time = new_file_time - seconds_per_file;
   timeinfo = localtime(&raw_time);
-  snprintf(FILENAME, sizeof(FILENAME), "%d-%.2d-%.2d%s", timeinfo->tm_year + 1900, timeinfo->tm_mon + 1, timeinfo->tm_mday, Filename_from_GUI.c_str());
+  snprintf(FILENAME, sizeof(FILENAME), "%d-%.2d-%.2d_%.2d:%.2d:%.2d%s",
+         timeinfo->tm_year + 1900, 
+         timeinfo->tm_mon + 1, 
+         timeinfo->tm_mday,
+         timeinfo->tm_hour, 
+         timeinfo->tm_min, 
+         timeinfo->tm_sec,
+         Filename_from_GUI.c_str());
   
-
   // Test file access
   if (access(FILENAME, W_OK) == 0) {
 	// File exists and is writable, so open it
@@ -891,29 +902,16 @@ int CloseDataStorage() {
 }
 
 void ManageDataStorage() {
-  time_t raw_time;
-  tm *timeinfo;
-
   while (!exit_flag) {
 	{
 	  unique_lock<mutex> dslck(data_storage_mutex);
 
-	  // Get current time
-	  raw_time = time(nullptr);
-	  timeinfo = localtime(&raw_time);
+	  auto next_file_time = system_clock::from_time_t(new_file_time);
 
-	  // Find next midnight
-	  timeinfo->tm_hour = 0;
-	  timeinfo->tm_min = 0;
-	  timeinfo->tm_sec = 0;
-	  raw_time = mktime(timeinfo);        // Midnight of today
-	  raw_time += 86400;                      // Midnight of tomorrow
-	  auto next_midnight = system_clock::from_time_t(raw_time);
-
-	  data_storage_cv.wait_until(dslck, next_midnight, [] {
+	  data_storage_cv.wait_until(dslck, next_file_time, [] {
 		return exit_flag;
 	  });
-
+      new_file_time += seconds_per_file;  
 	  if (!exit_flag) {
 		CloseDataStorage();
 		OpenDataStorage();
@@ -1046,15 +1044,29 @@ void HandleSignal(int) {
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " <Filename_from_GUI> <Variable_1> <Variable_2> ..." << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <Filename_from_GUI> <Seconds per file> <Variable_1> <Variable_2> ..." << std::endl;
     return 1;
   }  
 
   Filename_from_GUI = argv[1];
+    std::cout << "Valor de argv[2]: '" << argv[2] << "'" << std::endl;
+
+    try {
+        seconds_per_file = std::stoi(argv[2]);  // Convertimos a entero
+        std::cout << "Seconds per file: " << seconds_per_file << std::endl;
+    } catch (const std::invalid_argument &e) {
+        std::cerr << "Error: argv[2] no es un número válido." << std::endl;
+        return 1;
+    } catch (const std::out_of_range &e) {
+        std::cerr << "Error: argv[2] está fuera del rango de un int." << std::endl;
+        return 1;
+    }
+  time_t current_time = time(nullptr);
+  new_file_time = current_time + seconds_per_file;  
 
   std::cout << "Nombre de archivo: " << Filename_from_GUI.c_str() << std::endl;
   
-  data_ids.assign(argv + 2, argv + argc);  
+  data_ids.assign(argv + 3, argv + argc);  
 
   std::cout << "Tipos de datos especificados:" << std::endl;
   for (const auto &data_id : data_ids) {

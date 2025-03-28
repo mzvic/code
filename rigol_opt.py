@@ -2153,8 +2153,10 @@ class MainWindow(QMainWindow):
         self.logging_minutes_input = QLineEdit(self)
         self.logging_minutes_input.setFixedWidth(80) 
         #self.logging_minutes_input.setText("10") # Default value  
-        self.logging_minutes_input.setPlaceholderText("e.g. '10'")     
+        self.logging_minutes_input.setPlaceholderText("e.g. '180'")     
         self.logging_duration_button_grid_layout.addWidget(self.logging_minutes_input, 1, 3) 
+
+
 
         # Crear un QButtonGroup y agregar los checkboxes
         self.period_button_group = QButtonGroup()
@@ -2171,6 +2173,45 @@ class MainWindow(QMainWindow):
         self.layout7.addWidget(self.logging_duration_button_group, 10, 0, 1, 2)       
 
 
+        #----------------------- Minutes per file settings --------------------------------------------------------------------------------- #
+
+        self.minutes_per_file_button_group = QtWidgets.QGroupBox("Data logging file size defined by period (when 'Defined' is checked, different files are generated every X minutes, otherwise only one file is generated):")
+        self.minutes_per_file_button_grid_layout = QGridLayout()      
+
+        self.minutes_per_file_notdefined_checkbox = QCheckBox("Not defined")
+        self.minutes_per_file_notdefined_checkbox.setChecked(True)
+        self.minutes_per_file_notdefined_checkbox.setFixedWidth(110) 
+        self.minutes_per_file_button_grid_layout.addWidget(self.minutes_per_file_notdefined_checkbox, 1, 0)
+
+        self.minutes_per_file_defined_checkbox = QCheckBox("User defined")
+        self.minutes_per_file_defined_checkbox.setChecked(False)
+        self.minutes_per_file_defined_checkbox.setFixedWidth(110)
+        self.minutes_per_file_button_grid_layout.addWidget(self.minutes_per_file_defined_checkbox, 1, 1)
+
+        minutes_per_file_label = QLabel("Max period per file in minutes: ")
+        minutes_per_file_label.setFixedWidth(250) 
+        self.minutes_per_file_button_grid_layout.addWidget(minutes_per_file_label, 1, 2)        
+
+        self.minutes_per_file_input = QLineEdit(self)
+        self.minutes_per_file_input.setFixedWidth(80) 
+        self.minutes_per_file_input.setPlaceholderText("e.g. '10'")     
+        self.minutes_per_file_button_grid_layout.addWidget(self.minutes_per_file_input, 1, 3) 
+
+        # Crear un QButtonGroup y agregar los checkboxes
+        self.min_per_file_button_group = QButtonGroup()
+        self.min_per_file_button_group.addButton(self.minutes_per_file_notdefined_checkbox)
+        self.min_per_file_button_group.addButton(self.minutes_per_file_defined_checkbox)
+
+        # Establecer el modo de exclusividad
+        self.min_per_file_button_group.setExclusive(True)
+
+        self.minutes_per_file_argument = 1215752191      
+
+        self.minutes_per_file_button_group.setLayout(self.minutes_per_file_button_grid_layout)
+        self.minutes_per_file_button_group.setLayout(self.minutes_per_file_button_grid_layout)
+        self.layout7.addWidget(self.minutes_per_file_button_group, 11, 0, 1, 2)  
+
+
         #----------------------- Start - stop buttons  --------------------------------------------------------------------------------- #
         storage_button_group = QtWidgets.QGroupBox("Data logging (files stored in /home/code folder):")
         storage_button_grid_layout = QGridLayout()      
@@ -2178,15 +2219,15 @@ class MainWindow(QMainWindow):
         self.begin_logging_button = QPushButton("Begin data logging")
         self.begin_logging_button.setCheckable(True) 
         self.begin_logging_button.clicked.connect(self.logging_connect)
-        storage_button_grid_layout.addWidget(self.begin_logging_button, 11, 0)  
+        storage_button_grid_layout.addWidget(self.begin_logging_button, 12, 0)  
 
         self.stop_logging_button = QPushButton("Stop data logging") 
         self.stop_logging_button.setCheckable(True) 
         self.stop_logging_button.clicked.connect(self.logging_disconnect)
-        storage_button_grid_layout.addWidget(self.stop_logging_button, 11, 1)     
+        storage_button_grid_layout.addWidget(self.stop_logging_button, 12, 1)     
 
         storage_button_group.setLayout(storage_button_grid_layout)
-        self.layout7.addWidget(storage_button_group, 11, 0, 1, 2)        
+        self.layout7.addWidget(storage_button_group, 12, 0, 1, 2)        
         
         #image_label = QLabel()
         #pixmap = QPixmap("hdf.png") 
@@ -2242,6 +2283,24 @@ class MainWindow(QMainWindow):
             else:
                 self.logging_time_stop = int(time.time()) + (int(input_period_text)*60)
 
+        if self.minutes_per_file_defined_checkbox.isChecked():
+            try:
+                input_minutes_per_file_text = int(self.minutes_per_file_input.text())
+            except ValueError:
+                self.begin_logging_button.setChecked(False)
+                self.input_minutes_per_file_text = -1
+                self.showWarningSignal.emit("You have selected the User-defined Data logging file size defined by period option, please enter a valid value (integer greater than zero)...")
+
+        if self.minutes_per_file_defined_checkbox.isChecked():
+            if input_minutes_per_file_text <= 0:       
+                self.input_minutes_per_file_text = -1
+                self.begin_logging_button.setChecked(False)
+                self.showWarningSignal.emit("You have selected the User-defined Data logging file size defined by period option, please enter a valid value (integer greater than zero)...")
+            else:
+                self.minutes_per_file_argument = (int(input_minutes_per_file_text)*60)        
+
+
+
         if (self.laser_1_checkbox.isChecked() or self.laser_2_checkbox.isChecked() or
                 self.apd_2_checkbox.isChecked() or self.apd_4_checkbox.isChecked() or
                 self.twistorr_1_checkbox.isChecked() or self.twistorr_2_checkbox.isChecked() or
@@ -2270,6 +2329,7 @@ class MainWindow(QMainWindow):
                 storage_list = []
                 # Laser #
                 storage_list.append("_-_"+self.storage_line_edit.text()+".h5")
+                storage_list.append(str(self.minutes_per_file_argument))
                 if self.laser_1_checkbox.isChecked():
                     storage_list.append("laser_voltage") 
                     print("Ejecutando recorder 'Laser voltage'")
@@ -3497,7 +3557,7 @@ class MainWindow(QMainWindow):
         # Start a QTimer to periodically update logging time stop
         self.timer_logging = QTimer()
         self.timer_logging.timeout.connect(self.update_logging_stop)
-        self.timer_logging.start(1000)  # Update interval for Prevac monitoring        
+        self.timer_logging.start(1000)  # Update interval for logging stop        
 
     def stop_update_eg_timer(self):
         # Stop the QTimer used for updating prevac-related values
@@ -4120,3 +4180,4 @@ if __name__ == "__main__":
         finally:
             # Delete the lock file at the end
             os.remove("lockfile.lock")            
+
