@@ -5,7 +5,11 @@
 #include <sys/wait.h>
 #include <algorithm>
 #include <array>
-
+#include <sys/stat.h>  // mkdir
+#include <libgen.h>    // dirname
+#include <unistd.h>    // access
+#include <string>
+#include <sstream>
 #include "core.grpc.pb.h"
 #include "hdf5_hl.h"
 #include "log.h"
@@ -686,19 +690,42 @@ int OpenDataStorage() {
   hid_t plist_id;
   time_t raw_time;
   tm *timeinfo;
-  char FILENAME[200];
+  char FILENAME[300];
   // Create filename
   raw_time = new_file_time - seconds_per_file;
   timeinfo = localtime(&raw_time);
-  snprintf(FILENAME, sizeof(FILENAME), "%d-%.2d-%.2d_%.2d:%.2d:%.2d%s",
-         timeinfo->tm_year + 1900, 
-         timeinfo->tm_mon + 1, 
-         timeinfo->tm_mday,
-         timeinfo->tm_hour, 
-         timeinfo->tm_min, 
-         timeinfo->tm_sec,
-         Filename_from_GUI.c_str());
-  
+  snprintf(FILENAME, sizeof(FILENAME), "%s_-_%d-%.2d-%.2d_%.2d:%.2d:%.2d.h5",
+           Filename_from_GUI.c_str(),
+           timeinfo->tm_year + 1900,
+           timeinfo->tm_mon + 1,
+           timeinfo->tm_mday,
+           timeinfo->tm_hour,
+           timeinfo->tm_min,
+           timeinfo->tm_sec);
+
+  // Crear directorio si no existe (de forma recursiva)
+  std::string filename_str = FILENAME;
+  size_t last_slash = filename_str.find_last_of('/');
+  if (last_slash != std::string::npos) {
+    std::string dir_path = filename_str.substr(0, last_slash);
+    std::stringstream path_builder;
+    std::string partial;
+
+    for (size_t i = 0; i < dir_path.size(); ++i) {
+      char c = dir_path[i];
+      partial += c;
+
+      if (c == '/' || i == dir_path.size() - 1) {
+        if (!partial.empty() && access(partial.c_str(), F_OK) != 0) {
+          if (mkdir(partial.c_str(), 0755) != 0 && errno != EEXIST) {
+            LOG(std::string("Error creating directory: ") + partial + " (" + strerror(errno) + ")");
+            return -1;
+          }
+        }
+      }
+    }
+  }
+
   // Test file access
   if (access(FILENAME, W_OK) == 0) {
 	// File exists and is writable, so open it

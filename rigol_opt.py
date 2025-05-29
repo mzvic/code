@@ -2109,20 +2109,26 @@ class MainWindow(QMainWindow):
         self.layout7.addWidget(eg_data_group, 0, 1)
         self.layout7.addWidget(fft_data_group, 2, 1)
 
-        #----------------------- Filename settings --------------------------------------------------------------------------------- #
-        self.storage_filename_group = QtWidgets.QGroupBox("Storage filename:")
+        #----------------------- Folder name and log filename settings --------------------------------------------------------------------------------- #
+        self.storage_filename_group = QtWidgets.QGroupBox("Data logging folder name and log filename:")
         self.storage_filename_grid_layout = QGridLayout()                 
 
+        self.folder_line_edit = QLineEdit()
+        self.folder_line_edit.setFixedWidth(700)
+        self.folder_line_edit.setPlaceholderText("Enter a dataset folder name, otherwise files will be stored in '/home/code/CodeDataLogging'")
+        self.folder_line_edit.setAlignment(QtCore.Qt.AlignRight)
+        self.storage_filename_grid_layout.addWidget(self.folder_line_edit, 9, 0)
+
         self.storage_line_edit = QLineEdit()
-        self.storage_line_edit.setFixedWidth(1150)
+        self.storage_line_edit.setFixedWidth(600)
         self.storage_line_edit.setPlaceholderText("Enter a file name or press the 'Set datetime as filename' button...")
         self.storage_line_edit.setAlignment(QtCore.Qt.AlignRight)
-        self.storage_filename_grid_layout.addWidget(self.storage_line_edit, 9, 0)
+        self.storage_filename_grid_layout.addWidget(self.storage_line_edit, 9, 1)
         
         h5_label = QLabel(".h5")
         h5_label.setFixedWidth(200)
         h5_label.setAlignment(QtCore.Qt.AlignLeft)
-        self.storage_filename_grid_layout.addWidget(h5_label, 9, 1)
+        self.storage_filename_grid_layout.addWidget(h5_label, 9, 2)
 
         self.auto_store_name_button = QPushButton("Set datetime as filename")
         self.auto_store_name_button.clicked.connect(self.set_datetime_as_filename)
@@ -2327,9 +2333,13 @@ class MainWindow(QMainWindow):
                 self.begin_logging_button.setChecked(True)
 
                 storage_list = []
-                # Laser #
-                storage_list.append("_-_"+self.storage_line_edit.text()+".h5")
+
+                if not self.folder_line_edit.text():
+                    storage_list.append("/home/code/CodeDataLogging/"+self.storage_line_edit.text())
+                else:
+                    storage_list.append("/home/code/CodeDataLogging/"+self.folder_line_edit.text()+"/"+self.storage_line_edit.text())
                 storage_list.append(str(self.minutes_per_file_argument))
+                # Laser #
                 if self.laser_1_checkbox.isChecked():
                     storage_list.append("laser_voltage") 
                     print("Ejecutando recorder 'Laser voltage'")
