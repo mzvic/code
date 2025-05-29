@@ -2219,7 +2219,7 @@ class MainWindow(QMainWindow):
 
 
         #----------------------- Start - stop buttons  --------------------------------------------------------------------------------- #
-        storage_button_group = QtWidgets.QGroupBox("Data logging (files stored in /home/code folder):")
+        storage_button_group = QtWidgets.QGroupBox("Data logging (files stored in /home/code/CodeDataLogging folder):")
         storage_button_grid_layout = QGridLayout()      
 
         self.begin_logging_button = QPushButton("Begin data logging")
