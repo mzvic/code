@@ -563,9 +563,9 @@ class MainWindow(QMainWindow):
                 storage_list = []
 
                 if not self.folder_line_edit.text():
-                    storage_list.append("/home/code/CodeDataLogging/"+self.storage_line_edit.text())
+                    storage_list.append("/home/code/CepiaDataLogging/"+self.storage_line_edit.text())
                 else:
-                    storage_list.append("/home/code/CodeDataLogging/"+self.folder_line_edit.text()+"/"+self.storage_line_edit.text())
+                    storage_list.append("/home/code/CepiaDataLogging/"+self.folder_line_edit.text()+"/"+self.storage_line_edit.text())
                 storage_list.append(str(self.minutes_per_file_argument))
     
                 # --------------------------#

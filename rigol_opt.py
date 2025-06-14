@@ -305,33 +305,33 @@ class LaserPublish2Broker(QThread):
         yield bundle
 
 # Rigol initial settings
-#try:
-#    os.system('usbreset 1ab1:0515')
-#    rm1 = pyvisa.ResourceManager('@py')
-#    scope_usb = rm1.open_resource('USB0::6833::1301::MS5A242205632::0::INSTR', timeout = 5000)
-#    scope_usb.write(":RUN")
-#    scope_usb.write(":TIM:MODE MAIN")
-#    scope_usb.write(":CHAN1:DISP 1")
-#    scope_usb.write(":CHAN2:DISP 1")
-#    scope_usb.write(":CHAN1:PROB 1")
-#    scope_usb.write(":CHAN2:PROB 1")
-#    scope_usb.write(":TRIG:COUP AC")
-#    scope_usb.write(":LAN:AUT 0")
-#    scope_usb.write(":LAN:MAN 1")
-#    scope_usb.write(":LAN:DHCP 1")
-#    scope_usb.write(":LAN:SMAS 225.225.225.0")
-#    scope_usb.write(":LAN:GAT 152.74.216.1")
-#    scope_usb.write(":LAN:IPAD 152.74.216.91")
-#    scope_usb.write(":LAN:DNS 152.74.16.14")
-#    #scope_usb.write(":LAN:APPL")
-#    rigol_ip = scope_usb.query(':LAN:VISA?').strip()
-#    print(rigol_ip)
-#    scope_usb.close()
-#except ValueError as ve:
-#    print("Rigol MSO5074:", ve)
-#    rigol_ip = "no"
-#    scope_usb = None
-rigol_ip = "no"
+try:
+    os.system('usbreset 1ab1:0515')
+    rm1 = pyvisa.ResourceManager('@py')
+    scope_usb = rm1.open_resource('USB0::6833::1301::MS5A242205632::0::INSTR', timeout = 5000)
+    scope_usb.write(":RUN")
+    scope_usb.write(":TIM:MODE MAIN")
+    scope_usb.write(":CHAN1:DISP 1")
+    scope_usb.write(":CHAN2:DISP 1")
+    scope_usb.write(":CHAN1:PROB 1")
+    scope_usb.write(":CHAN2:PROB 1")
+    scope_usb.write(":TRIG:COUP AC")
+    scope_usb.write(":LAN:AUT 0")
+    scope_usb.write(":LAN:MAN 1")
+    scope_usb.write(":LAN:DHCP 1")
+    scope_usb.write(":LAN:SMAS 225.225.225.0")
+    scope_usb.write(":LAN:GAT 152.74.216.1")
+    scope_usb.write(":LAN:IPAD 152.74.216.91")
+    scope_usb.write(":LAN:DNS 152.74.16.14")
+    #scope_usb.write(":LAN:APPL")
+    rigol_ip = scope_usb.query(':LAN:VISA?').strip()
+    print(rigol_ip)
+    scope_usb.close()
+except ValueError as ve:
+    print("Rigol MSO5074:", ve)
+    rigol_ip = "no"
+    scope_usb = None
+#rigol_ip = "no"
 
 # Definition of a custom thread class for updating Rigol data        
 class RigolDataThread(QThread):
@@ -367,7 +367,13 @@ class RigolDataThread(QThread):
         self.rigol_g2_set = None
         self.rigol_g2_value = 0  
         self.rigol_laser_voltage_set = None
-        self.rigol_laser_voltage_value = 0              
+        self.rigol_laser_voltage_value = 0    
+        self.rigol_sweep_type_set = None
+        self.rigol_sweep_type_value = 0    
+        self.rigol_sweep_time_set = None
+        self.rigol_sweep_time_value = 0  
+        self.rigol_sweep_btime_set = None
+        self.rigol_sweep_btime_value = 0                                
     
     @staticmethod
     def get_instance():
@@ -393,6 +399,18 @@ class RigolDataThread(QThread):
     def set_rigol_function(self, function_set, function_value):
         self.rigol_function_set = function_set
         self.rigol_function_value = function_value  
+
+    def set_rigol_sweep_type(self, sweep_type_set, sweep_type_value):
+        self.rigol_sweep_type_set = sweep_type_set
+        self.rigol_sweep_type_value = sweep_type_value  
+
+    def set_rigol_sweep_time(self, sweep_time_set, sweep_time_value):
+        self.rigol_sweep_time_set = sweep_time_set
+        self.rigol_sweep_time_value = sweep_time_value  
+
+    def set_rigol_sweep_btime(self, sweep_btime_set, sweep_btime_value):
+        self.rigol_sweep_btime_set = sweep_btime_set
+        self.rigol_sweep_btime_value = sweep_btime_value 
 
     def set_rigol_tscale(self, tscale_set, tscale_value):
         self.rigol_tscale_set = tscale_set   
@@ -448,6 +466,9 @@ class RigolDataThread(QThread):
                 g1 = self.rigol_g1_set
                 g2 = self.rigol_g2_set
                 laser_voltage = self.rigol_laser_voltage_set
+                sweep_type = self.rigol_sweep_type_set
+                sweep_time = self.rigol_sweep_time_set
+                sweep_btime = self.rigol_sweep_btime_set
                 voltage_V = self.rigol_voltage_value
                 frequency_V = self.rigol_frequency_value
                 function_V = self.rigol_function_value
@@ -458,14 +479,19 @@ class RigolDataThread(QThread):
                 vscale_V = self.rigol_vscale_value
                 g1_V = self.rigol_g1_value
                 g2_V = self.rigol_g2_value
-                laser_voltage_V = self.rigol_laser_voltage_value              
-                rigol_x_data, rigol_y_data, rigol_attenuation, rigol_voltscale, rigol_voltoffset, rigol_coupling, rigol_voltage, rigol_frequency, rigol_function, rigol_g1, rigol_g2, g2, rigol_laser_voltage = self.get_rigol_data(status, channel, auto, voltage, frequency, function, tscale, voltage_offset, attenuation, coupling, vscale, g1, g2, laser_voltage, voltage_V, frequency_V, function_V, tscale_V, voltage_offset_V, attenuation_V, coupling_V, vscale_V, g1_V, g2_V, laser_voltage_V)
+                laser_voltage_V = self.rigol_laser_voltage_value  
+                sweep_type_V = self.rigol_sweep_type_value
+                sweep_time_V = self.rigol_sweep_time_value
+                sweep_btime_V = self.rigol_sweep_btime_value
+
+
+                rigol_x_data, rigol_y_data, rigol_attenuation, rigol_voltscale, rigol_voltoffset, rigol_coupling, rigol_voltage, rigol_frequency, rigol_function, rigol_g1, rigol_g2, g2, rigol_laser_voltage, rigol_sweep_type, rigol_sweep_time, rigol_sweep_btime = self.get_rigol_data(status, channel, auto, voltage, frequency, function, tscale, voltage_offset, attenuation, coupling, vscale, g1, g2, laser_voltage, sweep_type, sweep_time, sweep_btime, voltage_V, frequency_V, function_V, tscale_V, voltage_offset_V, attenuation_V, coupling_V, vscale_V, g1_V, g2_V, laser_voltage_V, sweep_type_V, sweep_time_V, sweep_btime_V)
                 #print(rigol_x_data, rigol_y_data, rigol_attenuation, rigol_voltscale, rigol_voltoffset, rigol_coupling, rigol_voltage, rigol_frequency, rigol_function, rigol_g1, rigol_g2, g2, rigol_laser_voltage)
-                self.rigol_data_updated.emit(rigol_x_data, rigol_y_data, rigol_attenuation, rigol_voltscale, rigol_voltoffset, rigol_coupling, rigol_voltage, rigol_frequency, rigol_function, rigol_g1, rigol_g2, g2_V, rigol_laser_voltage)
+                self.rigol_data_updated.emit(rigol_x_data, rigol_y_data, rigol_attenuation, rigol_voltscale, rigol_voltoffset, rigol_coupling, rigol_voltage, rigol_frequency, rigol_function, rigol_g1, rigol_g2, g2_V, rigol_laser_voltage, rigol_sweep_type, rigol_sweep_time, rigol_sweep_btime)
             time.sleep(0.1)
      # Get traces from rigol
     
-    def get_rigol_data(self, status, channel, auto, voltage, frequency, function, tscale, voltage_offset, attenuation, coupling, vscale, g1, g2, laser_voltage, voltage_V, frequency_V, function_V, tscale_V, voltage_offset_V, attenuation_V, coupling_V, vscale_V, g1_V, g2_V, laser_voltage_V):
+    def get_rigol_data(status, channel, auto, voltage, frequency, function, tscale, voltage_offset, attenuation, coupling, vscale, g1, g2, laser_voltage, sweep_type, sweep_time, sweep_btime, voltage_V, frequency_V, function_V, tscale_V, voltage_offset_V, attenuation_V, coupling_V, vscale_V, g1_V, g2_V, laser_voltage_V, sweep_type_V, sweep_time_V, sweep_btime_V):
         if rigol_ip == "no":
             mainWindow.showWarningSignal.emit("Rigol MSO5074 not found. Please check the USB and network connections, restart the GUI and try again.")
         try:    
@@ -484,6 +510,9 @@ class RigolDataThread(QThread):
                 rigol_voltscale = float(scope.query(f":CHAN{channel}:SCAL?"))
                 rigol_voltoffset = float(scope.query(f":SOUR{channel}:VOLT:OFFS?"))
                 rigol_attenuation = float(scope.query(f":CHAN{channel}:PROB?")) 
+                rigol_sweep_type = str(scope.query(f":SOUR1:SWE:TYPE?")) 
+                rigol_sweep_time = float(scope.query(f":SOUR1:SWE:STIM?")) 
+                rigol_sweep_btime = float(scope.query(f":SOUR1:SWE:BTIM?")) 
                 rigol_instance = RigolDataThread.get_instance() 
                 
                 if rigol_instance:
@@ -558,6 +587,15 @@ class RigolDataThread(QThread):
                         else:
                             rigol_instance.set_rigol_laser_voltage(0, 0)
                             mainWindow.showWarningSignal.emit("'Laser voltage' range is between 0 and 5 V")
+                    elif (sweep_type == 1):
+                        scope.write(f":SOUR1:SWE:TYPE {sweep_type_V}")
+                        rigol_instance.set_rigol_sweep_type(0, sweep_type_V)    
+                    elif (sweep_time == 1):
+                        scope.write(f":SOUR1:SWE:STIM {sweep_time_V}")
+                        rigol_instance.set_rigol_sweep_time(0, sweep_time_V)   
+                    elif (sweep_btime == 1):
+                        scope.write(f":SOUR1:SWE:BTIM {sweep_btime_V}")
+                        rigol_instance.set_rigol_sweep_btime(0, sweep_btime_V)                                                                             
                     elif (auto == 1):
                         scope.write(":AUT")  
                         time.sleep(0.2)
@@ -573,12 +611,12 @@ class RigolDataThread(QThread):
                 rigol_data_0 = rigol_rawdata * -1 + 255
                 rigol_data = (-((rigol_data_0 - 127 - rigol_voltoffset / rigol_voltscale) / 25 * rigol_voltscale)*1.05)*rigol_voltscale/rigol_attenuation
                 rigol_x_values = np.arange(0, len(rigol_data)) / 100 * rigol_timescale
-                return rigol_x_values, rigol_data/rigol_voltscale, rigol_attenuation, rigol_voltscale, rigol_voltoffset, rigol_coupling, rigol_voltage, rigol_frequency, rigol_function, rigol_g1, rigol_g2, g2_V, rigol_laser_voltage
+                return rigol_x_values, rigol_data/rigol_voltscale, rigol_attenuation, rigol_voltscale, rigol_voltoffset, rigol_coupling, rigol_voltage, rigol_frequency, rigol_function, rigol_g1, rigol_g2, g2_V, rigol_laser_voltage, rigol_sweep_type, rigol_sweep_time, rigol_sweep_btime
             else:
-                return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0
+                return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0, 0, 0, 0
         except Exception as e:
              print("Error:", str(e))
-             return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0
+             return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0, 0, 0, 0
         finally:
             if scope is not None:
                 scope.close()            
@@ -589,10 +627,10 @@ class RigolDataThread(QThread):
                     os.system('usbreset 1ab1:0515')
                     self.rigol_prev_stat = status
                 time.sleep(0.01)
-                return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0
+                return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0, 0, 0, 0
             else:
                 time.sleep(0.01)
-                return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0
+                return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0, 0, 0, 0
 
     
 class MainWindow(QMainWindow):
@@ -1792,8 +1830,48 @@ class MainWindow(QMainWindow):
         self.layout4.addWidget(self.functionTypeCombobox,12, 1)
         self.layout4.addWidget(self.rigol_function_btn,12, 2)
 
+        # Frequency sweep settings
+        self.layout4.addWidget(QLabel("<b>Frequency sweep settings (function generator, channel 1):</b>"), 13, 0, 1, 2)
+
+        # Start sweep button
+        self.rigol_start_sweep_btn = QPushButton("Start frequency sweep")
+        self.rigol_start_sweep_btn.setCheckable(True) 
+        self.rigol_start_sweep_btn.clicked.connect(self.toggle_rigol_particle_trap_enable)
+        self.layout4.addWidget(self.rigol_start_sweep_btn, 13, 2)
+
+        # Frequency sweep type
+        self.rigol_sweep_type_btn = QPushButton("Set")
+        self.layout4.addWidget(QLabel("Frequency sweep type:"), 14, 0)
+        self.sweepTypeCombobox = QComboBox(self)
+        self.sweepTypeCombobox.addItems(['LIN', 'LOG', 'STEP'])
+        self.rigol_sweep_type_btn.clicked.connect(self.toggle_rigol_sweep_type) 
+        self.layout4.addWidget(self.sweepTypeCombobox,14, 1)
+        self.layout4.addWidget(self.rigol_sweep_type_btn,14, 2)
+
+        # Frequency sweep time
+        self.rigol_sweep_time = QLineEdit()
+        self.rigol_sweep_time.setText("0") 
+        self.rigol_sweep_time.setFixedWidth(220)
+        self.rigol_sweep_time_btn = QPushButton("Set")
+        self.layout4.addWidget(QLabel("Frequency sweep time [s]:"), 15, 0)
+        self.rigol_sweep_time_btn.clicked.connect(self.toggle_rigol_sweep_time)
+        self.layout4.addWidget(self.rigol_sweep_time, 15, 1)
+        self.layout4.addWidget(self.rigol_sweep_time_btn, 15, 2)        
+
+
+        # Frequency sweep back-time
+        self.rigol_sweep_btime = QLineEdit()
+        self.rigol_sweep_btime.setText("0") 
+        self.rigol_sweep_btime.setFixedWidth(220)
+        self.rigol_sweep_btime_btn = QPushButton("Set")
+        self.layout4.addWidget(QLabel("Frequency sweep b-time [s]:"), 16, 0)
+        self.rigol_sweep_btime_btn.clicked.connect(self.toggle_rigol_sweep_btime)
+        self.layout4.addWidget(self.rigol_sweep_btime, 16, 1)
+        self.layout4.addWidget(self.rigol_sweep_btime_btn, 16, 2)        
+
+
         self.graph_voltage_trap = pg.PlotWidget()
-        self.layout4.addWidget(self.graph_voltage_trap, 13, 0, 1, 7)
+        self.layout4.addWidget(self.graph_voltage_trap, 17, 0, 1, 7)
         self.rigol_data_x = []
         self.rigol_data_y = []     
 
@@ -2707,6 +2785,18 @@ class MainWindow(QMainWindow):
     def toggle_rigol_function(self):
         function = self.functionTypeCombobox.currentText()
         self.rigol_thread.set_rigol_function(1, function)
+
+    def toggle_rigol_sweep_type(self):
+        sweeptype = self.sweepTypeCombobox.currentText()
+        self.rigol_thread.set_rigol_sweep_type(1, sweeptype)
+        
+    def toggle_rigol_sweep_time(self):
+        sweep_time = float(self.rigol_sweep_time.text())
+        self.rigol_thread.set_rigol_sweep_time(1, sweep_time)
+        
+    def toggle_rigol_sweep_btime(self):
+        sweep_btime = float(self.rigol_sweep_btime.text())
+        self.rigol_thread.set_rigol_sweep_btime(1, sweep_btime)
         
     def toggle_rigol_coupling(self):
         coupling = self.couplingCombobox.currentText()
@@ -2776,6 +2866,18 @@ class MainWindow(QMainWindow):
         else:
             self.rigol_particle_trap_enable_btn.setChecked(False)
             self.rigol_particle_trap_enable_btn.setStyleSheet("background-color: 53, 53, 53;")
+
+    def toggle_rigol_sweep_start(self):
+        if self.rigol_connect.isChecked():
+            if self.rigol_start_sweep_btn.isChecked():
+                self.rigol_start_sweep_btn.setStyleSheet("background-color: darkblue;")
+                self.rigol_thread.set_rigol_g1(1, 1)
+            else:
+                self.rigol_start_sweep_btn.setStyleSheet("background-color: 53, 53, 53;")
+                self.rigol_thread.set_rigol_g1(1, 0)
+        else:
+            self.rigol_start_sweep_btn.setChecked(False)
+            self.rigol_start_sweep_btn.setStyleSheet("background-color: 53, 53, 53;")
 
     def toggle_laser_voltage(self):
         laser_voltage = float(self.rigol_laser_voltage.text())
@@ -3937,7 +4039,7 @@ class MainWindow(QMainWindow):
         #print(laser_publishing_values)
 
      # Updating data grom rigol
-    def update_rigol(self, rigol_x_data, rigol_y_data, rigol_attenuation, rigol_voltscale, rigol_voltoffset, rigol_coupling, rigol_voltage, rigol_frequency, rigol_function, rigol_g1, rigol_g2, g2_V, rigol_laser_voltage):
+    def update_rigol(self, rigol_x_data, rigol_y_data, rigol_attenuation, rigol_voltscale, rigol_voltoffset, rigol_coupling, rigol_voltage, rigol_frequency, rigol_function, rigol_g1, rigol_g2, g2_V, rigol_laser_voltage, rigol_sweep_type, rigol_sweep_time, rigol_sweep_btime):
         global g1_global
         if self.rigol_particle_trap_enable_btn.isChecked():
             g1_global = 1
@@ -4006,17 +4108,30 @@ class MainWindow(QMainWindow):
             function_number = 5
         else:
             function_number = 0
+
+        if rigol_sweep_type == "LIN\n":
+            sweep_number = 1
+        elif rigol_sweep_type == "LOG\n":
+            sweep_number = 2
+        elif rigol_sweep_type == "STEP\n":
+            sweep_number = 3
+        else:
+            sweep_number = 0        
             
         self.rigol_values = [rigol_voltage, rigol_voltoffset, rigol_frequency, function_number, g1_global]
         self.laser_values = [rigol_laser_voltage, g2_V]
+        self.sweep_values = [sweep_number, rigol_sweep_time, rigol_sweep_btime]
         
         if any(self.rigol_values):
             self.send_rigol_publishing_values()#self.rigol_values)
             self.rigol_values = []
         if any(self.laser_values):    
             self.send_laser_publishing_values()#self.laser_values)
-            self.laser_values = []               
-        
+            self.laser_values = []
+        #if any(self.rigol_values):   # PENDIENTE IMPLEMENTAR EN GRPC                
+        #    self.send_sweep_publishing_values()
+        #    self.sweep_values = []
+    
     def calculate_fundamental_frequency(self, freq, magn):
         # Find valid indices with frequency > 1.1 and magnitude > 0.5
         valid_indices = [i for i in range(len(magn)) if freq[i] > 1.1 and magn[i] > 0.5]
