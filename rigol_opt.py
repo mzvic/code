@@ -306,9 +306,9 @@ class LaserPublish2Broker(QThread):
 
 # Rigol initial settings
 try:
-    os.system('usbreset 1ab1:0515')
+    #os.system('usbreset 1ab1:0515')
     rm1 = pyvisa.ResourceManager('@py')
-    scope_usb = rm1.open_resource('USB0::6833::1301::MS5A242205632::0::INSTR', timeout = 5000)
+    scope_usb = rm1.open_resource('USB0::6833::1301::MS5A242205632::0::INSTR',  write_termination='\n', read_termination='\n')
     scope_usb.write(":RUN")
     scope_usb.write(":TIM:MODE MAIN")
     scope_usb.write(":CHAN1:DISP 1")
@@ -323,7 +323,7 @@ try:
     scope_usb.write(":LAN:GAT 152.74.216.1")
     scope_usb.write(":LAN:IPAD 152.74.216.91")
     scope_usb.write(":LAN:DNS 152.74.16.14")
-    #scope_usb.write(":LAN:APPL")
+    scope_usb.write(":LAN:APPL")
     rigol_ip = scope_usb.query(':LAN:VISA?').strip()
     print(rigol_ip)
     scope_usb.close()
@@ -336,7 +336,7 @@ except ValueError as ve:
 # Definition of a custom thread class for updating Rigol data        
 class RigolDataThread(QThread):
     _Rigol_instance = None
-    rigol_data_updated = pyqtSignal(np.ndarray, np.ndarray, float, float, float, str, float, float, str, float, int, int, float)
+    rigol_data_updated = pyqtSignal(np.ndarray, np.ndarray, float, float, float, str, float, float, str, float, int, int, float, str, float, float)
     
 
     def __init__(self):
@@ -381,7 +381,7 @@ class RigolDataThread(QThread):
 
     def set_rigol_status(self, status):
         self.rigol_status = status
-
+        
     def set_rigol_channel(self, chn_n):
         self.rigol_chn_n = chn_n
         
@@ -484,20 +484,23 @@ class RigolDataThread(QThread):
                 sweep_time_V = self.rigol_sweep_time_value
                 sweep_btime_V = self.rigol_sweep_btime_value
 
-
+            
                 rigol_x_data, rigol_y_data, rigol_attenuation, rigol_voltscale, rigol_voltoffset, rigol_coupling, rigol_voltage, rigol_frequency, rigol_function, rigol_g1, rigol_g2, g2, rigol_laser_voltage, rigol_sweep_type, rigol_sweep_time, rigol_sweep_btime = self.get_rigol_data(status, channel, auto, voltage, frequency, function, tscale, voltage_offset, attenuation, coupling, vscale, g1, g2, laser_voltage, sweep_type, sweep_time, sweep_btime, voltage_V, frequency_V, function_V, tscale_V, voltage_offset_V, attenuation_V, coupling_V, vscale_V, g1_V, g2_V, laser_voltage_V, sweep_type_V, sweep_time_V, sweep_btime_V)
                 #print(rigol_x_data, rigol_y_data, rigol_attenuation, rigol_voltscale, rigol_voltoffset, rigol_coupling, rigol_voltage, rigol_frequency, rigol_function, rigol_g1, rigol_g2, g2, rigol_laser_voltage)
                 self.rigol_data_updated.emit(rigol_x_data, rigol_y_data, rigol_attenuation, rigol_voltscale, rigol_voltoffset, rigol_coupling, rigol_voltage, rigol_frequency, rigol_function, rigol_g1, rigol_g2, g2_V, rigol_laser_voltage, rigol_sweep_type, rigol_sweep_time, rigol_sweep_btime)
             time.sleep(0.1)
      # Get traces from rigol
     
-    def get_rigol_data(status, channel, auto, voltage, frequency, function, tscale, voltage_offset, attenuation, coupling, vscale, g1, g2, laser_voltage, sweep_type, sweep_time, sweep_btime, voltage_V, frequency_V, function_V, tscale_V, voltage_offset_V, attenuation_V, coupling_V, vscale_V, g1_V, g2_V, laser_voltage_V, sweep_type_V, sweep_time_V, sweep_btime_V):
+    def get_rigol_data(self, status, channel, auto, voltage, frequency, function, tscale, voltage_offset, attenuation, coupling, vscale, g1, g2, laser_voltage, sweep_type, sweep_time, sweep_btime, voltage_V, frequency_V, function_V, tscale_V, voltage_offset_V, attenuation_V, coupling_V, vscale_V, g1_V, g2_V, laser_voltage_V, sweep_type_V, sweep_time_V, sweep_btime_V):
         if rigol_ip == "no":
             mainWindow.showWarningSignal.emit("Rigol MSO5074 not found. Please check the USB and network connections, restart the GUI and try again.")
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        print(status, g2_V)    
         try:    
             if (status == 1 or g2_V == 1):
                 rm = pyvisa.ResourceManager('@py')
                 #print(rigol_ip,datetime.now())
+                print("HOAHOLA")
                 scope = rm.open_resource(rigol_ip, timeout=15000)
                 #rigol_g2 = g2_V  
                 rigol_g2 = float(scope.query(":OUTP2?"))                     
@@ -613,10 +616,10 @@ class RigolDataThread(QThread):
                 rigol_x_values = np.arange(0, len(rigol_data)) / 100 * rigol_timescale
                 return rigol_x_values, rigol_data/rigol_voltscale, rigol_attenuation, rigol_voltscale, rigol_voltoffset, rigol_coupling, rigol_voltage, rigol_frequency, rigol_function, rigol_g1, rigol_g2, g2_V, rigol_laser_voltage, rigol_sweep_type, rigol_sweep_time, rigol_sweep_btime
             else:
-                return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0, 0, 0, 0
+                return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0, "none", 0, 0
         except Exception as e:
              print("Error:", str(e))
-             return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0, 0, 0, 0
+             return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0, "none", 0, 0
         finally:
             if scope is not None:
                 scope.close()            
@@ -627,10 +630,10 @@ class RigolDataThread(QThread):
                     os.system('usbreset 1ab1:0515')
                     self.rigol_prev_stat = status
                 time.sleep(0.01)
-                return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0, 0, 0, 0
+                return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0, "none", 0, 0
             else:
                 time.sleep(0.01)
-                return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0, 0, 0, 0
+                return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0, "none", 0, 0
 
     
 class MainWindow(QMainWindow):
@@ -1836,8 +1839,8 @@ class MainWindow(QMainWindow):
         # Start sweep button
         self.rigol_start_sweep_btn = QPushButton("Start frequency sweep")
         self.rigol_start_sweep_btn.setCheckable(True) 
-        self.rigol_start_sweep_btn.clicked.connect(self.toggle_rigol_particle_trap_enable)
-        self.layout4.addWidget(self.rigol_start_sweep_btn, 13, 2)
+        self.rigol_start_sweep_btn.clicked.connect(self.toggle_rigol_sweep_start)
+        #self.layout4.addWidget(self.rigol_start_sweep_btn, 13, 2)
 
         # Frequency sweep type
         self.rigol_sweep_type_btn = QPushButton("Set")
@@ -4041,6 +4044,7 @@ class MainWindow(QMainWindow):
      # Updating data grom rigol
     def update_rigol(self, rigol_x_data, rigol_y_data, rigol_attenuation, rigol_voltscale, rigol_voltoffset, rigol_coupling, rigol_voltage, rigol_frequency, rigol_function, rigol_g1, rigol_g2, g2_V, rigol_laser_voltage, rigol_sweep_type, rigol_sweep_time, rigol_sweep_btime):
         global g1_global
+        print(rigol_x_data, rigol_y_data)
         if self.rigol_particle_trap_enable_btn.isChecked():
             g1_global = 1
         else:
