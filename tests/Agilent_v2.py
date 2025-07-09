@@ -1,9 +1,9 @@
 import serial
 
-RS232 = serial.Serial(port='/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0', baudrate=2000000)
+RS232 = serial.Serial(port='/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0', baudrate=9600)
 
 xor_STX =  (2)
-xor_ADDR = (129)
+xor_ADDR = (128)
 
 xor_WIN = input("Enter WINDOW: ")
 xor_WIN1 = ord(xor_WIN[0].encode()) 

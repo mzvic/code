@@ -158,7 +158,7 @@ void send_data_baro(unsigned char baro_add, unsigned char baro_w1, unsigned char
     write(pserial, &baro_w1, 1);
     write(pserial, &baro_w2, 1);
     write(pserial, &baro_cr, 1);
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 }
 
@@ -262,10 +262,10 @@ int main(int argc, char* argv[]) {
             }                  
             
             // Asking for pressure
-            while (baro_response.pressure1 < 0.000000000001 || baro_response.pressure2 < 0.000000000001 || baro_response.pressure1 > 1500 ||  baro_response.pressure1 > 1500 ){
+            //while (baro_response.pressure1 < 0.000000000001 || baro_response.pressure2 < 0.000000000001 || baro_response.pressure1 > 1500 ||  baro_response.pressure2 > 1500 ){
                 send_data_baro(35, 48, 70, 13);  
                 baro_response = read_baro_response(pserial);
-            }
+            //}
             bundle.add_value(baro_response.pressure1);
             bundle.add_value(baro_response.pressure2);
             //std::cout << "Pressure 1: " << baro_response.pressure1 << " [Torr] - Pressure2: " << baro_response.pressure2 << " [Torr]" << std::endl;

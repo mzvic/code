@@ -31,3 +31,5 @@ An unexpected error has occurred: 'MainWindow' object has no attribute 'calculat
 An unexpected error has occurred: 'MainWindow' object has no attribute 'calculate_average_in_background'
 An unexpected error has occurred: 'QButtonGroup' object has no attribute 'setLayout'
 An unexpected error has occurred: 'QButtonGroup' object has no attribute 'setLayout'
+An unexpected error has occurred: 'MainWindow' object has no attribute 'brush_button'
+An unexpected error has occurred: 'MainWindow' object has no attribute 'reset_brush'

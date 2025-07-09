@@ -874,8 +874,28 @@ class MainWindow(QMainWindow):
         self.apd_button.setFixedWidth(180)
 
         apd_layout.addWidget(self.apd_button, alignment=Qt.AlignVCenter | Qt.AlignHCenter)
+        
         # ---------------------------------------------
 
+
+
+        # ---- BRUSH SYSTEM ----
+        self.brush_frame = QtWidgets.QFrame()
+        self.brush_frame.setFrameShape(QtWidgets.QFrame.Box)
+        
+        self.dock_grid.addWidget(self.brush_frame, 21, 0, 1, 2)
+
+        brush_layout = QtWidgets.QVBoxLayout(self.brush_frame)
+        self.brush_frame.setLayout(brush_layout)
+
+        self.brush_button = QtWidgets.QPushButton("Brush")
+        self.brush_button.setStyleSheet("background-color: 53, 53, 53;")
+        self.brush_button.setFixedWidth(180)
+        self.brush_button.setCheckable(False)
+        self.brush_button.clicked.connect(self.reset_brush)
+
+        brush_layout.addWidget(self.brush_button, alignment=Qt.AlignVCenter | Qt.AlignHCenter)  
+        
         # add to the dock widget
         self.dock_widget = QtWidgets.QWidget()
         self.dock_widget.setLayout(self.dock_grid)
@@ -4234,6 +4254,8 @@ class MainWindow(QMainWindow):
         msg.setIcon(QMessageBox.Critical)
         msg.exec_()
 
+    def reset_brush(self):
+        os.system('ard-reset-arduino /dev/ttyACM0')
   
 class AlertWindow(QMainWindow):
     showWarningSignal = pyqtSignal(str)
