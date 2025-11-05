@@ -305,33 +305,7 @@ class LaserPublish2Broker(QThread):
         yield bundle
 
 # Rigol initial settings
-try:
-    #os.system('usbreset 1ab1:0515')
-    rm1 = pyvisa.ResourceManager('@py')
-    scope_usb = rm1.open_resource('USB0::6833::1301::MS5A242205632::0::INSTR',  write_termination='\n', read_termination='\n')
-    scope_usb.write(":RUN")
-    scope_usb.write(":TIM:MODE MAIN")
-    scope_usb.write(":CHAN1:DISP 1")
-    scope_usb.write(":CHAN2:DISP 1")
-    scope_usb.write(":CHAN1:PROB 1")
-    scope_usb.write(":CHAN2:PROB 1")
-    scope_usb.write(":TRIG:COUP AC")
-    scope_usb.write(":LAN:AUT 0")
-    scope_usb.write(":LAN:MAN 1")
-    scope_usb.write(":LAN:DHCP 1")
-    scope_usb.write(":LAN:SMAS 225.225.225.0")
-    scope_usb.write(":LAN:GAT 152.74.216.1")
-    scope_usb.write(":LAN:IPAD 152.74.216.91")
-    scope_usb.write(":LAN:DNS 152.74.16.14")
-    scope_usb.write(":LAN:APPL")
-    rigol_ip = scope_usb.query(':LAN:VISA?').strip()
-    print(rigol_ip)
-    scope_usb.close()
-except ValueError as ve:
-    print("Rigol MSO5074:", ve)
-    rigol_ip = "no"
-    scope_usb = None
-#rigol_ip = "no"
+
 
 # Definition of a custom thread class for updating Rigol data        
 class RigolDataThread(QThread):
@@ -492,16 +466,16 @@ class RigolDataThread(QThread):
      # Get traces from rigol
     
     def get_rigol_data(self, status, channel, auto, voltage, frequency, function, tscale, voltage_offset, attenuation, coupling, vscale, g1, g2, laser_voltage, sweep_type, sweep_time, sweep_btime, voltage_V, frequency_V, function_V, tscale_V, voltage_offset_V, attenuation_V, coupling_V, vscale_V, g1_V, g2_V, laser_voltage_V, sweep_type_V, sweep_time_V, sweep_btime_V):
-        if rigol_ip == "no":
-            mainWindow.showWarningSignal.emit("Rigol MSO5074 not found. Please check the USB and network connections, restart the GUI and try again.")
+        #if rigol_ip == "no":
+        #    mainWindow.showWarningSignal.emit("Rigol MSO5074 not found. Please check the USB and network connections, restart the GUI and try again.")
         print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         print(status, g2_V)    
         try:    
             if (status == 1 or g2_V == 1):
                 rm = pyvisa.ResourceManager('@py')
                 #print(rigol_ip,datetime.now())
-                print("HOAHOLA")
-                scope = rm.open_resource(rigol_ip, timeout=15000)
+                #print("HOAHOLA")
+                scope = rm.open_resource('TCPIP0::152.74.216.91::INSTR', timeout=15000)
                 #rigol_g2 = g2_V  
                 rigol_g2 = float(scope.query(":OUTP2?"))                     
                 rigol_timescale = float(scope.query(":TIM:SCAL?"))
@@ -2015,7 +1989,7 @@ class MainWindow(QMainWindow):
         #self.apd_1_checkbox.setChecked(False)
         #apd_data_grid_layout.addWidget(self.apd_1_checkbox, 1, 0)
 
-        self.apd_2_checkbox = QCheckBox("APD Counts @100kHz")
+        self.apd_2_checkbox = QCheckBox("APD Counts @100[kHz]")
         self.apd_2_checkbox.setChecked(False)
         apd_data_grid_layout.addWidget(self.apd_2_checkbox, 2, 0)
 
@@ -2023,9 +1997,9 @@ class MainWindow(QMainWindow):
         #self.apd_3_checkbox.setChecked(False)
         #apd_data_grid_layout.addWidget(self.apd_3_checkbox, 3, 0)
 
-        self.apd_4_checkbox = QCheckBox("APD FFT @0.01Hz resolution")
+        self.apd_4_checkbox = QCheckBox("APD FFT @X[Hz] resolution (X defined by user in 'Number of samples for FFT')")
         self.apd_4_checkbox.setChecked(False)
-        apd_data_grid_layout.addWidget(self.apd_4_checkbox, 4, 0)
+        apd_data_grid_layout.addWidget(self.apd_4_checkbox, 4, 0, 1, 2)
 
         mark_all_apd_button = QPushButton("Check all")
         mark_all_apd_button.clicked.connect(self.mark_all_apd_checkboxes)
@@ -2179,22 +2153,38 @@ class MainWindow(QMainWindow):
         fft_data_group = QtWidgets.QGroupBox()
         fft_data_grid_layout = QGridLayout()      
 
+        fft_sample_label = QLabel("Number of samples for FFT:")
+        fft_sample_label.setFixedWidth(650) 
+        #fft_sample_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.fft_sample_input = QLineEdit(self)
+        self.fft_sample_input.setFixedWidth(160) 
+        self.fft_sample_input.setText("10000000") # Default value  
+        #self.fft_sample_input.setPlaceholderText("Number of FFTs to average")     
+        fft_data_grid_layout.addWidget(fft_sample_label, 1, 0)
+        fft_data_grid_layout.addWidget(self.fft_sample_input, 1, 1)   
+
+        self.fft_sample_note = QtWidgets.QLabel("Important: Consider that each FFT is obtained with the amount of samples indicated above, i.e., if the field contains a '10000000', then the resolution of each FFT is 0.01[Hz] (100 seconds window).")
+        self.fft_sample_note.setWordWrap(True) 
+        self.fft_sample_note.setStyleSheet("font-weight: bold;")
+        #self.fft_sample_note.setFixedWidth(300) 
+        fft_data_grid_layout.addWidget(self.fft_sample_note, 2, 0, 1, 2)
+#-----------------------------------------------------
         avg_fft_label = QLabel("Number of FFTs to average:")
         avg_fft_label.setFixedWidth(650) 
         #avg_fft_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.avg_fft_input = QLineEdit(self)
-        self.avg_fft_input.setFixedWidth(60) 
+        self.avg_fft_input.setFixedWidth(160) 
         self.avg_fft_input.setText("5") # Default value  
         #self.avg_fft_input.setPlaceholderText("Number of FFTs to average")     
-        fft_data_grid_layout.addWidget(avg_fft_label, 1, 0)
-        fft_data_grid_layout.addWidget(self.avg_fft_input, 1, 1)   
+        fft_data_grid_layout.addWidget(avg_fft_label, 3, 0)
+        fft_data_grid_layout.addWidget(self.avg_fft_input, 3, 1)   
 
-        self.fft_note = QtWidgets.QLabel("Important: Consider that each FFT is obtained with a window of 100 seconds, i.e., if the field contains a '5', a record of the average of the FFTs obtained in a window of 500 seconds will be generated.")
+        self.fft_note = QtWidgets.QLabel("Important: Consider that each FFT is obtained with a window of 'Number of samples for FFT'/(1E+6) seconds, i.e., if this field contains a '5', a record of the average of the FFTs obtained in a window of (5*'Number of samples for FFT')/(1E+6) seconds will be generated.")
         self.fft_note.setWordWrap(True) 
         self.fft_note.setStyleSheet("font-weight: bold;")
         #self.fft_note.setFixedWidth(300) 
-        fft_data_grid_layout.addWidget(self.fft_note, 2, 0, 1, 2)
-
+        fft_data_grid_layout.addWidget(self.fft_note, 4, 0, 1, 2)
+        
         twistorr_data_group.setLayout(twistorr_data_grid_layout)
         rigol_data_group.setLayout(rigol_data_grid_layout)    
         laser_data_group.setLayout(laser_data_grid_layout)
@@ -2573,10 +2563,21 @@ class MainWindow(QMainWindow):
                     if self.apd_4_checkbox.isChecked():
                         if int(self.avg_fft_input.text()) >= 1:
                             print(int(self.avg_fft_input.text()))                           
-                            command_fft_avg = [self.binary_paths[8], str(int(self.avg_fft_input.text()))]
-                            self.processes[8] = subprocess.Popen(command_fft_avg)
+                            
+                            if int(self.fft_sample_input.text()) >= 100000:
+                                print(int(self.fft_sample_input.text()))                           
+                                command_fft_args = [self.binary_paths[8], str(int(self.avg_fft_input.text())), str(int(self.fft_sample_input.text()))]
+                                print(command_fft_args)
+                                print(command_fft_args)
+                                print(command_fft_args)
+                                print(command_fft_args)
+                                self.processes[8] = subprocess.Popen(command_fft_args)
+                            else:
+                                self.showWarningSignal.emit("Error: 'Number of samples for FFT' must be an integer greater than or equal to 100000. Please stop data logging, set a valid number and try again.")                                    
+                            
                         else:
                             self.showWarningSignal.emit("Error: 'Number of FFTs to average' must be an integer greater than or equal to 1. Please stop data logging, set a valid number and try again.")
+                    
 
                 record_list = []
                 if (self.laser_1_checkbox.isChecked() or self.laser_2_checkbox.isChecked()):

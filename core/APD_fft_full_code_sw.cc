@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <csignal>
 #include <fftw3.h>
-//#include <boost/asio.hpp>
 #include <boost/circular_buffer.hpp>
 #include <cstdlib> 
 #include <iostream>
@@ -13,33 +12,82 @@ using namespace core;
 using namespace std::chrono;
 using namespace google::protobuf;
 
-#define BUFFER_SIZE 10000000    // 0.01 Hz resolution at a sampling frequency of 100000
-//#define AVERAGE_COUNT 5        // Number of FFTs to average and send
-
+int BUFFER_SIZE = 10000000;
 int AVERAGE_COUNT = 5;
 
 unique_ptr<Bundle> publishing_bundle;
 unique_ptr<PublisherClient> publisher_client;
-//unique_ptr<SubscriberClient> subscriber_client;
 
 fftw_plan plan = nullptr;
-double input[BUFFER_SIZE], output[BUFFER_SIZE], fft_magnitudes[BUFFER_SIZE / 2 + 1], fft_magnitudes_average[BUFFER_SIZE / 2 + 1];
-boost::circular_buffer<double> samples(BUFFER_SIZE);
+std::vector<double> input;
+std::vector<double> output;
+std::vector<double> fft_magnitudes;
+std::vector<double> fft_magnitudes_average;
+unique_ptr<boost::circular_buffer<double>> samples;
 int fft_count = 0;
 
 bool exit_flag = false;
 mutex signal_mutex;
 condition_variable signal_cv;
 
+void destroy_plan() {
+    if (plan != nullptr) {
+        fftw_destroy_plan(plan);
+        plan = nullptr;
+    }
+}
+
+void initialize_buffers(int size) {
+    BUFFER_SIZE = size;
+
+    // Destroy existing plan first
+    destroy_plan();
+
+    // Resize vectors
+    input.resize(BUFFER_SIZE);
+    output.resize(BUFFER_SIZE);
+    fft_magnitudes.resize(BUFFER_SIZE / 2 + 1);
+    fft_magnitudes_average.resize(BUFFER_SIZE / 2 + 1);
+    
+    // Recreate circular buffer
+    samples = make_unique<boost::circular_buffer<double>>(BUFFER_SIZE);
+
+    // Initialize with zeros
+    std::fill(input.begin(), input.end(), 0.0);
+    std::fill(output.begin(), output.end(), 0.0);
+    std::fill(fft_magnitudes.begin(), fft_magnitudes.end(), 0.0);
+    std::fill(fft_magnitudes_average.begin(), fft_magnitudes_average.end(), 0.0);
+
+    // Create new plan - use FFTW_MEASURE for better performance
+    // Note: This will overwrite the input array during planning
+    plan = fftw_plan_r2r_1d(BUFFER_SIZE,
+                            input.data(),
+                            output.data(),
+                            FFTW_R2HC,
+                            FFTW_MEASURE);  // Changed to MEASURE for better optimization
+
+    cout << "Plan created for buffer size: " << BUFFER_SIZE << endl;
+}
+
 void SendToBroker(const Timestamp &timestamp) {
   cout << "Publishing data" << endl;
 
   publishing_bundle->clear_value();
 
-  for (const double &kElem : fft_magnitudes_average)
-	publishing_bundle->add_value(kElem);
+  // Calcular cuántos puntos tenemos
+  size_t our_points = fft_magnitudes_average.size();
+  size_t storage_expected_points = 5000001;  // FFT_FULL_SIZE del storage
+  
+  cout << "Sending " << our_points << " points, storage expects " << storage_expected_points << endl;
 
-//  publisher_client->Publish(*publishing_bundle, timestamp);
+  // Enviar los puntos que tenemos
+  for (size_t i = 0; i < std::min(our_points, storage_expected_points); i++)
+    publishing_bundle->add_value(fft_magnitudes_average[i]);
+    
+  // Si tenemos menos puntos de los esperados, rellenar con ceros
+  for (size_t i = our_points; i < storage_expected_points; i++)
+    publishing_bundle->add_value(0.0);
+
   publisher_client->Publish(*publishing_bundle, timestamp);
 }
 
@@ -48,94 +96,95 @@ void ProcessBundle(const Bundle &bundle) {
 
   const auto &kValue = bundle.value();
 
-  // Append received data. Note that we will process the last BUFFER_SIZE samples,
-  // so if value and BUFFER_SIZE are not aligned, some old data could be lost
-  samples.insert(samples.end(), kValue.begin(), kValue.end());
+  // Check if samples buffer is properly initialized
+  if (!samples || samples->capacity() != BUFFER_SIZE) {
+      cerr << "Error: samples buffer not properly initialized!" << endl;
+      return;
+  }
 
-  cout << "\33[2K\r" << ((float) samples.size() / BUFFER_SIZE) * 100.0 << " % samples" << flush;
+  // Append received data
+  samples->insert(samples->end(), kValue.begin(), kValue.end());
+
+  cout << "\33[2K\r" << ((float) samples->size() / BUFFER_SIZE) * 100.0 << " % samples" << flush;
 
   // Check if we have enough data to proceed
-  if (samples.size() < BUFFER_SIZE)
-	return;
+  if (samples->size() < BUFFER_SIZE)
+    return;
 
   cout << endl;
 
-  // Create input
-  for (int i = 0; i < BUFFER_SIZE; i++)
-	input[i] = samples.at(i);
-
-  // Create plan if needed
+  // Verify plan exists
   if (plan == nullptr) {
-	cout << "Creating plan" << endl;
-	// Save input data since a new plan erases the input
-	//	double input_backup[BUFFER_SIZE];
-	auto *input_backup = new double[BUFFER_SIZE];
-
-	//	copy(begin(input), end(input), begin(input_backup));
-	memcpy(input_backup, input, BUFFER_SIZE * sizeof(double));
-
-	// Create plan
-	plan = fftw_plan_r2r_1d(BUFFER_SIZE, input, output, FFTW_R2HC, FFTW_ESTIMATE);    // FFTW_MEASURE for a better estimation, but a longer execution time
-
-	// Restore input
-	//	copy(begin(input_backup), end(input_backup), begin(input));
-	memcpy(input, input_backup, BUFFER_SIZE * sizeof(double));
-
-	// Delete backup
-	delete[] input_backup;
+      cerr << "Error: FFTW plan not initialized!" << endl;
+      samples->clear();
+      return;
   }
 
-  cout << "Executing plan" << endl;
+  // Create input - ensure we don't access out of bounds
+  for (int i = 0; i < BUFFER_SIZE && i < samples->size(); i++)
+    input[i] = samples->at(i);
+
+  cout << "Executing plan for size: " << BUFFER_SIZE << endl;
 
   // Execute FFTW plan
   fftw_execute(plan);
 
   // Remove DC component
-  fft_magnitudes[0] = 0;
+  if (fft_magnitudes.size() > 0)
+    fft_magnitudes[0] = 0;
 
-  // Calculate magnitudes
-  for (int i = 1; i < (BUFFER_SIZE + 1) / 2; i++)  // (i < N/2 rounded up)
-	fft_magnitudes[i] = sqrt(output[i] * output[i] + output[BUFFER_SIZE - i] * output[BUFFER_SIZE - i]);
+  // Calculate magnitudes - with bounds checking
+  int max_i = std::min((BUFFER_SIZE + 1) / 2, static_cast<int>(fft_magnitudes.size()));
+  for (int i = 1; i < max_i; i++) {
+      if (i < BUFFER_SIZE && (BUFFER_SIZE - i) < BUFFER_SIZE) {
+          fft_magnitudes[i] = sqrt(output[i] * output[i] + output[BUFFER_SIZE - i] * output[BUFFER_SIZE - i]);
+      }
+  }
 
-  if (BUFFER_SIZE % 2 == 0) // Only if N is even. NOLINT: BUFFER_SIZE could be odd too
-	fft_magnitudes[BUFFER_SIZE / 2] = abs(output[BUFFER_SIZE / 2]);  // Nyquist frequency
+  if (BUFFER_SIZE % 2 == 0 && (BUFFER_SIZE / 2) < fft_magnitudes.size())
+    fft_magnitudes[BUFFER_SIZE / 2] = abs(output[BUFFER_SIZE / 2]);  // Nyquist frequency
 
   // Aggregate fft_magnitudes_average
   if (fft_count == 0) {
-	memcpy(fft_magnitudes_average, fft_magnitudes, sizeof(fft_magnitudes));
+    std::copy(fft_magnitudes.begin(), fft_magnitudes.end(), fft_magnitudes_average.begin());
   } else {
-	for (int i = 0; i < (BUFFER_SIZE / 2 + 1); i++)
-	  fft_magnitudes_average[i] += fft_magnitudes[i];
+    int max_avg_i = std::min(static_cast<int>(fft_magnitudes.size()), 
+                             static_cast<int>(fft_magnitudes_average.size()));
+    for (int i = 0; i < max_avg_i; i++)
+      fft_magnitudes_average[i] += fft_magnitudes[i];
   }
 
   fft_count++;
 
   // Ready to send FFT
   if (fft_count == AVERAGE_COUNT) {
-	double max_fft;
+    double max_fft = 0;
 
-	// Calculate average
-	for (auto &elem : fft_magnitudes_average)
-	  elem /= AVERAGE_COUNT;
+    // Calculate average
+    for (auto &elem : fft_magnitudes_average)
+      elem /= AVERAGE_COUNT;
 
-	// Find max magnitude
-	max_fft = 0;
-	for (const auto &kElem : fft_magnitudes_average) {
-	  if (kElem > max_fft)
-		max_fft = kElem;
-	}
+    // Find max magnitude
+    for (const auto &kElem : fft_magnitudes_average) {
+      if (kElem > max_fft)
+        max_fft = kElem;
+    }
 
-	// Normalize magnitudes vector
-	for (auto &elem : fft_magnitudes_average)
-	  elem /= max_fft;
+    // Normalize magnitudes vector (avoid division by zero)
+    if (max_fft > 0) {
+        for (auto &elem : fft_magnitudes_average)
+          elem /= max_fft;
+    }
 
-	SendToBroker(bundle.timestamp());
+    SendToBroker(bundle.timestamp());
 
-	fft_count = 0;
+    fft_count = 0;
+    // Reset average array
+    std::fill(fft_magnitudes_average.begin(), fft_magnitudes_average.end(), 0.0);
   }
 
-  // Clear samples. This is a fixed (no sliding) window approach
-  samples.clear();
+  // Clear samples (fixed window approach)
+  samples->clear();
 
   auto stop = high_resolution_clock::now();
   auto duration = duration_cast<microseconds>(stop - start);
@@ -154,52 +203,50 @@ void HandleSignal(int) {
 
 int main(int argc, char *argv[]) {
   
-    if (argc != 2) {
-        std::cerr << "Uso: " << argv[0] << " <AVERAGE_COUNT>" << std::endl;
-        return 1;     }
+    if (argc != 3) {  
+        std::cerr << "Usage: " << argv[0] << " <AVERAGE_COUNT> <BUFFER_SIZE>" << std::endl;
+        return 1;
+    }
 
     AVERAGE_COUNT = std::atoi(argv[1]);
+    BUFFER_SIZE = std::atoi(argv[2]);
 
     if (AVERAGE_COUNT < 1) {
         std::cerr << "AVERAGE_COUNT must be a positive integer." << std::endl;
         return 1; 
     }
     
+    if (BUFFER_SIZE < 100000) {
+        std::cerr << "BUFFER_SIZE must be greater than 100000." << std::endl;
+        return 1; 
+    }
+    
+    // Initialize FFT threads FIRST, before any FFTW calls
+    fftw_init_threads();
+    fftw_plan_with_nthreads(8);
+    
+    initialize_buffers(BUFFER_SIZE);
+
+    cout << "BUFFER_SIZE = " << BUFFER_SIZE << endl;
+    cout << "FFT initialized correctly." << endl;
   
-  
-  unique_lock<mutex> slck(signal_mutex);
+    unique_lock<mutex> slck(signal_mutex);
 
-//  publisher_client = new PublisherClient();
-  publisher_client = make_unique<PublisherClient>();
-//  request_.mutable_types()->Assign(request.begin(), request.end());
-//  subscriber_client = new SubscriberClient(&ProcessBundle, vector<int>{DATA_APD_FULL});
-//  subscriber_client = make_unique<SubscriberClient>(&ProcessBundle, vector<int>{DATA_APD_FULL});
-  SubscriberClient subscriber_client(&ProcessBundle, vector<int>{DATA_APD_FULL});
-//  subscriber_client = new SubscriberClient(&ProcessBundle, &interests);
-//  publishing_bundle = new Bundle();
-  publishing_bundle = make_unique<Bundle>();
+    publisher_client = make_unique<PublisherClient>();
+    SubscriberClient subscriber_client(&ProcessBundle, vector<int>{DATA_APD_FULL});
+    publishing_bundle = make_unique<Bundle>();
 
-  publishing_bundle->set_type(DATA_FFT_FULL);
-  
-  // Register handler
-  std::signal(SIGINT, HandleSignal);
+    publishing_bundle->set_type(DATA_FFT_FULL);
+    
+    // Register handler
+    std::signal(SIGINT, HandleSignal);
 
-  // Initialize FFT threads
-  fftw_init_threads();
-  fftw_plan_with_nthreads(8);
+    // Wait for CTRL-C signal
+    signal_cv.wait(slck, [] { return exit_flag; });
 
-  // Wait fot CTRL-C signal
-  signal_cv.wait(slck, [] { return exit_flag; });
+    // Cleanup
+    destroy_plan();
+    fftw_cleanup_threads();
 
-  // Destroy FFTW plan
-  if (plan != nullptr)
-	fftw_destroy_plan(plan);
-
-  fftw_cleanup_threads();
-
-//  delete subscriber_client;
-//  delete publisher_client;
-//  delete publishing_bundle;
-
-  return 0;
+    return 0;
 }
