@@ -2430,6 +2430,7 @@ class MainWindow(QMainWindow):
                 else:
                     storage_list.append("/home/code/CodeDataLogging/"+self.folder_line_edit.text()+"/"+self.storage_line_edit.text())
                 storage_list.append(str(self.minutes_per_file_argument))
+                storage_list.append(str(int(int(self.fft_sample_input.text()) / 2 + 1)))
                 # Laser #
                 if self.laser_1_checkbox.isChecked():
                     storage_list.append("laser_voltage") 
@@ -2567,9 +2568,6 @@ class MainWindow(QMainWindow):
                             if int(self.fft_sample_input.text()) >= 100000:
                                 print(int(self.fft_sample_input.text()))                           
                                 command_fft_args = [self.binary_paths[8], str(int(self.avg_fft_input.text())), str(int(self.fft_sample_input.text()))]
-                                print(command_fft_args)
-                                print(command_fft_args)
-                                print(command_fft_args)
                                 print(command_fft_args)
                                 self.processes[8] = subprocess.Popen(command_fft_args)
                             else:

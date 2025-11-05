@@ -28,7 +28,7 @@
 #define DATASET_NAME_LASER_MONITOR "Laser"
 #define DATASET_NAME_EG_MONITOR "ElectronGun"
 
-#define FFT_FULL_SIZE 5000001
+size_t FFT_FULL_SIZE = 5000001;
 #define COUNTS_SIZE 1000
 
 using namespace core;
@@ -45,7 +45,7 @@ typedef struct {
 
 typedef struct {
   double timestamp_;
-  double fft_full_[FFT_FULL_SIZE];
+  std::vector<double> fft_full_;
 } FFTEntry;
 
 typedef struct {
@@ -212,8 +212,12 @@ void WriteData(const Bundle &bundle) {
 		  LOG("Writing FFT record");
 		  // Create entry
 		  fft_entry->timestamp_ = (double) bundle.timestamp().seconds() + (double) bundle.timestamp().nanos() / 1000000000L;
-		  for (int i = 0; i < FFT_FULL_SIZE; i++)
+		  fft_entry->fft_full_.resize(FFT_FULL_SIZE);
+		  size_t data_points = std::min((size_t)kValue.size(), FFT_FULL_SIZE);
+		  for (int i = 0; i < data_points; i++)
 			fft_entry->fft_full_[i] = kValue.Get(i);
+		  for (size_t i = data_points; i < FFT_FULL_SIZE; i++)
+			fft_entry->fft_full_[i] = 0.0;			
 		  LOG("Parsing done");
 		  if (H5PTappend(fft_ptable, 1, fft_entry.get()) < 0)
 			LOG("Error appending entry");
@@ -382,11 +386,11 @@ static hid_t MakeFFTEntryType() {
 	  if (H5Tinsert(type_id_fft, "Timestamp", HOFFSET(FFTEntry, timestamp_), H5T_NATIVE_DOUBLE) < 0)
 		return H5I_INVALID_HID;
 	  
-	  // Create and insert data array in data type
+	  // Create and insert data array in data type usando el tamaño dinámico
 	  hsize_t size = FFT_FULL_SIZE;
 	  data_id_fft = H5Tarray_create(H5T_NATIVE_DOUBLE, 1, &size);    	
 	  
-	  // Insert FFT
+	  // Insert FFT - usar el offset correcto para el vector
 	  if (H5Tinsert(type_id_fft, "FFT Full", HOFFSET(FFTEntry, fft_full_), data_id_fft) < 0){
 	  	H5Tclose(data_id_fft);
 	  	return H5I_INVALID_HID;
@@ -961,6 +965,7 @@ int RunServer(void *) {
 	}
 	if (std::any_of(fft_param.begin(), fft_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
 	  fft_entry = make_unique<FFTEntry>();
+	  fft_entry->fft_full_.resize(FFT_FULL_SIZE);
 	}
 	if (std::any_of(twistorr_param.begin(), twistorr_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
 	  twistorr_monitor_entry = make_unique<TwisTorrMonitorEntry>();
@@ -1070,30 +1075,45 @@ void HandleSignal(int) {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " <Filename_from_GUI> <Seconds per file> <Variable_1> <Variable_2> ..." << std::endl;
+  if (argc < 3) {
+    std::cerr << "Usage: " << argv[0] << " <Filename_from_GUI> <Seconds per file> <FFT_FULL_SIZE> <Variable_1> <Variable_2> ..." << std::endl;
+    std::cerr << "Example: " << argv[0] << " experiment1 3600 5000001 apd_fft_full" << std::endl;
     return 1;
   }  
 
   Filename_from_GUI = argv[1];
-    std::cout << "Valor de argv[2]: '" << argv[2] << "'" << std::endl;
+  
+  // Leer seconds_per_file
+  try {
+    seconds_per_file = std::stoi(argv[2]);
+    std::cout << "Seconds per file: " << seconds_per_file << std::endl;
+  } catch (const std::invalid_argument &e) {
+    std::cerr << "Error: argv[2] no es un número válido." << std::endl;
+    return 1;
+  } catch (const std::out_of_range &e) {
+    std::cerr << "Error: argv[2] está fuera del rango de un int." << std::endl;
+    return 1;
+  }
 
-    try {
-        seconds_per_file = std::stoi(argv[2]);  // Convertimos a entero
-        std::cout << "Seconds per file: " << seconds_per_file << std::endl;
-    } catch (const std::invalid_argument &e) {
-        std::cerr << "Error: argv[2] no es un número válido." << std::endl;
-        return 1;
-    } catch (const std::out_of_range &e) {
-        std::cerr << "Error: argv[2] está fuera del rango de un int." << std::endl;
-        return 1;
-    }
+  // Leer FFT_FULL_SIZE
+  try {
+    FFT_FULL_SIZE = std::stoul(argv[3]);  // stoul para size_t
+    std::cout << "FFT_FULL_SIZE: " << FFT_FULL_SIZE << std::endl;
+  } catch (const std::invalid_argument &e) {
+    std::cerr << "Error: argv[3] (FFT_FULL_SIZE) no es un número válido." << std::endl;
+    return 1;
+  } catch (const std::out_of_range &e) {
+    std::cerr << "Error: argv[3] (FFT_FULL_SIZE) está fuera del rango." << std::endl;
+    return 1;
+  }
+
   time_t current_time = time(nullptr);
   new_file_time = current_time + seconds_per_file;  
 
   std::cout << "Nombre de archivo: " << Filename_from_GUI.c_str() << std::endl;
   
-  data_ids.assign(argv + 3, argv + argc);  
+  // Los datos empiezan desde el argumento 4 en adelante
+  data_ids.assign(argv + 4, argv + argc);  
 
   std::cout << "Tipos de datos especificados:" << std::endl;
   for (const auto &data_id : data_ids) {
