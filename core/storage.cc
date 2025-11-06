@@ -28,7 +28,8 @@
 #define DATASET_NAME_LASER_MONITOR "Laser"
 #define DATASET_NAME_EG_MONITOR "ElectronGun"
 
-#define FFT_FULL_SIZE 500001
+int FFT_FULL_SIZE_cmd;
+#define FFT_FULL_SIZE 50000001
 #define COUNTS_SIZE 1000
 
 using namespace core;
@@ -212,7 +213,7 @@ void WriteData(const Bundle &bundle) {
 		  LOG("Writing FFT record");
 		  // Create entry
 		  fft_entry->timestamp_ = (double) bundle.timestamp().seconds() + (double) bundle.timestamp().nanos() / 1000000000L;
-		  for (int i = 0; i < FFT_FULL_SIZE; i++)
+		  for (int i = 0; i < FFT_FULL_SIZE_cmd; i++)
 			fft_entry->fft_full_[i] = kValue.Get(i);
 		  LOG("Parsing done");
 		  if (H5PTappend(fft_ptable, 1, fft_entry.get()) < 0)
@@ -383,7 +384,7 @@ static hid_t MakeFFTEntryType() {
 		return H5I_INVALID_HID;
 	  
 	  // Create and insert data array in data type
-	  hsize_t size = FFT_FULL_SIZE;
+	  hsize_t size = FFT_FULL_SIZE_cmd;
 	  data_id_fft = H5Tarray_create(H5T_NATIVE_DOUBLE, 1, &size);    	
 	  
 	  // Insert FFT
@@ -1092,10 +1093,10 @@ int main(int argc, char *argv[]) {
 
   // Leer FFT_FULL_SIZE - AÑADIR DEBUG
   std::cout << "Valor de argv[3]: '" << (argv[3] ? argv[3] : "NULL") << "'" << std::endl;
-  int FT_FULL_SIZE;
+
   try {
-    FT_FULL_SIZE = std::stoi(argv[3]); 
-    std::cout << "FFT_FULL_SIZE: " << FT_FULL_SIZE << std::endl;
+    FFT_FULL_SIZE_cmd = std::stoi(argv[3]); 
+    std::cout << "FFT_FULL_SIZE: " << FFT_FULL_SIZE_cmd << std::endl;
   } catch (const std::invalid_argument &e) {
     std::cerr << "Error: argv[3] (FFT_FULL_SIZE) no es un número válido." << std::endl;
     return 1;
@@ -1119,7 +1120,7 @@ int main(int argc, char *argv[]) {
   
   // AÑADIR VERIFICACIÓN FINAL
   std::cout << "=== VERIFICACIÓN FINAL ===" << std::endl;
-  std::cout << "FFT_FULL_SIZE: " << FT_FULL_SIZE << std::endl;
+  std::cout << "FFT_FULL_SIZE: " << FFT_FULL_SIZE_cmd << std::endl;
   std::cout << "Número de data_ids: " << data_ids.size() << std::endl;
   
   char *stack;
