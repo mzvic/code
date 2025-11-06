@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package core;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service Broker {
+  rpc Publish (stream Bundle) returns (google.protobuf.Empty);
+  rpc Subscribe (Interests) returns (stream Bundle);
+//  rpc Subscribe (google.protobuf.Empty) returns (stream Bundle);
+}
+
+service Storage{
+  rpc Push (stream Bundle) returns (google.protobuf.Empty);
+  rpc Pull (Query) returns (stream Bundle);
+}
+
+enum Type {
+  UNSPECIFIED = 0;
+  DATA_APD_FULL = 1;
+  DATA_APD_PARTIAL = 2;
+  DATA_FFT_FULL = 3;
+  DATA_FFT_PARTIAL = 4;
+  DATA_APD_CVT = 5;
+  TIME_APD_CVT = 6;
+  DATA_TT_SET = 7;
+  DATA_TT_MON = 8;
+  DATA_RIGOL_SET = 9;
+  DATA_RIGOL_MON = 10;    
+  DATA_LASER_SET = 11;
+  DATA_LASER_MON = 12;
+  DATA_EG_SET = 13;
+  DATA_EG_MON = 14;
+  STORAGE_APD_FULL = 30;
+  STORAGE_APD_PARTIAL = 31;
+  STORAGE_FFT_FULL = 32;
+  STORAGE_FFT_PARTIAL = 33;
+  STORAGE_TT_MON = 34;
+  STORAGE_RIGOL_MON = 35;
+  STORAGE_LASER_MON = 36;
+  STORAGE_EG_MON = 37;
+}
+
+message Bundle {
+  google.protobuf.Timestamp timestamp = 1;
+  Type type = 2;
+  repeated double value = 3;
+//  repeated int32 apd = 2;
+//  repeated double fft = 3;
+//  repeated double freq = 4;
+}
+
+message Interests {
+  repeated Type types = 1;
+}
+
+
+message Query {
+  google.protobuf.Timestamp from = 1;
+  google.protobuf.Timestamp to = 2;
+  Type type = 3;
+}
+//message Num {
+//  Type type = 1;
+//  double value = 2;
+//}
+//
+//message Arr {
+//  Type type = 1;
+//  repeated double value = 2;
+//}
+//
+//message Str {
+//  Type type = 1;
+//  string value = 2;
+//}

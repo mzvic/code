@@ -12,7 +12,7 @@ using namespace core;
 using namespace std::chrono;
 using namespace google::protobuf;
 
-int BUFFER_SIZE = 10000000;
+int BUFFER_SIZE = 1000000;
 int AVERAGE_COUNT = 5;
 
 unique_ptr<Bundle> publishing_bundle;
@@ -76,7 +76,7 @@ void SendToBroker(const Timestamp &timestamp) {
 
   // Calcular cuántos puntos tenemos
   size_t our_points = fft_magnitudes_average.size();
-  size_t storage_expected_points = 5000001;  // FFT_FULL_SIZE del storage
+  size_t storage_expected_points = (BUFFER_SIZE / 2) + 1;  // FFT_FULL_SIZE del storage
   
   cout << "Sending " << our_points << " points, storage expects " << storage_expected_points << endl;
 

@@ -2158,12 +2158,12 @@ class MainWindow(QMainWindow):
         #fft_sample_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.fft_sample_input = QLineEdit(self)
         self.fft_sample_input.setFixedWidth(160) 
-        self.fft_sample_input.setText("10000000") # Default value  
+        self.fft_sample_input.setText("1000000") # Default value  
         #self.fft_sample_input.setPlaceholderText("Number of FFTs to average")     
         fft_data_grid_layout.addWidget(fft_sample_label, 1, 0)
         fft_data_grid_layout.addWidget(self.fft_sample_input, 1, 1)   
 
-        self.fft_sample_note = QtWidgets.QLabel("Important: Consider that each FFT is obtained with the amount of samples indicated above, i.e., if the field contains a '10000000', then the resolution of each FFT is 0.01[Hz] (100 seconds window).")
+        self.fft_sample_note = QtWidgets.QLabel("Important: Consider that each FFT is obtained with the amount of samples indicated above, i.e., if the field contains a '1000000', then the resolution of each FFT is 0.1[Hz] (10 seconds window).")
         self.fft_sample_note.setWordWrap(True) 
         self.fft_sample_note.setStyleSheet("font-weight: bold;")
         #self.fft_sample_note.setFixedWidth(300) 
@@ -2431,6 +2431,8 @@ class MainWindow(QMainWindow):
                     storage_list.append("/home/code/CodeDataLogging/"+self.folder_line_edit.text()+"/"+self.storage_line_edit.text())
                 storage_list.append(str(self.minutes_per_file_argument))
                 storage_list.append(str(int(int(self.fft_sample_input.text()) / 2 + 1)))
+                print(str(int(int(self.fft_sample_input.text()) / 2 + 1)))
+                
                 # Laser #
                 if self.laser_1_checkbox.isChecked():
                     storage_list.append("laser_voltage") 
