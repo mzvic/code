@@ -90,6 +90,7 @@ enum Type : int {
   DATA_LASER_MON = 12,
   DATA_EG_SET = 13,
   DATA_EG_MON = 14,
+  DATA_LAKESHORE_MON = 15,
   STORAGE_APD_FULL = 30,
   STORAGE_APD_PARTIAL = 31,
   STORAGE_FFT_FULL = 32,
@@ -98,6 +99,7 @@ enum Type : int {
   STORAGE_RIGOL_MON = 35,
   STORAGE_LASER_MON = 36,
   STORAGE_EG_MON = 37,
+  STORAGE_LAKESHORE_MON = 38,
   Type_INT_MIN_SENTINEL_DO_NOT_USE_ =
       std::numeric_limits<::int32_t>::min(),
   Type_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -106,8 +108,8 @@ enum Type : int {
 
 bool Type_IsValid(int value);
 constexpr Type Type_MIN = static_cast<Type>(0);
-constexpr Type Type_MAX = static_cast<Type>(37);
-constexpr int Type_ARRAYSIZE = 37 + 1;
+constexpr Type Type_MAX = static_cast<Type>(38);
+constexpr int Type_ARRAYSIZE = 38 + 1;
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor*
 Type_descriptor();
 template <typename T>
@@ -120,7 +122,7 @@ const std::string& Type_Name(T value) {
 template <>
 inline const std::string& Type_Name(Type value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::NameOfDenseEnum<Type_descriptor,
-                                                 0, 37>(
+                                                 0, 38>(
       static_cast<int>(value));
 }
 inline bool Type_Parse(absl::string_view name, Type* value) {

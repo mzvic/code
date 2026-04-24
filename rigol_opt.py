@@ -25,6 +25,7 @@ import os
 import pyvisa
 import psutil
 import struct
+from lakeshore_335 import LakeShore335
 #python -m grpc_tools.protoc -I /home/code/Development1/core/ --python_out=. --grpc_python_out=. /home/code/Development1/core/core.proto
 
 # Pressure needed on FRG-702 to enable electron gun
@@ -51,6 +52,7 @@ laser_publishing_values = []
 
 rigol_pub_size = 5
 laser_pub_size = 2  
+lakeshore_pub_size = 2
 
 #Setting vacuum equipment to serial instead of remote controller
 os.system('python /home/code/Development/305_008.py')
@@ -609,6 +611,80 @@ class RigolDataThread(QThread):
                 time.sleep(0.01)
                 return np.array([]), np.array([]), 0, 0, 0, "none", 0, 0, "none", 0, 0, 0, 0, "none", 0, 0
 
+# Definition of a custom thread class for publishing Lakeshore data to Broker
+class LakeshorePublish2Broker(QThread):
+    send_signal = pyqtSignal()
+
+    # Run method for the thread
+    def run(self):
+        global lakeshore_publishing_values
+        while(True):
+            lakeshore_values = lakeshore_publishing_values
+            time.sleep(0.5)
+            if lakeshore_values is not None and any(value != 0 for value in lakeshore_values):
+                channel = grpc.insecure_channel('localhost:50051')
+                stub = core_grpc.BrokerStub(channel)
+                stub.Publish(self.generate_bundles())
+                channel.close()
+                #time.sleep(4.9) # Revisar si es necesario que esto vaya en otro hilo  
+        
+    def generate_bundles(self):
+        global lakeshore_publishing_values
+        lakeshore_values = lakeshore_publishing_values
+        bundle = core.Bundle()  # Create an empty Bundle object
+        bundle.timestamp.GetCurrentTime()  # Get the current time
+        bundle.type = core.DATA_LAKESHORE_MON # Set the type to DATA_lakeshore_MON
+        self.send_signal.emit()
+        if lakeshore_values is not None and len(lakeshore_values) == lakeshore_pub_size:
+            bundle.value.extend(lakeshore_values)
+            #print("Publishing values: ", lakeshore_values)    
+        #print("Bundle: \n", bundle, "\n\n\n\n\n")
+        yield bundle
+
+
+# -------------------------------------------------------------------
+# NUEVA CLASE LakeshoreDataThread adaptada para Lake Shore 335 por USB
+# -------------------------------------------------------------------
+class LakeshoreDataThread(QThread):
+    lakeshore_data_updated = pyqtSignal(float, float)
+
+    def __init__(self, port, baudrate=57600):
+        super().__init__()
+        self.port = '/dev/serial/by-id/usb-Silicon_Labs_Model_335_Temperature_Controller_LSA2ND9-if00-port0'
+        self.baudrate = baudrate
+        self._running = True
+        self.lakeshore = None
+
+    def run(self):
+        try:
+            # Usar la clase LakeShore335 con los parámetros correctos (7 bits, paridad impar)
+            self.lakeshore = LakeShore335(port=self.port, baudrate=self.baudrate)
+            print(f"Lake Shore 335 conectado en {self.port}")
+        except Exception as e:
+            print("Error de conexión al Lake Shore 335:", e)
+            return
+
+        while self._running:
+            try:
+                # Leer temperaturas en Kelvin (canales A y B)
+                tA = self.lakeshore.read_temperature_K("A")
+                tB = self.lakeshore.read_temperature_K("B")
+                self.lakeshore_data_updated.emit(tA, tB)
+            except Exception as e:
+                print("Error de lectura del Lake Shore:", e)
+
+            self.msleep(500)   # cada 500 ms
+
+        if self.lakeshore:
+            try:
+                self.lakeshore.disconnect()
+                print("Lake Shore desconectado")
+            except:
+                pass
+
+    def stop(self):
+        self._running = False
+
     
 class MainWindow(QMainWindow):
     showWarningSignal = pyqtSignal(str)
@@ -661,6 +737,19 @@ class MainWindow(QMainWindow):
 #        self.tab6 = QWidget()
         self.tab7 = QWidget()
 
+        # -----------------------------------------------------------------
+        # Inicialización para Lake Shore 335 por USB usando enlace por ID
+        # -----------------------------------------------------------------
+  
+        self.lakeshore = None
+        # Puerto fijo usando el identificador persistente (no cambia)
+        self.lakeshore_port = '/dev/serial/by-id/usb-Silicon_Labs_Model_335_Temperature_Controller_LSA2ND9-if00-port0'
+        self.lakeshore_connected = False
+
+        self.lakeshorepublish2broker = LakeshorePublish2Broker()
+        self.lakeshorepublish2broker.send_signal.connect(self.send_lakeshore_publishing_values)
+        self.lakeshore_values = []
+
         # Add lateral view to the window for monitoring data
         self.dock = QtWidgets.QDockWidget(self)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.dock)
@@ -673,12 +762,9 @@ class MainWindow(QMainWindow):
         # ---- UPS ----
         self.ups_frame = QtWidgets.QFrame()
         self.ups_frame.setFrameShape(QtWidgets.QFrame.Box)
-
         self.dock_grid.addWidget(self.ups_frame, 0, 0, 1, 2)
-
         ups_layout = QtWidgets.QVBoxLayout(self.ups_frame)
         self.ups_frame.setLayout(ups_layout)
-
         self.dock_grid.addWidget(QLabel("       UPS battery:"), 0, 0)
         self.ups_monitor = QtWidgets.QLabel("N/C")
         self.dock_grid.addWidget(self.ups_monitor, 0, 1)
@@ -686,29 +772,21 @@ class MainWindow(QMainWindow):
         # ---- Datalogger ----
         self.logging_frame = QtWidgets.QFrame()
         self.logging_frame.setFrameShape(QtWidgets.QFrame.Box)
-
         self.dock_grid.addWidget(self.logging_frame, 1, 0, 1, 2)
-
         logging_layout = QtWidgets.QVBoxLayout(self.logging_frame)
         self.logging_frame.setLayout(logging_layout)
-
         self.logging_button = QtWidgets.QPushButton()
-        #self.logging_button.setCheckable(True)
         self.logging_button.setStyleSheet("background-color: 53, 53, 53;")
         self.logging_button.setText("Data logging")
         self.logging_button.setFixedWidth(180)
-        #self.logging_button.clicked.connect(self.logging_connect)
         logging_layout.addWidget(self.logging_button, alignment=Qt.AlignTop | Qt.AlignHCenter)
 
         # ---- TRAP SYSTEM ----
         self.trap_frame = QtWidgets.QFrame()
         self.trap_frame.setFrameShape(QtWidgets.QFrame.Box)
-
         self.dock_grid.addWidget(self.trap_frame, 2, 0, 4, 2)
-
         trap_layout = QtWidgets.QVBoxLayout(self.trap_frame)
         self.trap_frame.setLayout(trap_layout)
-
         self.trap_button = QtWidgets.QPushButton()
         self.trap_button.setCheckable(True)
         self.trap_button.setStyleSheet("background-color: 53, 53, 53;")
@@ -725,17 +803,13 @@ class MainWindow(QMainWindow):
         self.frequency_monitor = QtWidgets.QLabel("N/C")
         self.dock_grid.addWidget(self.frequency_monitor, 5, 1)
         trap_layout.addWidget(self.trap_button, alignment=Qt.AlignTop | Qt.AlignHCenter)
-        # ---------------------------------------------
 
         # ---- SYSTEM PRESSURE ----
         self.pressure_frame = QtWidgets.QFrame()
         self.pressure_frame.setFrameShape(QtWidgets.QFrame.Box)
-
         self.dock_grid.addWidget(self.pressure_frame, 6, 0, 4, 2)
-
         pressure_layout = QtWidgets.QVBoxLayout(self.pressure_frame)
         self.pressure_frame.setLayout(pressure_layout)
-
         self.pressure_button = QtWidgets.QPushButton()
         self.pressure_button.setCheckable(True)
         self.pressure_button.setStyleSheet("background-color: 53, 53, 53;")
@@ -743,29 +817,48 @@ class MainWindow(QMainWindow):
         self.pressure_button.setFixedWidth(180)
         self.pressure_button.clicked.connect(self.execute_twistorr_bar_btn)
         pressure_layout.addWidget(self.pressure_button, alignment=Qt.AlignTop | Qt.AlignHCenter)
-
         self.dock_grid.addWidget(QLabel("       305FS frequency:"), 7, 0)
         self.vacuum_frequency = QtWidgets.QLabel("N/C")
         self.dock_grid.addWidget(self.vacuum_frequency, 7, 1)
-
         self.dock_grid.addWidget(QLabel("       74FS frequency:"), 8, 0)
         self.vacuum_frequency2 = QtWidgets.QLabel("N/C")
-        self.dock_grid.addWidget(self.vacuum_frequency2, 8, 1)        
-
+        self.dock_grid.addWidget(self.vacuum_frequency2, 8, 1)
         self.dock_grid.addWidget(QLabel("       FRG-702 Pressure:"), 9, 0)
         self.FR_pressure = QtWidgets.QLabel("N/C")
-        self.dock_grid.addWidget(self.FR_pressure, 9, 1)        
+        self.dock_grid.addWidget(self.FR_pressure, 9, 1)
 
-        # ---------------------------------------------
-        # ---- ELECTRON GUN ----
+        # ========== TEMPERATURE EQUIPMENT (Lakeshore) ==========
+        self.temp_frame = QtWidgets.QFrame()
+        self.temp_frame.setFrameShape(QtWidgets.QFrame.Box)
+        self.dock_grid.addWidget(self.temp_frame, 10, 0, 3, 2)   # frame ocupa filas 10 y 11 (2 filas)
+        temp_layout = QtWidgets.QVBoxLayout(self.temp_frame)
+        self.temp_frame.setLayout(temp_layout)
+        self.temperature_button = QtWidgets.QPushButton()
+        self.temperature_button.setCheckable(True)
+        self.temperature_button.setStyleSheet("background-color: 53, 53, 53;")
+        self.temperature_button.setText("Temperature equipment")
+        self.temperature_button.setFixedWidth(180)
+        self.temperature_button.clicked.connect(self.execute_lakeshore_bar_btn)
+        temp_layout.addWidget(self.temperature_button, alignment=Qt.AlignTop | Qt.AlignHCenter)
+
+        # Monitores de temperatura (en el grid principal, no dentro del frame)
+        self.dock_grid.addWidget(QLabel("       1st stage:"), 11, 0)
+        self.temp_first_dock = QtWidgets.QLabel("N/C")
+        self.temp_first_dock.setFixedWidth(120)
+        self.dock_grid.addWidget(self.temp_first_dock, 11, 1)
+
+        self.dock_grid.addWidget(QLabel("       Trap temp.:"), 12, 0)
+        self.temp_second_dock = QtWidgets.QLabel("N/C")
+        self.temp_second_dock.setFixedWidth(120)
+        self.dock_grid.addWidget(self.temp_second_dock, 12, 1)
+        # ============================================================
+
+        # ---- ELECTRON GUN (desplazado hacia abajo por las nuevas filas) ----
         self.prevac_frame = QtWidgets.QFrame()
         self.prevac_frame.setFrameShape(QtWidgets.QFrame.Box)
-
-        self.dock_grid.addWidget(self.prevac_frame, 10, 0, 5, 2)
-
+        self.dock_grid.addWidget(self.prevac_frame, 14, 0, 5, 2)   # antes era fila 10, ahora 14
         prevac_layout = QtWidgets.QVBoxLayout(self.prevac_frame)
-        self.pressure_frame.setLayout(prevac_layout)
-
+        self.prevac_frame.setLayout(prevac_layout)   # CORREGIDO: antes usaba self.pressure_frame por error
         self.prevac_button = QtWidgets.QPushButton()
         self.prevac_button.setCheckable(True)
         self.prevac_button.setStyleSheet("background-color: 53, 53, 53;")
@@ -774,107 +867,86 @@ class MainWindow(QMainWindow):
         self.prevac_button.clicked.connect(self.execute_prevac_bar_btn)
         prevac_layout.addWidget(self.prevac_button, alignment=Qt.AlignTop | Qt.AlignHCenter)
 
-        self.dock_grid.addWidget(QLabel("       ES40 status:"), 11, 0)
+        self.dock_grid.addWidget(QLabel("       ES40 status:"), 15, 0)   # antes 11
         self.EG_status = QtWidgets.QLabel("N/C")
-        self.dock_grid.addWidget(self.EG_status, 11, 1) 
+        self.dock_grid.addWidget(self.EG_status, 15, 1)
 
         self.cathode_failure = QtWidgets.QLabel("              N/C")
-        self.dock_grid.addWidget(self.cathode_failure, 12, 0)
-
+        self.dock_grid.addWidget(self.cathode_failure, 16, 0)   # antes 12
         self.cathode_current_limit = QtWidgets.QLabel("N/C")
-        self.dock_grid.addWidget(self.cathode_current_limit, 12, 1)        
+        self.dock_grid.addWidget(self.cathode_current_limit, 16, 1)
 
         self.ES_short_circuit = QtWidgets.QLabel("N/C")
-        self.dock_grid.addWidget(self.ES_short_circuit, 13, 1)  
-
+        self.dock_grid.addWidget(self.ES_short_circuit, 17, 1)   # antes 13
         self.ES_failure = QtWidgets.QLabel("              N/C")
-        self.dock_grid.addWidget(self.ES_failure, 13, 0)
+        self.dock_grid.addWidget(self.ES_failure, 17, 0)
 
         self.FS_short_circuit = QtWidgets.QLabel("N/C")
-        self.dock_grid.addWidget(self.FS_short_circuit, 14, 1)        
-
+        self.dock_grid.addWidget(self.FS_short_circuit, 18, 1)   # antes 14
         self.FS_failure = QtWidgets.QLabel("              N/C")
-        self.dock_grid.addWidget(self.FS_failure, 14, 0)                
+        self.dock_grid.addWidget(self.FS_failure, 18, 0)
 
-        # ---------------------------------------------
-
-
-        # ---- LASER ----
+        # ---- LASER (desplazado) ----
         self.laser_frame = QtWidgets.QFrame()
         self.laser_frame.setFrameShape(QtWidgets.QFrame.Box)
-        self.laser_frame.setGeometry(0, 0, 250, 130)  # Establecer posición y tamaño del frame
-
-        self.dock_grid.addWidget(self.laser_frame, 15, 0, 3, 2)
+        self.laser_frame.setGeometry(0, 0, 250, 130)
+        self.dock_grid.addWidget(self.laser_frame, 19, 0, 3, 2)   # antes 15
 
         self.laser_button = QtWidgets.QPushButton(self.laser_frame)
         self.laser_button.setCheckable(True)
         self.laser_button.setStyleSheet("background-color: 53, 53, 53; text-align: center;")
         self.laser_button.setText("Laser")
         self.laser_button.setFixedWidth(180)
-        self.laser_button.move(25, 10)  
+        self.laser_button.move(25, 10)
         self.laser_button.clicked.connect(self.toggle_laser_connect)
+
         self.rigol_laser_voltage = QLineEdit(self.laser_frame)
         self.rigol_laser_voltage.setText("1")
         self.rigol_laser_voltage.setFixedWidth(70)
-        self.rigol_laser_voltage.move(25, 50)  
+        self.rigol_laser_voltage.move(25, 50)
 
         self.laser_set_button = QtWidgets.QPushButton(self.laser_frame)
         self.laser_set_button.setStyleSheet("background-color: 53, 53, 53; text-align: center;")
         self.laser_set_button.setText("Volt. set")
         self.laser_set_button.clicked.connect(self.toggle_laser_voltage)
         self.laser_set_button.setFixedWidth(70)
-        self.laser_set_button.move(130, 50)  
+        self.laser_set_button.move(130, 50)
 
-        self.dock_grid.addWidget(QLabel("       Laser voltage:"), 17, 0)
+        self.dock_grid.addWidget(QLabel("       Laser voltage:"), 21, 0)   # antes 17
         self.laser_voltage_monitor = QtWidgets.QLabel("N/C")
-        self.dock_grid.addWidget(self.laser_voltage_monitor, 17, 1)
+        self.dock_grid.addWidget(self.laser_voltage_monitor, 21, 1)
 
-        # ---------------------------------------------
-
-        # ---- APD SYSTEM ----
+        # ---- APD SYSTEM (desplazado) ----
         self.apd_frame = QtWidgets.QFrame()
         self.apd_frame.setFrameShape(QtWidgets.QFrame.Box)
-
-        self.dock_grid.addWidget(self.apd_frame, 20, 0, 1, 2)
-
+        self.dock_grid.addWidget(self.apd_frame, 22, 0, 1, 2)   # antes 20
         apd_layout = QtWidgets.QVBoxLayout(self.apd_frame)
         self.apd_frame.setLayout(apd_layout)
-
         self.apd_button = QtWidgets.QPushButton()
         self.apd_button.setCheckable(True)
         self.apd_button.setStyleSheet("background-color: 53, 53, 53;")
         self.apd_button.setText("APD")
         self.apd_button.clicked.connect(self.toggle_apd_connect)
         self.apd_button.setFixedWidth(180)
-
         apd_layout.addWidget(self.apd_button, alignment=Qt.AlignVCenter | Qt.AlignHCenter)
-        
-        # ---------------------------------------------
 
-
-
-        # ---- BRUSH SYSTEM ----
+        # ---- BRUSH SYSTEM (desplazado) ----
         self.brush_frame = QtWidgets.QFrame()
         self.brush_frame.setFrameShape(QtWidgets.QFrame.Box)
-        
-        self.dock_grid.addWidget(self.brush_frame, 21, 0, 1, 2)
-
+        self.dock_grid.addWidget(self.brush_frame, 23, 0, 1, 2)   # antes 21
         brush_layout = QtWidgets.QVBoxLayout(self.brush_frame)
         self.brush_frame.setLayout(brush_layout)
-
         self.brush_button = QtWidgets.QPushButton("Brush")
         self.brush_button.setStyleSheet("background-color: 53, 53, 53;")
         self.brush_button.setFixedWidth(180)
         self.brush_button.setCheckable(False)
         self.brush_button.clicked.connect(self.reset_brush)
+        brush_layout.addWidget(self.brush_button, alignment=Qt.AlignVCenter | Qt.AlignHCenter)
 
-        brush_layout.addWidget(self.brush_button, alignment=Qt.AlignVCenter | Qt.AlignHCenter)  
-        
         # add to the dock widget
         self.dock_widget = QtWidgets.QWidget()
         self.dock_widget.setLayout(self.dock_grid)
         self.dock.setWidget(self.dock_widget)
-
 
         # Set names to tabs    
         self.tab_widget.addTab(self.tab1, "APD")
@@ -1296,36 +1368,36 @@ class MainWindow(QMainWindow):
         label_pressure.setStyleSheet("text-decoration: underline; font-weight: bold;")
 
         # Set row index order for the titles
-        self.layout2.addWidget(label_pressure, 0, 4, 1, 2)
+        self.layout2.addWidget(label_pressure, 0, 6, 1, 2)
 
         self.pressure_plotting_state = 0
 
-        self.btn_pressure = QPushButton("Show pressure data")
+        self.btn_pressure = QPushButton("Plot data [RT]")
         self.btn_pressure.setCheckable(True)  
         self.btn_pressure.setStyleSheet("background-color: 53, 53, 53;")  
         self.btn_pressure.clicked.connect(self.pressure_plot_button) 
         self.btn_pressure.setFixedWidth(300) 
-        self.layout2.addWidget(self.btn_pressure, 1, 4, 1, 2) 
+        self.layout2.addWidget(self.btn_pressure, 1, 6, 1, 2) 
 
-        self.pressure1_checkbox = QCheckBox("FRG-702 (Red)")
-        self.pressure1_checkbox.setChecked(False)
-        self.layout2.addWidget(self.pressure1_checkbox, 2, 4)
+        self.pressure1_checkbox = QCheckBox("FRG-702")
+        self.pressure1_checkbox.setChecked(True)
+        self.layout2.addWidget(self.pressure1_checkbox, 2, 6)
 
-        self.pressure2_checkbox = QCheckBox("CDG-500 (Green)")
-        self.pressure2_checkbox.setChecked(False)
-        self.layout2.addWidget(self.pressure2_checkbox, 2, 5)
+        self.pressure2_checkbox = QCheckBox("CDG-500")
+        self.pressure2_checkbox.setChecked(True)
+        self.layout2.addWidget(self.pressure2_checkbox, 2, 7)
 
         self.pressure_secs_label = QLabel("T-axis length (in seconds):")
         #self.apd_counts_secs_label.setFixedWidth(195)
         #self.pressure_secs_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.pressure_secs_input = QLineEdit(self)
         self.pressure_secs_input.setFixedWidth(150)
-        self.pressure_secs_input.setText("86400") # Default value      
-        self.layout2.addWidget(self.pressure_secs_label, 3, 4)
-        self.layout2.addWidget(self.pressure_secs_input, 3, 5)
+        self.pressure_secs_input.setText("864000") # Default value      
+        self.layout2.addWidget(self.pressure_secs_label, 4, 6)
+        self.layout2.addWidget(self.pressure_secs_input, 4, 7)
 
         self.graph_pressure_vacuum = pg.PlotWidget(axisItems={'bottom': DateAxis(orientation='bottom')})
-
+        self.graph_pressure_vacuum.addLegend()
         #self.graph_pressure_vacuum.invertY()
         
         self.graph_pressure_vacuum.showGrid(x=True, y=True, alpha=1)  
@@ -1334,6 +1406,9 @@ class MainWindow(QMainWindow):
         self.graph_pressure_vacuum.setLabel('left', 'Pressure [Torr]')
         self.pressure_data1 = []
         self.pressure_data2 = []
+        self.temperature_time = []  # gráfico de temperatura
+        self.temperature_data1 = []  # Temperatura first stage
+        self.temperature_data2 = []  # Temperatura second stage
         self.pressure_time = []          
         self.steady_state_1 = True
         self.transient_threshold1 = 0.2
@@ -1349,17 +1424,82 @@ class MainWindow(QMainWindow):
         self.vacuum_power2_history = []                   
         self.vacuum_plot_time = 0 
         self.setting_twistorr = 0
+        self.temp_plot_time = 0
 
-        self.layout2.addWidget(self.graph_pressure_vacuum, 8, 0, 1, 6) 
+        self.layout2.addWidget(self.graph_pressure_vacuum, 8, 0, 1, 8) 
         
         ## Initial data for plot 1
-        self.pressure_plot1 = self.graph_pressure_vacuum.plot([time.time()-3,time.time()-2,time.time()-1,time.time()], [0,0,0,0], pen=pg.mkPen(color=(255, 0, 0), width=2))
-        self.pressure_plot2 = self.graph_pressure_vacuum.plot([time.time()-3,time.time()-2,time.time()-1,time.time()], [0,0,0,0], pen=pg.mkPen(color=(0, 255, 0), width=2))
+        self.pressure_plot1 = self.graph_pressure_vacuum.plot(
+            #[time.time()-3, time.time()-2, time.time()-1, time.time()], 
+            #[0, 0, 0, 0], 
+            pen=pg.mkPen(color=(255, 255, 0), width=2),
+            name="FRG-702" #CDG500
+        )
+        #plot([time.time()-3,time.time()-2,time.time()-1,time.time()], [0,0,0,0], pen=pg.mkPen(color=(255, 0, 0), width=2))
+        self.pressure_plot2 = self.graph_pressure_vacuum.plot(
+            #[time.time()-3, time.time()-2, time.time()-1, time.time()], 
+            #[0, 0, 0, 0], 
+            pen=pg.mkPen(color=(255, 0, 0), width=2),
+            name="CDG-500"
+        )
+        #plot([time.time()-3,time.time()-2,time.time()-1,time.time()], [0,0,0,0], pen=pg.mkPen(color=(0, 255, 0), width=2))
+        
+        self.graph_temperature = pg.PlotWidget(axisItems={'bottom': DateAxis(orientation='bottom')})
+        self.graph_temperature.showGrid(x=True, y=True, alpha=1)
+        self.graph_temperature.setLabel('bottom', 'Time', units='hh:mm:ss.µµµµµµ')
+        self.graph_temperature.setLabel('left', 'Temperature [K]')
+        self.layout2.addWidget(self.graph_temperature, 9, 0, 1, 8)
+
+        ## Initial data for temperature plots
+        self.graph_temperature.addLegend()
+        self.temperature_plot1 = self.graph_temperature.plot(
+            #[time.time()-3, time.time()-2, time.time()-1, time.time()], 
+            #[0, 0, 0, 0], 
+            pen=pg.mkPen(color=(0, 255, 0), width=2),
+            name="First Stage"
+        )
+        self.temperature_plot2 = self.graph_temperature.plot(
+            #[time.time()-3, time.time()-2, time.time()-1, time.time()], 
+            #[0, 0, 0, 0], 
+            pen=pg.mkPen(color=(0, 0, 255), width=2),
+            name="Trap temp."
+        )        
+
+        # ========== SECCIÓN LAKESHORE 335 (MONITORES Y CONTROLES) ==========
+        label_lakeshore = QLabel("Lakeshore 335")
+        label_lakeshore.setStyleSheet("text-decoration: underline; font-weight: bold;")
+        self.layout2.addWidget(label_lakeshore, 0, 4, 1, 2)   # arriba a la derecha
+
+        # Monitores de temperatura actual
+        self.monitor_temp_first = QLabel("N/C")
+        self.monitor_temp_second = QLabel("N/C")
+        self.layout2.addWidget(QLabel("First stage:"), 1, 4)
+        self.layout2.addWidget(self.monitor_temp_first, 1, 5)
+        self.layout2.addWidget(QLabel("Trap temp.:"), 2, 4)
+        self.layout2.addWidget(self.monitor_temp_second, 2, 5)
+
+        # Checkboxes para elegir curvas en el gráfico
+        self.temp_first_checkbox = QCheckBox("Show first stage")
+        self.temp_second_checkbox = QCheckBox("Show trap temp.")
+        self.temp_first_checkbox.setChecked(True)
+        self.temp_second_checkbox.setChecked(True)
+        self.layout2.addWidget(self.temp_first_checkbox, 3, 6)
+        self.layout2.addWidget(self.temp_second_checkbox, 3, 7)
+
         self.btn_vacuum_monitor = QPushButton("Connect to vacuum equipment")
         self.btn_vacuum_monitor.setCheckable(True)  
         self.btn_vacuum_monitor.setStyleSheet("background-color: 53, 53, 53;")  
         self.btn_vacuum_monitor.clicked.connect(self.execute_twistorr_btn) 
-        self.layout2.addWidget(self.btn_vacuum_monitor, 11, 0, 1, 6)
+        self.layout2.addWidget(self.btn_vacuum_monitor, 11, 0, 1, 3)
+
+        ## Initial data for plot 1
+        self.btn_temperature_monitor = QPushButton("Connect to temperature sensors")
+        self.btn_temperature_monitor.setCheckable(True)  
+        self.btn_temperature_monitor.setStyleSheet("background-color: 53, 53, 53;")  
+        self.btn_temperature_monitor.clicked.connect(self.execute_lakeshore_btn) 
+        self.layout2.addWidget(self.btn_temperature_monitor, 11, 5, 1, 3)
+
+
 
         
         #self.layout2.setRowStretch(8, 1)
@@ -1943,11 +2083,11 @@ class MainWindow(QMainWindow):
 
         self.rigol_4_checkbox = QCheckBox("Particle trap function")
         self.rigol_4_checkbox.setChecked(False)
-        rigol_data_grid_layout.addWidget(self.rigol_4_checkbox, 4, 0)
+        rigol_data_grid_layout.addWidget(self.rigol_4_checkbox, 1, 1)
 
         self.rigol_5_checkbox = QCheckBox("Particle trap function generator status")
         self.rigol_5_checkbox.setChecked(False)
-        rigol_data_grid_layout.addWidget(self.rigol_5_checkbox, 5, 0)  
+        rigol_data_grid_layout.addWidget(self.rigol_5_checkbox, 2, 1)  
 
         mark_all_rigol_button = QPushButton("Check all")
         mark_all_rigol_button.clicked.connect(self.mark_all_rigol_checkboxes)
@@ -1955,8 +2095,8 @@ class MainWindow(QMainWindow):
         unmark_all_rigol_button = QPushButton("Uncheck all")
         unmark_all_rigol_button.clicked.connect(self.unmark_all_rigol_checkboxes)
   
-        rigol_data_grid_layout.addWidget(mark_all_rigol_button, 6, 0)
-        rigol_data_grid_layout.addWidget(unmark_all_rigol_button, 6, 1)        
+        rigol_data_grid_layout.addWidget(mark_all_rigol_button, 4, 0)
+        rigol_data_grid_layout.addWidget(unmark_all_rigol_button, 4, 1)        
         # -------------------------------------------------------------------- #
         # Laser #        
         laser_data_group = QtWidgets.QGroupBox("Laser data:")
@@ -2039,9 +2179,13 @@ class MainWindow(QMainWindow):
         self.pressure_1_checkbox.setChecked(False)
         twistorr_data_grid_layout.addWidget(self.pressure_1_checkbox, 6, 0)  
 
+        self.lakeshore_1_checkbox = QCheckBox("First stage T° (Lakeshore335)")
+        self.lakeshore_1_checkbox.setChecked(False)
+        twistorr_data_grid_layout.addWidget(self.lakeshore_1_checkbox, 7, 0) 
+
         self.ups_checkbox = QCheckBox("UPS batteries (%)")
         self.ups_checkbox.setChecked(False)
-        twistorr_data_grid_layout.addWidget(self.ups_checkbox, 7, 0)                 
+        twistorr_data_grid_layout.addWidget(self.ups_checkbox, 8, 0)                 
 
         self.twistorr_6_checkbox = QCheckBox("Pump current (74FS)")
         self.twistorr_6_checkbox.setChecked(False)
@@ -2063,6 +2207,10 @@ class MainWindow(QMainWindow):
         self.twistorr_10_checkbox.setChecked(False)
         twistorr_data_grid_layout.addWidget(self.twistorr_10_checkbox, 5, 1)             
 
+        self.lakeshore_2_checkbox = QCheckBox("Trap T° (Lakeshore335)")
+        self.lakeshore_2_checkbox.setChecked(False)
+        twistorr_data_grid_layout.addWidget(self.lakeshore_2_checkbox, 7, 1) 
+
         self.pressure_2_checkbox = QCheckBox("Pressure (CDG-500)")
         self.pressure_2_checkbox.setChecked(False)
         twistorr_data_grid_layout.addWidget(self.pressure_2_checkbox, 6, 1)  
@@ -2078,8 +2226,8 @@ class MainWindow(QMainWindow):
         unmark_all_twistorr_button = QPushButton("Uncheck all")
         unmark_all_twistorr_button.clicked.connect(self.unmark_all_twistorr_checkboxes)
   
-        twistorr_data_grid_layout.addWidget(mark_all_twistorr_button, 8, 0)
-        twistorr_data_grid_layout.addWidget(unmark_all_twistorr_button, 8, 1)
+        twistorr_data_grid_layout.addWidget(mark_all_twistorr_button, 9, 0)
+        twistorr_data_grid_layout.addWidget(unmark_all_twistorr_button, 9, 1)
 
 
 
@@ -2355,6 +2503,7 @@ class MainWindow(QMainWindow):
                 self.eg_6_checkbox.isChecked() or self.eg_7_checkbox.isChecked() or
                 self.eg_8_checkbox.isChecked() or self.eg_9_checkbox.isChecked() or 
                 self.eg_10_checkbox.isChecked() or self.eg_11_checkbox.isChecked() or
+                self.lakeshore_1_checkbox.isChecked() or self.lakeshore_2_checkbox.isChecked() or
                 self.ups_checkbox.isChecked()):
             self.showWarningSignal.emit("Select the variables to record before begin data logging...")
             self.begin_logging_button.setChecked(False)
@@ -2414,6 +2563,7 @@ class MainWindow(QMainWindow):
                 self.eg_6_checkbox.isChecked() or self.eg_7_checkbox.isChecked() or
                 self.eg_8_checkbox.isChecked() or self.eg_9_checkbox.isChecked() or 
                 self.eg_10_checkbox.isChecked() or self.eg_11_checkbox.isChecked() or
+                self.lakeshore_1_checkbox.isChecked() or self.lakeshore_2_checkbox.isChecked() or
                 self.ups_checkbox.isChecked()) and (self.storage_line_edit.text()):   
 
             if self.begin_logging_button.isChecked():
@@ -2497,7 +2647,13 @@ class MainWindow(QMainWindow):
                     print("Ejecutando recorder 'CDG-500'")   
                 if self.ups_checkbox.isChecked():
                     storage_list.append("ups_status") 
-                    print("Ejecutando recorder 'UPS Batteries'")                                                            
+                    print("Ejecutando recorder 'UPS Batteries'")
+                if self.lakeshore_1_checkbox.isChecked():
+                    storage_list.append("first_stage") 
+                    print("Ejecutando recorder '1st stage temp'")
+                if self.lakeshore_2_checkbox.isChecked():
+                    storage_list.append("trap") 
+                    print("Ejecutando recorder '2nd stage temp'")                                                                                   
                 # --------------------------#
                 # Rigol #
                 if self.rigol_1_checkbox.isChecked():
@@ -2594,6 +2750,8 @@ class MainWindow(QMainWindow):
                         self.twistorr_9_checkbox.isChecked() or self.twistorr_10_checkbox.isChecked() or
                         self.pressure_1_checkbox.isChecked() or self.pressure_2_checkbox.isChecked()): 
                     record_list.append("DATA_TT_MON")    
+                if (self.lakeshore_1_checkbox.isChecked() or self.lakeshore_2_checkbox.isChecked()): 
+                    record_list.append("DATA_LAKESHORE_MON")                    
                 if (self.rigol_1_checkbox.isChecked() or self.rigol_2_checkbox.isChecked() or
                         self.rigol_3_checkbox.isChecked() or self.rigol_4_checkbox.isChecked()):   
                     record_list.append("DATA_RIGOL_MON")
@@ -2648,7 +2806,10 @@ class MainWindow(QMainWindow):
         self.twistorr_10_checkbox.setChecked(True)
         self.pressure_1_checkbox.setChecked(True)
         self.pressure_2_checkbox.setChecked(True)
+        self.lakeshore_1_checkbox.setChecked(True)
+        self.lakeshore_2_checkbox.setChecked(True)        
         self.ups_checkbox.setChecked(True)
+        
         #self.twistorr_6_checkbox.setChecked(True)  #error_comentado      
 
     def unmark_all_twistorr_checkboxes(self):
@@ -2664,6 +2825,8 @@ class MainWindow(QMainWindow):
         self.twistorr_10_checkbox.setChecked(False)
         self.pressure_1_checkbox.setChecked(False)
         self.pressure_2_checkbox.setChecked(False)  
+        self.lakeshore_1_checkbox.setChecked(False)
+        self.lakeshore_2_checkbox.setChecked(False)
         self.ups_checkbox.setChecked(False)      
         #self.twistorr_6_checkbox.setChecked(False)  #error_comentado   
 
@@ -2923,6 +3086,18 @@ class MainWindow(QMainWindow):
                 self.btn_vacuum_monitor.setStyleSheet("background-color: 53, 53, 53;")
                 self.kill_twistorr_monitor()
 
+    def execute_lakeshore_bar_btn(self):
+        if self.temperature_button.isChecked():
+            self.temperature_button.setStyleSheet("background-color: darkblue;")
+            self.btn_temperature_monitor.setChecked(True)
+            self.btn_temperature_monitor.setStyleSheet("background-color: darkblue;")
+            self.execute_lakeshore_btn()
+        else:
+            self.temperature_button.setStyleSheet("background-color: 53, 53, 53;")
+            self.btn_temperature_monitor.setChecked(False)
+            self.btn_temperature_monitor.setStyleSheet("background-color: 53, 53, 53;")
+            self.execute_lakeshore_btn()
+
     def execute_prevac_bar_btn(self):
         if self.prevac_button.isChecked():
             self.prevac_button.setStyleSheet("background-color: darkblue;")
@@ -2970,6 +3145,45 @@ class MainWindow(QMainWindow):
                 #os.system('echo code | sudo -S systemctl start twistorrmonitor.service') 
                 time.sleep(0.1)
 
+    def start_lakeshore_thread(self):
+        if hasattr(self, "lakeshore_thread") and self.lakeshore_thread.isRunning():
+            return
+        # Crear el hilo con el puerto persistente (by-id)
+        self.lakeshore_thread = LakeshoreDataThread(
+            port=self.lakeshore_port,
+            baudrate=57600
+        )
+        self.lakeshore_thread.lakeshore_data_updated.connect(self.update_lakeshore)
+        self.lakeshore_thread.start()
+        print("Hilo de Lake Shore 335 iniciado")
+
+    def stop_lakeshore_thread(self):
+        if hasattr(self, "lakeshore_thread"):
+            self.lakeshore_thread.stop()
+            self.lakeshore_thread.wait()
+            print("Hilo de Lake Shore 335 detenido")
+
+    def execute_lakeshore_btn(self):
+        if self.btn_temperature_monitor.isChecked():
+            self.btn_temperature_monitor.setStyleSheet("background-color: darkblue;")
+            try:
+                self.start_lakeshore_thread()
+                self.temperature_button.setChecked(True)
+                self.temperature_button.setStyleSheet("background-color: darkblue;")
+            except Exception as e:
+                print(f"Error conectando al Lake Shore 335: {e}")
+                self.btn_temperature_monitor.setChecked(False)
+                self.btn_temperature_monitor.setStyleSheet("background-color: 53, 53, 53;")
+        else:
+            self.btn_temperature_monitor.setStyleSheet("background-color: 53, 53, 53;")
+            try:
+                self.stop_lakeshore_thread()
+                print("Desconectado del Lake Shore 335")
+                self.temperature_button.setChecked(False)
+                self.temperature_button.setStyleSheet("background-color: 53, 53, 53;")
+            except Exception as e:
+                print(f"Error desconectando del Lake Shore: {e}")
+        
     def execute_twistorr_ss1(self, start_stop1):
         self.setting_twistorr = 1
         subprocess.run(['pkill', '-f', self.processes[11].args[0]], check=True)
@@ -3047,11 +3261,17 @@ class MainWindow(QMainWindow):
             if self.btn_vacuum_monitor.isChecked():
                 self.update_graph_pressure()
             self.vacuum_plot_time = current_time_float  
+            self.temperature_plot_time = current_time_float 
             update_transient_status = 1
             if last_digit == 0:
                 self.kill_twistorr_monitor()
                 #print("Restarting TwisTorr monitor... Time: ", datetime_obj)
                 #os.system('echo code | sudo -S systemctl restart twistorrmonitor.service') 
+        
+        if current_time_float - self.temp_plot_time >= 0.5:
+            if self.pressure_plotting_state == 1:
+                self.update_graph_temperature()
+            self.temp_plot_time = current_time_float
         
         if self.btn_vacuum_monitor.isChecked():
             if len(twistorr_subscribing_values) >= 14:
@@ -3190,9 +3410,88 @@ class MainWindow(QMainWindow):
             self.btn_tt_startstop1.setChecked(False)
             self.btn_tt_startstop1.setStyleSheet("background-color: 53, 53, 53;") 
             self.btn_tt_startstop2.setChecked(False)
-            self.btn_tt_startstop2.setStyleSheet("background-color: 53, 53, 53;")                        
+            self.btn_tt_startstop2.setStyleSheet("background-color: 53, 53, 53;")
+        
+        if self.btn_temperature_monitor.isChecked():
+            if not self.lakeshore_values or len(self.lakeshore_values) < 2:
+                print(f"Invalid lakeshore data: {self.lakeshore_values}")
+                return
+            
+            # lakeshore_values ya vienen en Kelvin
+            tempA_C = self.lakeshore_values[0] - 273.15
+            tempA_K = self.lakeshore_values[0]
+            tempB_C = self.lakeshore_values[1] - 273.15
+            tempB_K = self.lakeshore_values[1]  
+            
+            self.monitor_temp_first.setText(f"{tempA_C:.2f} [°C] / {tempA_K:.2f} [K]")
+            self.monitor_temp_second.setText(f"{tempB_C:.2f} [°C] / {tempB_K:.2f} [K]")
+                
+            self.temp_first_dock.setText(f"{tempA_K:.2f} [K]")
+            self.temp_second_dock.setText(f"{tempB_K:.2f} [K]")
+                
+        else:
+            self.monitor_temp_first.setText("N/C")
+            self.monitor_temp_second.setText("N/C")
+            self.temp_first_dock.setText("N/C")
+            self.temp_second_dock.setText("N/C")                                    
         # Sleep briefly to avoid excessive updates
         #time.sleep(0.01)
+
+    def send_lakeshore_publishing_values(self):#, values):
+        global lakeshore_publishing_values
+        self.lakeshorepublish2broker.start()  
+        lakeshore_publishing_values = self.lakeshore_values
+        #print(lakeshore_publishing_values)  # opcional
+
+    def update_graph_temperature(self):
+        if (self.pressure_plotting_state == 1):
+            if not self.lakeshore_values or len(self.lakeshore_values) < 2:
+                print(f"Invalid lakeshore data: {self.lakeshore_values}")
+                return
+            
+            tempA_C = self.lakeshore_values[0] - 273.15
+            tempA_K = tempA_C + 273.15
+            tempB_C = self.lakeshore_values[1] - 273.15
+            tempB_K = tempB_C + 273.15
+            
+            timestamp = float(time.time())
+            
+            self.temperature_time.append(timestamp)
+            self.temperature_data1.append(tempA_K)
+            self.temperature_data2.append(tempB_K)
+            
+            current_time = time.time()
+            cut_off_time = current_time - int(self.pressure_secs_input.text())
+            
+            self.temperature_time = [t for t in self.temperature_time if t >= cut_off_time]
+            self.temperature_data1 = self.temperature_data1[-len(self.temperature_time):]
+            self.temperature_data2 = self.temperature_data2[-len(self.temperature_time):]
+
+            if self.temp_first_checkbox.isChecked():
+                self.temperature_plot1.setData(self.temperature_time, self.temperature_data1)
+            else:
+                self.temperature_plot1.setData([], [])
+            
+            if self.temp_second_checkbox.isChecked():
+                self.temperature_plot2.setData(self.temperature_time, self.temperature_data2)
+            else:
+                self.temperature_plot2.setData([], []) 
+                    
+    def update_lakeshore(self, tempA_K, tempB_K):
+        self.lakeshore_values = [tempA_K, tempB_K]
+        if any(self.lakeshore_values):
+            self.send_lakeshore_publishing_values()
+        #    self.lakeshore_values = []
+            
+    def temperature_plot_button(self):
+        if self.btn_temperature.isChecked():
+            self.btn_temperature.setStyleSheet("background-color: darkblue;")
+            self.pressure_plotting_state = 1 
+            time.sleep(0.1) 
+        else:
+            self.btn_temperature.setStyleSheet("background-color: 53, 53, 53;")
+            self.pressure_plotting_state = 0 
+            time.sleep(0.1)
 
     def start_update_tt_timer(self):
         # Start a QTimer to periodically update vacuum-related values

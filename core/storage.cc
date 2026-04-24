@@ -27,6 +27,7 @@
 #define DATASET_NAME_RIGOL_MONITOR "Rigol"
 #define DATASET_NAME_LASER_MONITOR "Laser"
 #define DATASET_NAME_EG_MONITOR "ElectronGun"
+#define DATASET_NAME_LAKESHORE_MONITOR "Lakeshore"
 
 int FFT_FULL_SIZE_cmd;
 #define FFT_FULL_SIZE 50000001
@@ -96,8 +97,13 @@ typedef struct {
   float area_y;
   float grid_x;
   float grid_y;    
-  
 } ElectronGunMonitorEntry;
+
+typedef struct {
+  double timestamp_;
+  float first_stage;
+  float trap;
+} LakeshoreMonitorEntry;
 
 std::array<std::string, 1> counts_param = {"apd_counts_full"};
 std::array<std::string, 1> fft_param = {"apd_fft_full"};
@@ -105,6 +111,7 @@ std::array<std::string, 13> twistorr_param = {"pump1_current", "pump1_voltage", 
 std::array<std::string, 5> rigol_param = {"rigol_voltage", "rigol_voltage_offset", "rigol_frequency", "rigol_function", "rigol_status"};
 std::array<std::string, 2> laser_param = {"laser_voltage", "laser_state"};
 std::array<std::string, 13> electron_gun_param = {"energy_voltage", "focus_voltage", "wehnelt_voltage", "emission_current", "time_per_dot", "pos_x", "pos_y", "area_x", "area_y", "grid_x", "grid_y", "status", "status_flags"};
+std::array<std::string, 2> lakeshore_param = {"first_stage", "trap"};
 
 
 bool exit_flag = false;
@@ -121,6 +128,7 @@ unique_ptr<TwisTorrMonitorEntry> twistorr_monitor_entry;
 unique_ptr<RigolMonitorEntry> rigol_monitor_entry;
 unique_ptr<LaserMonitorEntry> laser_monitor_entry;
 unique_ptr<ElectronGunMonitorEntry> electron_gun_monitor_entry;
+unique_ptr<LakeshoreMonitorEntry> lakeshore_monitor_entry;
 
 list<ServerUpstreamReactor<Bundle, Empty> *> pusher_reactors;
 list<ServerDownstreamReactor<Bundle, Query> *> puller_reactors;
@@ -134,7 +142,7 @@ mutex data_storage_mutex;
 condition_variable inbound_queue_cv;
 condition_variable data_storage_cv;
 
-hid_t fid, counts_ptable, fft_ptable, twistorr_monitor_ptable, rigol_monitor_ptable, laser_monitor_ptable, electron_gun_monitor_ptable;
+hid_t fid, counts_ptable, fft_ptable, twistorr_monitor_ptable, rigol_monitor_ptable, laser_monitor_ptable, electron_gun_monitor_ptable, lakeshore_monitor_ptable;
 
 void OnServerUpstreamReactorDone(void *pusher_reactor) {
   unique_lock<mutex> plck(pusher_mutex);
@@ -334,6 +342,23 @@ void WriteData(const Bundle &bundle) {
 		  electron_gun_monitor_entry->grid_y = kValue.Get(11); 
 		  LOG("Parsing done");
 		  if (H5PTappend(electron_gun_monitor_ptable, 1, electron_gun_monitor_entry.get()) < 0)
+			LOG("Error appending entry");
+		  if (H5Fflush(fid, H5F_SCOPE_GLOBAL) < 0)
+			LOG("Error flushing data");
+		  LOG("A electron gun monitor entry has been written");
+	  } 
+	break;
+	
+	case STORAGE_LAKESHORE_MON:
+	  if (std::any_of(lakeshore_param.begin(), lakeshore_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+		  // Here we construct the storage entry
+		  LOG("Writing lakeshore monitor record");
+		  // Create entry
+		  lakeshore_monitor_entry->timestamp_ = (double) bundle.timestamp().seconds() + (double) bundle.timestamp().nanos() / 1000000000L;
+		  lakeshore_monitor_entry->first_stage = kValue.Get(0);
+		  lakeshore_monitor_entry->trap = kValue.Get(1); 
+		  LOG("Parsing done");
+		  if (H5PTappend(lakeshore_monitor_ptable, 1, lakeshore_monitor_entry.get()) < 0)
 			LOG("Error appending entry");
 		  if (H5Fflush(fid, H5F_SCOPE_GLOBAL) < 0)
 			LOG("Error flushing data");
@@ -686,6 +711,39 @@ static hid_t MakeElectronGunMonitorEntryType() {
   return type_id_eg;
 }
 
+static hid_t MakeLakeshoreMonitorEntryType() {
+  hid_t type_id_lakeshore;
+  // Insert timestamp in data type
+  if (std::any_of(lakeshore_param.begin(), lakeshore_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+	  // Create the memory data type
+	  type_id_lakeshore = H5Tcreate(H5T_COMPOUND, sizeof(LakeshoreMonitorEntry));
+	  if (type_id_lakeshore < 0)
+		return H5I_INVALID_HID;
+
+		if (H5Tinsert(type_id_lakeshore, "Timestamp", HOFFSET(LakeshoreMonitorEntry, timestamp_), H5T_NATIVE_DOUBLE) < 0){
+			H5Tclose(type_id_lakeshore);
+			return H5I_INVALID_HID; 	
+		}
+	}
+  // Insert other parameters
+  for (const auto &id : data_ids) {
+      
+    if (id == "first_stage") {
+		  if (H5Tinsert(type_id_lakeshore, "First_stage", HOFFSET(LakeshoreMonitorEntry, first_stage), H5T_NATIVE_FLOAT) < 0){
+		  	H5Tclose(type_id_lakeshore);
+				return H5I_INVALID_HID;
+		  }
+    } else if (id == "trap") {
+		  if (H5Tinsert(type_id_lakeshore, "Trap", HOFFSET(LakeshoreMonitorEntry, trap), H5T_NATIVE_FLOAT) < 0){
+		  	H5Tclose(type_id_lakeshore);
+				return H5I_INVALID_HID;
+		  }
+    }
+  }
+
+  return type_id_lakeshore;
+}
+
 
 int OpenDataStorage() {
   hid_t plist_id;
@@ -786,6 +844,14 @@ int OpenDataStorage() {
 		  }
 		}
 
+		if (std::any_of(lakeshore_param.begin(), lakeshore_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+		  lakeshore_monitor_ptable = H5PTopen(fid, DATASET_NAME_LAKESHORE_MONITOR);
+		  if (lakeshore_monitor_ptable == H5I_BADID) {
+			LOG("Error opening lakeshore monitor dataset");
+			return -1;
+		  }
+		}
+
 	}
 
   } else {
@@ -860,6 +926,15 @@ int OpenDataStorage() {
 			return -1;
 		  }	  	  	  
 		}
+		
+	  // Create lakeshore table
+		if (std::any_of(lakeshore_param.begin(), lakeshore_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {	  
+		  lakeshore_monitor_ptable = H5PTcreate(fid, DATASET_NAME_LAKESHORE_MONITOR, MakeLakeshoreMonitorEntryType(), (hsize_t) CHUNK_SIZE, plist_id);
+		  if (lakeshore_monitor_ptable == H5I_BADID) {
+			LOG("Error creating lakeshore monitor dataset inside file");
+			return -1;
+		  }	  	  	  
+		}
 
 	} else {
 	  // File exists but is not writable
@@ -919,6 +994,14 @@ int CloseDataStorage() {
 		return -1;
 	  }
 	}
+	
+  // Close the lakeshore monitor packet table
+	if (std::any_of(lakeshore_param.begin(), lakeshore_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {	  
+	  if (H5PTclose(lakeshore_monitor_ptable) < 0) {
+		LOG("Error closing lakeshore monitor dataset");
+		return -1;
+	  }
+	}
 
   // Close the file
   if (H5Fclose(fid) < 0) {
@@ -972,9 +1055,12 @@ int RunServer(void *) {
 	if (std::any_of(laser_param.begin(), laser_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
 	  laser_monitor_entry = make_unique<LaserMonitorEntry>();
 	}
-  if (std::any_of(electron_gun_param.begin(), electron_gun_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+    if (std::any_of(electron_gun_param.begin(), electron_gun_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
 	  electron_gun_monitor_entry = make_unique<ElectronGunMonitorEntry>();
-	}				
+	}	
+    if (std::any_of(lakeshore_param.begin(), lakeshore_param.end(), [&](const auto& param) { return std::find(data_ids.begin(), data_ids.end(), param) != data_ids.end(); })) {
+	  lakeshore_monitor_entry = make_unique<LakeshoreMonitorEntry>();
+	}					
   
   // Open data storage
   if (OpenDataStorage() < 0) {

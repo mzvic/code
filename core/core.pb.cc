@@ -131,24 +131,25 @@ const char descriptor_table_protodef_core_2eproto[] PROTOBUF_SECTION_VARIABLE(pr
     "\030\001 \003(\0162\n.core.Type\"s\n\005Query\022(\n\004from\030\001 \001("
     "\0132\032.google.protobuf.Timestamp\022&\n\002to\030\002 \001("
     "\0132\032.google.protobuf.Timestamp\022\030\n\004type\030\003 "
-    "\001(\0162\n.core.Type*\325\003\n\004Type\022\017\n\013UNSPECIFIED\020"
+    "\001(\0162\n.core.Type*\210\004\n\004Type\022\017\n\013UNSPECIFIED\020"
     "\000\022\021\n\rDATA_APD_FULL\020\001\022\024\n\020DATA_APD_PARTIAL"
     "\020\002\022\021\n\rDATA_FFT_FULL\020\003\022\024\n\020DATA_FFT_PARTIA"
     "L\020\004\022\020\n\014DATA_APD_CVT\020\005\022\020\n\014TIME_APD_CVT\020\006\022"
     "\017\n\013DATA_TT_SET\020\007\022\017\n\013DATA_TT_MON\020\010\022\022\n\016DAT"
     "A_RIGOL_SET\020\t\022\022\n\016DATA_RIGOL_MON\020\n\022\022\n\016DAT"
     "A_LASER_SET\020\013\022\022\n\016DATA_LASER_MON\020\014\022\017\n\013DAT"
-    "A_EG_SET\020\r\022\017\n\013DATA_EG_MON\020\016\022\024\n\020STORAGE_A"
-    "PD_FULL\020\036\022\027\n\023STORAGE_APD_PARTIAL\020\037\022\024\n\020ST"
-    "ORAGE_FFT_FULL\020 \022\027\n\023STORAGE_FFT_PARTIAL\020"
-    "!\022\022\n\016STORAGE_TT_MON\020\"\022\025\n\021STORAGE_RIGOL_M"
-    "ON\020#\022\025\n\021STORAGE_LASER_MON\020$\022\022\n\016STORAGE_E"
-    "G_MON\020%2i\n\006Broker\0221\n\007Publish\022\014.core.Bund"
-    "le\032\026.google.protobuf.Empty(\001\022,\n\tSubscrib"
-    "e\022\017.core.Interests\032\014.core.Bundle0\0012^\n\007St"
-    "orage\022.\n\004Push\022\014.core.Bundle\032\026.google.pro"
-    "tobuf.Empty(\001\022#\n\004Pull\022\013.core.Query\032\014.cor"
-    "e.Bundle0\001b\006proto3"
+    "A_EG_SET\020\r\022\017\n\013DATA_EG_MON\020\016\022\026\n\022DATA_LAKE"
+    "SHORE_MON\020\017\022\024\n\020STORAGE_APD_FULL\020\036\022\027\n\023STO"
+    "RAGE_APD_PARTIAL\020\037\022\024\n\020STORAGE_FFT_FULL\020 "
+    "\022\027\n\023STORAGE_FFT_PARTIAL\020!\022\022\n\016STORAGE_TT_"
+    "MON\020\"\022\025\n\021STORAGE_RIGOL_MON\020#\022\025\n\021STORAGE_"
+    "LASER_MON\020$\022\022\n\016STORAGE_EG_MON\020%\022\031\n\025STORA"
+    "GE_LAKESHORE_MON\020&2i\n\006Broker\0221\n\007Publish\022"
+    "\014.core.Bundle\032\026.google.protobuf.Empty(\001\022"
+    ",\n\tSubscribe\022\017.core.Interests\032\014.core.Bun"
+    "dle0\0012^\n\007Storage\022.\n\004Push\022\014.core.Bundle\032\026"
+    ".google.protobuf.Empty(\001\022#\n\004Pull\022\013.core."
+    "Query\032\014.core.Bundle0\001b\006proto3"
 };
 static const ::_pbi::DescriptorTable* const descriptor_table_core_2eproto_deps[2] =
     {
@@ -159,7 +160,7 @@ static ::absl::once_flag descriptor_table_core_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_core_2eproto = {
     false,
     false,
-    1018,
+    1069,
     descriptor_table_protodef_core_2eproto,
     "core.proto",
     &descriptor_table_core_2eproto_once,
@@ -213,6 +214,7 @@ bool Type_IsValid(int value) {
     case 12:
     case 13:
     case 14:
+    case 15:
     case 30:
     case 31:
     case 32:
@@ -221,6 +223,7 @@ bool Type_IsValid(int value) {
     case 35:
     case 36:
     case 37:
+    case 38:
       return true;
     default:
       return false;

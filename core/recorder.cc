@@ -84,6 +84,16 @@ void ProcessBundle(const Bundle &bundle) {
 	  pusher_client->Push(*publishing_bundle, bundle.timestamp());
 
 	  break;
+	  
+	case DATA_LAKESHORE_MON:
+	  publishing_bundle->set_type(STORAGE_LAKESHORE_MON);
+
+	  publishing_bundle->clear_value();
+	  publishing_bundle->mutable_value()->CopyFrom(bundle.value());
+
+	  pusher_client->Push(*publishing_bundle, bundle.timestamp());
+
+	  break;	  
 
 	default:
 	  break;
@@ -138,7 +148,8 @@ int main(int argc, char *argv[]) {
       {"DATA_TT_MON", 8},
       {"DATA_RIGOL_MON", 10},
       {"DATA_LASER_MON", 12},
-      {"DATA_EG_MON", 14}
+      {"DATA_EG_MON", 14},
+      {"DATA_LAKESHORE_MON", 15}
 	};
 
 	std::vector<int> data_types_int;
